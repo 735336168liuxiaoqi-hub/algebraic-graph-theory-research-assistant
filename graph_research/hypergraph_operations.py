@@ -1,0 +1,7 @@
+"""Public functional API; compatibility names remain available."""
+from graph_research.hypergraphs.families import Bicyclic_C1, Bicyclic_C1s, Bicyclic_C2, Bicyclic_C2s, Bicyclic_C3, EStarLike, VStarLike
+from graph_research.hypergraphs.operations import Add_innerPath, Add_innerPaths, BlowSomeEdges, Blow_Up, Coalescence_Hypergraphs, Disjoint_Union, Index, Rooted_Product, TotalGraph, WeightedLineGraph, add_path, add_paths, append_edges, blowup_edge, blowup_vertex, cartesian_product_H, induced_subgraph, merge_vertices, spanning_subgraph, split_vertex, subdivide_edge, vertice_releasing
+from graph_research.hypergraphs.quotients import OrbitQuotient, Quotient_Graph, edge_representative_quotient
+from graph_research.hypergraphs.spectral import AdjacencyTensor, Associated_Weight_Bipartite_Graph, Matching_Polynomial, WIe
+__all__ = ['Add_innerPath', 'Add_innerPaths', 'AdjacencyTensor', 'Associated_Weight_Bipartite_Graph', 'Bicyclic_C1', 'Bicyclic_C1s', 'Bicyclic_C2', 'Bicyclic_C2s', 'Bicyclic_C3', 'BlowSomeEdges', 'Blow_Up', 'Coalescence_Hypergraphs', 'Disjoint_Union', 'EStarLike', 'Index', 'Matching_Polynomial', 'OrbitQuotient', 'Quotient_Graph', 'Rooted_Product', 'TotalGraph', 'VStarLike', 'WIe', 'WeightedLineGraph', 'add_path', 'add_paths', 'append_edges', 'blowup_edge', 'blowup_vertex', 'cartesian_product_H', 'edge_representative_quotient', 'induced_subgraph', 'merge_vertices', 'spanning_subgraph', 'split_vertex', 'subdivide_edge', 'vertice_releasing']
+def __dir__(): return sorted(set(globals()) | set(__all__))

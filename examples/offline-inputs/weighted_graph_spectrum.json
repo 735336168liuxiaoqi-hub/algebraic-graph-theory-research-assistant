@@ -1,0 +1,14 @@
+{
+  "n": 3,
+  "edges": [
+    {
+      "u": 0,
+      "v": 1,
+      "weight": {
+        "real": 0,
+        "imag": 2
+      }
+    }
+  ],
+  "exact": true
+}

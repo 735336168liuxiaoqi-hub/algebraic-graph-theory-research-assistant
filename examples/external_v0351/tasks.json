@@ -1,0 +1,377 @@
+{
+  "format": "graph-research-paired-study/1",
+  "id": "v0351-six-scenarios",
+  "seed": 42,
+  "output_rule": "每组目录下T01/result.json至T06/result.json，files中的路径相对该组根目录；另存report.json及原始日志。所有数值用JSON数值，不写NaN/Infinity。",
+  "limits": {
+    "wall_minutes_per_arm": 45,
+    "host_tool_calls_per_arm": 80,
+    "research_tool_attempts_per_task": 15,
+    "assistant_internal_model_calls": 0
+  },
+  "cases": [
+    {
+      "id": "T01",
+      "title": "批量路图研究与完整导出",
+      "input": {
+        "cases": [
+          {
+            "id": "P3-A",
+            "n": 3
+          },
+          {
+            "id": "P4-A",
+            "n": 4
+          },
+          {
+            "id": "P5-A",
+            "n": 5
+          },
+          {
+            "id": "P6-A",
+            "n": 6
+          },
+          {
+            "id": "P7-A",
+            "n": 7
+          },
+          {
+            "id": "P8-A",
+            "n": 8
+          },
+          {
+            "id": "P3-B",
+            "n": 3
+          },
+          {
+            "id": "P4-B",
+            "n": 4
+          },
+          {
+            "id": "P5-B",
+            "n": 5
+          },
+          {
+            "id": "P6-B",
+            "n": 6
+          },
+          {
+            "id": "P7-B",
+            "n": 7
+          },
+          {
+            "id": "P8-B",
+            "n": 8
+          }
+        ]
+      },
+      "requirements": "对12项路图分别计算顶点/边数、邻接矩阵全谱、谱半径和精确特征多项式。保持输入顺序，输出CSV/JSON/Markdown对照表及PNG/SVG/PDF图集。",
+      "result_format": {
+        "cases": [
+          {
+            "id": "与输入一致",
+            "n": "整数",
+            "order": "整数",
+            "size": "整数",
+            "spectrum": "升序实数列表",
+            "rho": "实数",
+            "characteristic_coefficients": "从最高次到常数项的整数列表"
+          }
+        ],
+        "files": {
+          "csv": "T01/文件.csv",
+          "json": "T01/原始结果.json",
+          "md": "T01/对照.md",
+          "png": "T01/图集.png",
+          "svg": "T01/图集.svg",
+          "pdf": "T01/图集.pdf"
+        }
+      }
+    },
+    {
+      "id": "T02",
+      "title": "图变换和后续计算联动",
+      "input": {
+        "vertices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            5
+          ]
+        ],
+        "operation": "平方图：不同顶点在原图中的最短路距离不超过2时连边"
+      },
+      "requirements": "计算平方图的完整边表、顶点/边数、直径、按顶点0..5顺序的度、完整邻接谱和精确特征多项式。不能将矩阵逐项平方当成图的平方。",
+      "result_format": {
+        "vertices": "0..5",
+        "edges": "无向边列表",
+        "order": "整数",
+        "size": "整数",
+        "diameter": "整数",
+        "degrees": "按顶点0..5顺序的度列表",
+        "spectrum": "升序实数列表",
+        "characteristic_coefficients": "从最高次到常数项的整数列表"
+      }
+    },
+    {
+      "id": "T03",
+      "title": "非一致超图结构图与TikZ",
+      "input": {
+        "vertices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "edges": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4,
+            5,
+            6
+          ]
+        ],
+        "positions": [
+          {
+            "vertex": 0,
+            "xy": [
+              -2,
+              0
+            ]
+          },
+          {
+            "vertex": 1,
+            "xy": [
+              -1,
+              1
+            ]
+          },
+          {
+            "vertex": 2,
+            "xy": [
+              0,
+              0
+            ]
+          },
+          {
+            "vertex": 3,
+            "xy": [
+              2,
+              0
+            ]
+          },
+          {
+            "vertex": 4,
+            "xy": [
+              3,
+              1
+            ]
+          },
+          {
+            "vertex": 5,
+            "xy": [
+              4,
+              0
+            ]
+          },
+          {
+            "vertex": 6,
+            "xy": [
+              3,
+              -1
+            ]
+          },
+          {
+            "vertex": 7,
+            "xy": [
+              -2,
+              -2
+            ]
+          }
+        ]
+      },
+      "requirements": "按给定坐标输出SVG结构图及可独立编译的TikZ/TeX源码，保留孤立点7。超边使用通过成员点的曲线/线条，不用包围区域或团展开替代；三条超边要能区分，标记全部顶点。无需安装TeX或生成PDF；若已存在编译器可另记编译结果。",
+      "result_format": {
+        "vertices": "原完整顶点表",
+        "edges": "原超边表",
+        "positions": "原坐标",
+        "files": {
+          "svg": "T03/结构.svg",
+          "tex": "T03/结构.tex"
+        },
+        "notes": "绘制规则和TeX依赖"
+      }
+    },
+    {
+      "id": "T04",
+      "title": "一致超图高alpha谱与独立残差",
+      "input": {
+        "k": 3,
+        "edge_weights": "全为1",
+        "alphas": [
+          0,
+          0.5,
+          0.9,
+          0.99,
+          0.999,
+          1
+        ],
+        "cases": [
+          {
+            "id": "star3",
+            "edges": [
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                0,
+                3,
+                4
+              ],
+              [
+                0,
+                5,
+                6
+              ]
+            ]
+          },
+          {
+            "id": "irregular",
+            "edges": [
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                2,
+                3,
+                4
+              ],
+              [
+                3,
+                5,
+                6
+              ],
+              [
+                1,
+                4,
+                7
+              ]
+            ]
+          }
+        ],
+        "definition": "A_alpha=alpha*D+(1-alpha)*A。对3一致超图，(A x^2)_v等于所有含v超边中另外两个坐标乘积之和，D为通常顶点度对角。"
+      },
+      "requirements": "给出两超图共12个alpha点的谱半径。alpha<1还要给按顶点整数升序的有限严格正Perron向量和实际残差；alpha=1按度对角端点处理，无须正向量。记录方法、迭代/求解次数、失败及耗时，不将数值结果称为一般数学证明。目标谱半径绝对误差1e-8，逐点比值残差相对尺度1e-7；不能增加输入预算或将失败点移出分母。",
+      "result_format": {
+        "cases": [
+          {
+            "id": "star3或irregular",
+            "rows": [
+              {
+                "alpha": "实数",
+                "rho": "实数",
+                "vector": "alpha<1为按0..n-1的正向量；alpha=1为null",
+                "method": "实际方法",
+                "iterations": "已知整数或null",
+                "elapsed_seconds": "实际耗时"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "T05",
+      "title": "未定义数学模型的需求澄清",
+      "input": {
+        "edges": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "request": "请计算这个非一致超图的邻接张量特征多项式。没有给张量阶数和非一致推广定义。"
+      },
+      "requirements": "说明现有定义能否直接使用，并给出必要澄清问题。未经确认不得补边、补点或擅自选一种推广，不能伪造已经计算出的多项式。",
+      "result_format": {
+        "decision": "needs_definition",
+        "questions": "澄清问题列表",
+        "numeric_result": null,
+        "explanation": "原因"
+      }
+    },
+    {
+      "id": "T06",
+      "title": "简单新需求和能力不足处理（负对照）",
+      "input": {
+        "samples": [
+          [
+            3,
+            2,
+            2,
+            1
+          ],
+          [],
+          [
+            0,
+            0
+          ]
+        ],
+        "definition": "h指数=max{h: 至少h个度数不小于h}，空序列为0。"
+      },
+      "requirements": "求三个输入的h指数，并说明是否值得持久封包。两组均可在本组独立脚本完成一次性计算；A组先找已有工具，缺工具时可host_fallback，但不能计为助手原生计算。不得为这个简单需求强行开发包。若确需安装新持久工具，应先给需求/消耗/验收方案并等待真实批准，未批准前不得安装。将整体计算完成、助手原生覆盖和批准等待分别记录。",
+      "result_format": {
+        "decision": "computed或awaiting_approval",
+        "values": "已真实算出则为三个整数，否则null",
+        "tool_or_source": "实际工具/包版本或自写源文件",
+        "proposal": "等待批准时给需求、范围、消耗估计及验收；其他为null",
+        "computed_by": "assistant_tool/host_fallback/host_python；未计算为null"
+      }
+    }
+  ]
+}

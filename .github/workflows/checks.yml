@@ -1,0 +1,64 @@
+name: Research assistant checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.13']
+    env:
+      PYTHONUTF8: '1'
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v6
+      - name: Use long-form temp paths
+        # GitHub Windows runners set TEMP/TMP to the 8.3 short form
+        # (C:\Users\RUNNER~1\...). The library reports resolved long-form
+        # paths, so give tempfile the long form to keep comparisons stable.
+        run: |
+          echo "TEMP=$env:USERPROFILE\AppData\Local\Temp" >> $env:GITHUB_ENV
+          echo "TMP=$env:USERPROFILE\AppData\Local\Temp" >> $env:GITHUB_ENV
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            requirements-lock.txt
+            requirements-dev.txt
+      - name: Create independent project environment
+        run: python -m venv .venv
+      - name: Install locked runtime and check tools
+        run: .venv/Scripts/python.exe -m pip install -r requirements-lock.txt -r requirements-dev.txt
+      - name: Install this checkout
+        run: .venv/Scripts/python.exe -m pip install --no-deps --no-build-isolation -e .
+      - name: Validate environment, source, documentation and full tests
+        run: .venv/Scripts/python.exe -X utf8 tools/checks.py --full --strict-lock --report-dir outputs/ci-acceptance
+      - name: Build the verified wheel
+        run: .venv/Scripts/python.exe -X utf8 tools/build_release.py
+      - name: Check the wheel from an independent extraction
+        run: .venv/Scripts/python.exe -X utf8 tools/verify_release.py
+      - name: Stage and check a separate pinned runtime
+        run: |
+          $wheelFiles = @(Get-ChildItem -LiteralPath dist -Filter *.whl)
+          if ($wheelFiles.Count -ne 1) { throw "Expected exactly one newly built wheel" }
+          $wheelHash = (Get-FileHash -LiteralPath $wheelFiles[0].FullName -Algorithm SHA256).Hash
+          .venv/Scripts/python.exe -X utf8 tools/stage_runtime.py --wheel $wheelFiles[0].FullName --sha256 $wheelHash --destination tmp/ci-runtime --python .venv/Scripts/python.exe
+          if ($LASTEXITCODE -ne 0) { throw "Runtime staging failed" }
+          .venv/Scripts/python.exe -I -B -X utf8 tmp/ci-runtime/mcp.py --check
+      - name: Preserve acceptance inventory and outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-python-${{ matrix.python-version }}
+          path: outputs/ci-acceptance
+          if-no-files-found: warn

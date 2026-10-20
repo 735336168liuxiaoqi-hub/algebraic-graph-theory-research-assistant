@@ -1,0 +1,4 @@
+# Local checks and release builds; runtime dependencies are in requirements-lock.txt.
+ruff==0.17.1
+setuptools==84.0.0
+wheel==0.48.0

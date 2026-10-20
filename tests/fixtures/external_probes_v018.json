@@ -1,0 +1,11 @@
+{
+  "origin": "External v0.18 report; reviewed deterministic examples, not imported probe scripts",
+  "quotient_valid_blocks": [[[0], [1]], [[0.0], [1.0]], [[-0.0], [1.0]]],
+  "quotient_invalid_blocks": [[[0.5], [1]], [[-1], [1]], [[0], [2]], [[0], [0]], [[0]], [[], [0, 1]], [[true], [1]], [["0"], [1]]],
+  "known_graph_spectra": [
+    {"kind": "complete", "n": 5, "expected_rho": 4.0},
+    {"kind": "star", "n": 5, "expected_rho": 2.0},
+    {"kind": "path", "n": 6, "expected_rho": 1.8019377358048383}
+  ],
+  "malformed_json": ["{\"n\":3,\"n\":4}", "{\"value\":NaN}", "{\"value\":Infinity}", "[]", "null"]
+}

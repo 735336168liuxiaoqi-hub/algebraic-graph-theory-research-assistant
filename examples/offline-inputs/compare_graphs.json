@@ -1,0 +1,10 @@
+{
+  "left": {
+    "kind": "path",
+    "n": 3
+  },
+  "right": {
+    "kind": "star",
+    "n": 3
+  }
+}

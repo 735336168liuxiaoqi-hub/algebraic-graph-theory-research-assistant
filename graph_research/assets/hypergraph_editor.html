@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>超图布局编辑器</title>
+<link rel="icon" href="data:,">
+<style>
+:root{font-family:"Segoe UI","Microsoft YaHei",sans-serif;color:#1c2c39;background:#f1f4f5;font-size:14px;--accent:#087a70;--border:#dce4e6}
+*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer;border:1px solid var(--border);background:white;color:#243b49;padding:9px 13px;border-radius:7px;white-space:nowrap}button:hover{background:#edf7f5;border-color:#9dcac4}button:disabled{cursor:default;opacity:.4}button:focus-visible,input:focus-visible{outline:3px solid #9bdcd4;outline-offset:2px}.primary{background:var(--accent);border-color:var(--accent);color:white}.primary:hover{background:#06685f}.app{max-width:1580px;margin:auto;padding:25px 28px 16px}header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:20px}.brand{display:flex;gap:13px;align-items:center}.mark{width:40px;height:40px;background:#d7eeea;border-radius:11px;display:grid;place-items:center;color:var(--accent);font-size:25px}h1{font-size:23px;letter-spacing:.02em;margin:0 0 5px;font-weight:650}.sub{color:#6a7a83;font-size:12px}.badge{border:1px solid #b7d8d2;background:#e6f4ef;color:#276659;border-radius:20px;padding:6px 12px;font-size:12px}.toolbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px;background:white;border:1px solid var(--border);border-radius:10px 10px 0 0}.group{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.separator{height:22px;width:1px;background:var(--border);margin:0 4px}.workspace{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:640px;background:white;border:1px solid var(--border);border-top:0;border-radius:0 0 10px 10px;overflow:hidden}.sidebar{padding:20px;border-right:1px solid var(--border);background:#fbfcfc}.section{padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--border)}.section:last-child{border-bottom:0}.eyebrow{font-size:11px;color:#758892;letter-spacing:.11em;margin-bottom:13px}h2{font-size:14px;margin:0 0 13px}.metrics{display:flex;gap:28px}.metric strong{display:block;font-size:27px;font-weight:600;line-height:1.2}.metric span{display:block;color:#76858e;font-size:12px;margin-top:5px}.selected{min-height:22px;font-size:16px;font-weight:600;overflow-wrap:anywhere}.empty-note{color:#7b8c93;font-size:12px;line-height:1.8}.coordinates{display:flex;gap:8px;margin:13px 0 10px}.coordinates label{width:50%;font-size:11px;color:#6c7b84}.coordinates input{width:100%;border:1px solid var(--border);border-radius:6px;padding:8px;margin-top:5px;background:white;color:#233d49}.wide{width:100%}.edge-list{display:flex;flex-direction:column;gap:6px;max-height:245px;overflow:auto}.edge-row{display:flex;align-items:center;gap:9px;font-size:12px;padding:7px 8px;text-align:left;width:100%;border-color:transparent;background:transparent;white-space:normal;overflow-wrap:anywhere}.swatch{width:23px;height:3px;flex-shrink:0}.edge-row.active{background:#e6f3f0;border-color:#b7d8d2}.canvas-area{position:relative;min-width:0;display:flex;flex-direction:column}.canvas-tip{position:absolute;top:17px;left:20px;font-size:12px;color:#809098;pointer-events:none;z-index:1}#canvas{display:block;width:100%;height:100%;min-height:570px;flex:1;touch-action:none;user-select:none;background:white}.hyperedge{fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}.node{cursor:grab}.node:active{cursor:grabbing}.node circle{fill:#1b2932;stroke:white;stroke-width:1.4}.node.selected circle{fill:#087a70;stroke:#b7e5df;stroke-width:5}.node text{font:15px "Segoe UI","Microsoft YaHei",sans-serif;fill:#253b47;paint-order:stroke;stroke:white;stroke-width:4px;stroke-linejoin:round;pointer-events:none}.edge-label{font:12px "Segoe UI","Microsoft YaHei",sans-serif;paint-order:stroke;stroke:white;stroke-width:5px;stroke-linejoin:round;pointer-events:none}.canvas-controls{position:absolute;right:16px;bottom:16px;display:flex;gap:5px}.canvas-controls button{width:36px;padding:7px;font-size:17px;box-shadow:0 2px 8px #132d3610}.statusbar{display:flex;justify-content:space-between;gap:16px;padding:12px 3px 0;font-size:12px;color:#75868f}#status.error{color:#b13937}#status.success{color:#087a70}.hint{line-height:1.8;font-size:12px;color:#6d7f88;margin:10px 0 0}.legend-note{margin-top:14px;font-size:11px;color:#809198;line-height:1.8}#dirty{color:#9b681d}.toggle{display:flex;align-items:center;gap:5px;color:#647984;font-size:12px;margin-left:4px}.toggle input{accent-color:var(--accent)}kbd{border:1px solid #dce4e6;border-radius:3px;padding:1px 4px;background:white;font-size:11px}.mobile-tip{display:none}
+@media(max-width:850px){.app{padding:15px 12px}.workspace{grid-template-columns:210px minmax(0,1fr);min-height:590px}.sidebar{padding:14px}header{gap:8px}.sub{max-width:400px}.toolbar{gap:10px}.badge{display:none}#canvas{min-height:530px}.canvas-tip{font-size:11px;left:12px}.group{gap:5px}button{padding:8px 10px}}
+@media(max-width:600px){h1{font-size:19px}.workspace{display:flex;flex-direction:column-reverse}.sidebar{border-right:0;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:16px}.sidebar .section{margin:0}.sidebar .section:first-child{display:none}.canvas-area{height:470px}#canvas{min-height:470px}.canvas-tip{max-width:230px}.statusbar{flex-direction:column;gap:5px}.edge-list{max-height:170px}.sub{font-size:11px}}
+dialog{width:min(900px,94vw);max-height:90vh;border:1px solid var(--border);border-radius:12px;padding:24px;box-shadow:0 18px 80px #183d4933}dialog::backdrop{background:#18343e66}.dialog-head{display:flex;justify-content:space-between;gap:20px;align-items:center}.dialog-head h2{font-size:19px;margin:0}.dialog-options{display:flex;gap:22px;flex-wrap:wrap;margin:18px 0}.dialog-options .toggle{font-size:13px;margin:0}#latex-code{width:100%;height:390px;min-height:160px;resize:vertical;border:1px solid var(--border);border-radius:7px;background:#f6f8f9;padding:15px;font:12px/1.65 Consolas,monospace;color:#263d48;tab-size:2;white-space:pre}.dialog-footer{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-top:14px}.dialog-note{max-width:500px;font-size:12px;line-height:1.7;color:#6d7f88}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+ <div class="brand"><div class="mark" aria-hidden="true">⋈</div><div><h1>超图布局编辑器</h1><div class="sub">拖动顶点，实时调整超边曲线 · 坐标可保存并加载回 Python</div></div></div>
+ <div class="badge">本地离线编辑</div>
+</header>
+<nav class="toolbar" aria-label="编辑工具">
+ <div class="group">
+  <button id="undo" title="Ctrl+Z" disabled>撤销</button><button id="redo" title="Ctrl+Shift+Z" disabled>重做</button>
+  <span class="separator"></span><button id="fit">适应画布</button><button id="circle">圆形布局</button><button id="reset">恢复初始</button>
+ </div>
+ <div class="group"><button id="import">导入坐标</button><button id="export-svg">导出 SVG</button><button id="export-latex">导出 LaTeX</button><button id="save" class="primary">保存坐标</button></div>
+</nav>
+<div class="workspace">
+ <aside class="sidebar">
+  <section class="section"><div class="eyebrow">HYPERGRAPH</div><div class="metrics"><div class="metric"><strong id="vertex-count"></strong><span>顶点</span></div><div class="metric"><strong id="edge-count"></strong><span>超边</span></div></div><p id="graph-kind" class="hint"></p></section>
+  <section class="section"><h2>顶点位置</h2><div id="selection" class="selected">尚未选择</div><div class="coordinates"><label>X 坐标<input id="coord-x" type="number" step="any" disabled></label><label>Y 坐标<input id="coord-y" type="number" step="any" disabled></label></div><button id="apply" class="wide" disabled>应用坐标</button><p class="hint">点击或拖动黑色顶点。<br>拖动空白处平移，滚轮缩放。</p></section>
+  <section class="section"><h2>超边成员</h2><div id="edge-list" class="edge-list"></div><label class="toggle"><input id="edge-labels" type="checkbox" checked>显示超边编号</label><p class="legend-note">只有曲线经过的顶点属于该超边。<br>内部顶点及无标记交叉不表示关联。</p></section>
+ </aside>
+ <section class="canvas-area" aria-label="交互式超图画布"><div class="canvas-tip">拖动顶点调整布局 · 所有超边均不填充</div>
+  <svg id="canvas" viewBox="0 0 1000 680" role="img" aria-label="可拖动顶点的超图"><g id="edges"></g><g id="edge-text"></g><g id="nodes"></g></svg>
+  <div class="canvas-controls"><button id="zoom-out" aria-label="缩小">−</button><button id="zoom-in" aria-label="放大">+</button></div>
+ </section>
+</div>
+<footer class="statusbar"><span id="status" role="status" aria-live="polite">拖动顶点开始编辑。保存坐标会下载 JSON 文件，可重新导入。</span><span id="dirty">初始布局</span></footer>
+<input type="file" id="file-input" accept=".json,application/json" hidden>
+<dialog id="latex-dialog" aria-labelledby="latex-title">
+ <div class="dialog-head"><h2 id="latex-title">LaTeX / TikZ 代码</h2><button id="latex-close">关闭</button></div>
+ <div class="dialog-options"><label class="toggle"><input id="latex-standalone" type="checkbox" checked>完整文档，可单独编译</label><label class="toggle"><input id="latex-vertices" type="checkbox" checked>显示顶点标签</label></div>
+ <textarea id="latex-code" aria-label="LaTeX代码" readonly spellcheck="false"></textarea>
+ <div class="dialog-footer"><span id="latex-note" class="dialog-note">保留当前完整布局和曲线。取消“完整文档”可粘贴到论文；导言区需要加载 tikz。</span><div class="group"><button id="latex-copy">复制代码</button><button id="latex-download" class="primary">下载 .tex</button></div></div>
+</dialog>
+</main>
+<script type="application/json" id="layout-data">__LAYOUT_JSON__</script>
+<script>
+"use strict";
+(() => {
+const original=JSON.parse(document.getElementById("layout-data").textContent);
+const labels=original.vertices, edges=original.edges;
+const colors=["black","#d62728","#228833","#2255cc","#0099aa","#aa33aa","#b8860b","#dd6699","#885533"];
+const NS="http://www.w3.org/2000/svg", $=id=>document.getElementById(id);
+const svg=$("canvas"), edgeLayer=$("edges"), nodeLayer=$("nodes"), edgeText=$("edge-text");
+let positions=original.positions.map(p=>[...p]), baseline=JSON.stringify(positions);
+let selected=null, highlighted=null, drag=null, history=[], future=[], camera={cx:0,cy:0,scale:120};
+let viewport={width:1000,height:680};
+const clone=()=>positions.map(p=>[...p]);
+const key=v=>typeof v+":"+String(v);
+function message(text,kind=""){ $("status").textContent=text; $("status").className=kind; }
+function dirty(){ $("dirty").textContent=JSON.stringify(positions)===baseline?"坐标已保存":"有未保存的坐标"; }
+function buttons(){ $("undo").disabled=!history.length; $("redo").disabled=!future.length; dirty(); }
+function remember(before){if(JSON.stringify(before)!==JSON.stringify(positions)){history.push(before);if(history.length>100)history.shift();future=[];}buttons();}
+function screen(p){return [viewport.width/2+(p[0]-camera.cx)*camera.scale,viewport.height/2-(p[1]-camera.cy)*camera.scale];}
+function local(event){const pt=new DOMPoint(event.clientX,event.clientY).matrixTransform(svg.getScreenCTM().inverse());return [pt.x,pt.y];}
+function world(p){return [(p[0]-viewport.width/2)/camera.scale+camera.cx,(viewport.height/2-p[1])/camera.scale+camera.cy];}
+function validPair(p,id){return p.length===2&&p.every(v=>Number.isFinite(v)&&Math.abs(v)<=1e9)&&!positions.some((q,i)=>i!==id&&q[0]===p[0]&&q[1]===p[1]);}
+function fit(){
+ if(!positions.length){camera={cx:0,cy:0,scale:120};render();return;}
+ const xs=positions.map(p=>p[0]),ys=positions.map(p=>p[1]);
+ const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);
+ camera={cx:(minx+maxx)/2,cy:(miny+maxy)/2,scale:Math.min(Math.max(viewport.width-150,100)/Math.max(maxx-minx,.5),Math.max(viewport.height-150,100)/Math.max(maxy-miny,.5))};render();
+}
+function geometry(ids){
+ const points=ids.map(i=>positions[i]);
+ if(points.length===2)return {points,segments:[]};
+ const n=points.length,center=points.reduce((a,p)=>[a[0]+p[0]/n,a[1]+p[1]/n],[0,0]);
+ const ordered=points.map((p,i)=>({p,i,a:Math.atan2(p[1]-center[1],p[0]-center[0])})).sort((a,b)=>a.a-b.a||a.i-b.i).map(o=>o.p);
+ const before=ordered.map((p,i)=>[p[0]-ordered[(i+n-1)%n][0],p[1]-ordered[(i+n-1)%n][1]]);
+ const after=ordered.map((p,i)=>[ordered[(i+1)%n][0]-p[0],ordered[(i+1)%n][1]-p[1]]);
+ const incoming=before.map((p,i)=>p.map((v,k)=>.125*v+.375*after[i][k]));
+ const outgoing=before.map((p,i)=>p.map((v,k)=>.375*v+.125*after[i][k]));
+ const base=ordered[0],delta=[ordered[1][0]-base[0],ordered[1][1]-base[1]];
+ const span=Math.max(...ordered.map(p=>Math.hypot(p[0]-base[0],p[1]-base[1])),1e-12);
+ const collinear=ordered.every(p=>Math.abs(delta[0]*(p[1]-base[1])-delta[1]*(p[0]-base[0]))<1e-12*span*span);
+ const segments=ordered.map((p,i)=>{const j=(i+1)%n,q=ordered[j];
+  let c1=p.map((v,k)=>v+outgoing[i][k]/3),c2=q.map((v,k)=>v-incoming[j][k]/3);
+  if(collinear){const d=[q[0]-p[0],q[1]-p[1]],bend=[-.12*d[1],.12*d[0]];c1=p.map((v,k)=>v+d[k]/3+bend[k]);c2=p.map((v,k)=>v+2*d[k]/3+bend[k]);}
+  return [p,c1,c2,q];});
+ return {points:ordered,segments};
+}
+function pathData(g){const start=screen(g.points[0]);if(!g.segments.length){const end=screen(g.points[1]);return `M ${start.join(" ")} L ${end.join(" ")}`;}
+ return `M ${start.join(" ")} `+g.segments.map(s=>"C "+s.slice(1).map(p=>screen(p).join(" ")).join(" ")).join(" ")+" Z";}
+function make(tag,attrs={},text=null){const el=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,v);if(text!==null)el.textContent=text;return el;}
+const simpleGraph=edges.every(e=>e.length===2);
+const paths=edges.map((e,i)=>{const p=make("path",{class:"hyperedge",stroke:simpleGraph?"black":colors[i%colors.length],"data-edge":i});if(!simpleGraph&&i>=colors.length)p.setAttribute("stroke-dasharray",Math.floor(i/colors.length)%2?"8 5":"2 5");edgeLayer.appendChild(p);return p;});
+const edgeLabels=edges.map((e,i)=>{const t=make("text",{class:"edge-label",fill:simpleGraph?"black":colors[i%colors.length]},"e"+i);edgeText.appendChild(t);return t;});
+const nodes=labels.map((label,i)=>{const g=make("g",{class:"node","data-node":i,tabindex:0,role:"button","aria-label":"顶点 "+String(label)});
+ g.appendChild(make("circle",{r:19,class:"hit-area",style:"fill:transparent;stroke:none"}));
+ g.appendChild(make("circle",{r:7}));g.appendChild(make("text",{},String(label)));nodeLayer.appendChild(g);
+ g.addEventListener("pointerdown",event=>startNode(event,i));g.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();select(i);}});return g;});
+const rowButtons=edges.map((edge,i)=>{const button=document.createElement("button");button.className="edge-row";button.dataset.edgeRow=i;const swatch=document.createElement("span");swatch.className="swatch";swatch.style.background=simpleGraph?"black":colors[i%colors.length];const text=document.createElement("span");text.textContent=`e${i} · {${edge.map(j=>String(labels[j])).join(", ")}}`;button.append(swatch,text);$("edge-list").appendChild(button);button.addEventListener("click",()=>{highlighted=highlighted===i?null:i;render();});return button;});
+function labelOffset(id){const neighbors=[...new Set(edges.filter(e=>e.includes(id)).flat().filter(j=>j!==id))];if(!neighbors.length)return [14,0,"start"];
+ const angles=neighbors.map(j=>Math.atan2(positions[j][1]-positions[id][1],positions[j][0]-positions[id][0])).sort((a,b)=>a-b);
+ let largest=-1,theta=0;angles.forEach((a,i)=>{const b=i+1<angles.length?angles[i+1]:angles[0]+2*Math.PI;if(b-a>largest){largest=b-a;theta=(a+b)/2;}});
+ const dx=Math.cos(theta),dy=Math.sin(theta);return [14*dx,-14*dy,dx>.2?"start":dx<-.2?"end":"middle"];}
+function render(){
+ edges.forEach((edge,i)=>{const g=geometry(edge);paths[i].setAttribute("d",pathData(g));paths[i].style.opacity=highlighted===null||highlighted===i?1:.16;
+  paths[i].style.strokeWidth=highlighted===i?3.5:2.3;const s=g.segments[0];const mid=s?s[0].map((v,k)=>(v+3*s[1][k]+3*s[2][k]+s[3][k])/8):g.points[0].map((v,k)=>(v+g.points[1][k])/2);const p=screen(mid);
+  edgeLabels[i].setAttribute("x",p[0]+5);edgeLabels[i].setAttribute("y",p[1]-5);edgeLabels[i].style.display=$("edge-labels").checked?"":"none";edgeLabels[i].style.opacity=highlighted===null||highlighted===i?1:.16;
+  rowButtons[i].classList.toggle("active",highlighted===i);});
+ nodes.forEach((g,i)=>{const p=screen(positions[i]);g.setAttribute("transform",`translate(${p[0]} ${p[1]})`);g.classList.toggle("selected",selected===i);const [x,y,anchor]=labelOffset(i),text=g.querySelector("text");text.setAttribute("x",x);text.setAttribute("y",y+5);text.setAttribute("text-anchor",anchor);});
+ updateSelection();buttons();
+}
+function updateSelection(){const has=selected!==null;$("selection").textContent=has?"顶点 "+String(labels[selected]):"尚未选择";$("apply").disabled=!has;for(const [k,id] of ["coord-x","coord-y"].entries()){const input=$(id);input.disabled=!has;if(document.activeElement!==input)input.value=has?String(Number(positions[selected][k].toPrecision(10))):"";}}
+function select(id){selected=id;highlighted=null;render();}
+function startNode(event,id){if(event.button!==0)return;event.preventDefault();event.stopPropagation();select(id);drag={type:"node",id,before:clone(),pointer:event.pointerId};svg.setPointerCapture(event.pointerId);}
+svg.addEventListener("pointerdown",event=>{if(event.button!==0||event.target.closest(".node"))return;event.preventDefault();drag={type:"pan",start:local(event),camera:{...camera},pointer:event.pointerId};svg.setPointerCapture(event.pointerId);});
+svg.addEventListener("pointermove",event=>{if(!drag||drag.pointer!==event.pointerId)return;const p=local(event);
+ if(drag.type==="node"){const candidate=world(p);if(validPair(candidate,drag.id))positions[drag.id]=candidate;}
+ else{camera.cx=drag.camera.cx-(p[0]-drag.start[0])/camera.scale;camera.cy=drag.camera.cy+(p[1]-drag.start[1])/camera.scale;}render();});
+function endDrag(event,cancel=false){if(!drag||drag.pointer!==event.pointerId)return;const active=drag;drag=null;if(svg.hasPointerCapture(event.pointerId))svg.releasePointerCapture(event.pointerId);if(active.type==="node"){if(cancel)positions=active.before;else remember(active.before);render();}}
+svg.addEventListener("pointerup",event=>endDrag(event));svg.addEventListener("pointercancel",event=>endDrag(event,true));
+function zoom(factor,point=[viewport.width/2,viewport.height/2]){const before=world(point);camera.scale=Math.max(1e-8,Math.min(1e10,camera.scale*factor));const after=world(point);camera.cx+=before[0]-after[0];camera.cy+=before[1]-after[1];render();}
+svg.addEventListener("wheel",event=>{event.preventDefault();zoom(Math.exp(-event.deltaY*.0015),local(event));},{passive:false});
+$("zoom-in").addEventListener("click",()=>zoom(1.2));$("zoom-out").addEventListener("click",()=>zoom(1/1.2));$("fit").addEventListener("click",fit);
+function undo(){if(!history.length)return;future.push(clone());positions=history.pop();render();message("已撤销上一次坐标调整。");}
+function redo(){if(!future.length)return;history.push(clone());positions=future.pop();render();message("已重做坐标调整。");}
+$("undo").addEventListener("click",undo);$("redo").addEventListener("click",redo);
+$("apply").addEventListener("click",()=>{if(selected===null)return;const raw=[$("coord-x").value,$("coord-y").value],p=raw.map(Number);if(raw.some(v=>!v.trim())||!validPair(p,selected)){message("请输入有效坐标，且不要与其他顶点完全重合。","error");return;}const before=clone();positions[selected]=p;remember(before);render();message("顶点坐标已更新。","success");});
+$("reset").addEventListener("click",()=>{const before=clone();positions=original.positions.map(p=>[...p]);remember(before);fit();message("已恢复页面初始布局；可撤销。");});
+$("circle").addEventListener("click",()=>{const before=clone();positions=labels.map((_,i)=>[Math.cos(i*2*Math.PI/labels.length),Math.sin(i*2*Math.PI/labels.length)]);remember(before);fit();message("已切换为圆形布局；可撤销。");});
+$("edge-labels").addEventListener("change",render);
+function documentData(){return {...original,positions:clone()};}
+function texNumber(value){
+ if(!Number.isFinite(value))throw Error("TikZ坐标必须为有限数值。");if(value===0)return "0";
+ const s=String(value);if(!/[eE]/.test(s))return s;
+ const [mantissa,exponent]=s.toLowerCase().split("e"),negative=mantissa.startsWith("-");
+ const unsigned=negative?mantissa.slice(1):mantissa,parts=unsigned.split("."),digits=parts.join(""),point=parts[0].length+Number(exponent);
+ const fixed=point<=0?"0."+"0".repeat(-point)+digits:point>=digits.length?digits+"0".repeat(point-digits.length):digits.slice(0,point)+"."+digits.slice(point);
+ return (negative?"-":"")+fixed;
+}
+function texEscape(label){const special={"\\":"\\textbackslash{}","{":"\\{","}":"\\}","$":"\\$","&":"\\&","%":"\\%","#":"\\#","_":"\\_","^":"\\textasciicircum{}","~":"\\textasciitilde{}"};return Array.from(String(label)).filter(c=>c.charCodeAt(0)>=32||/\s/.test(c)).map(c=>special[c]||(/\s/.test(c)?" ":c)).join("");}
+function tikzCode({standalone=true,vertexLabels=true,edgeLabels=true}={}){
+ const curves=edges.map(geometry),all=positions.concat(curves.flatMap(g=>g.segments.flat()));
+ let offset=[0,0],factor=1;
+ if(all.length){const xs=all.map(p=>p[0]),ys=all.map(p=>p[1]),lo=[Math.min(...xs),Math.min(...ys)],hi=[Math.max(...xs),Math.max(...ys)],span=Math.max(hi[0]-lo[0],hi[1]-lo[1]);offset=[lo[0]/2+hi[0]/2,lo[1]/2+hi[1]/2];factor=span?10/span:1;}
+ const point=p=>"("+p.map((v,k)=>texNumber((v-offset[k])*factor)).join(",")+")";
+ const lines=["% Members are ON each unfilled curve; enclosed vertices are not members.","% Requires \\usepackage{tikz}. Cubic control points preserve the edited curves.","% Layout uniformly scaled to a longest span of 10 cm."];
+ const binaryOnly=edges.every(e=>e.length===2);
+ edges.forEach((_,i)=>{const edgeColor=binaryOnly?"black":colors[i%colors.length];const hex=edgeColor==="black"?"000000":edgeColor.slice(1).toUpperCase();lines.push(`\\definecolor{hgcolor${i}}{HTML}{${hex}}`);});
+ lines.push("\\begin{tikzpicture}[x=1cm,y=1cm,line cap=round,line join=round,font=\\small]");
+ if(!labels.length)lines.push("\\path[use as bounding box] (-.2,-.2) rectangle (.2,.2);");
+ positions.forEach((p,i)=>lines.push(`\\coordinate (v${i}) at ${point(p)};`));
+ edges.forEach((edge,i)=>{const g=curves[i];lines.push(`% e${i}: vertex indices ${JSON.stringify(edge)}`);
+  let style=`draw=hgcolor${i},line width=0.9pt`;if(!binaryOnly&&i>=colors.length)style+=Math.floor(i/colors.length)%3===1?",dashed":Math.floor(i/colors.length)%3===2?",dotted":"";
+  if(!g.segments.length)lines.push(`\\draw[${style}] (v${edge[0]}) -- (v${edge[1]});`);
+  else{lines.push(`\\draw[${style}] ${point(g.points[0])}`);g.segments.forEach(s=>lines.push(`  .. controls ${point(s[1])} and ${point(s[2])} .. ${point(s[3])}`));lines.push("  -- cycle;");}
+  if(edgeLabels){const s=g.segments[0],mid=s?s[0].map((v,k)=>(v+3*s[1][k]+3*s[2][k]+s[3][k])/8):g.points[0].map((v,k)=>(v+g.points[1][k])/2);lines.push(`\\node[text=hgcolor${i},anchor=south west,inner sep=1pt] at ${point(mid)} {$e_{${i}}$};`);}
+ });
+ labels.forEach((label,i)=>{lines.push(`\\fill[black] (v${i}) circle[radius=1.6pt];`);
+  if(vertexLabels){const [x,y,h]=labelOffset(i),vertical=y/14<-.2?"south":y/14>.2?"north":"",horizontal=h==="start"?"west":h==="end"?"east":"",anchor=[vertical,horizontal].filter(Boolean).join(" ")||"center";lines.push(`\\node[anchor=${anchor},inner sep=0pt,xshift=${texNumber(x/14*8)}pt,yshift=${texNumber(-y/14*8)}pt] at (v${i}) {${texEscape(label)}};`);}
+ });
+ lines.push("\\end{tikzpicture}");let code=lines.join("\n")+"\n";
+ if(standalone){const chinese=vertexLabels&&labels.some(v=>/[\u3400-\u9fff\uf900-\ufaff]/.test(String(v)));code=`% !TeX program = ${chinese?"xelatex":"pdflatex"}\n\\documentclass[tikz,border=5pt]{standalone}\n`+(chinese?"\\usepackage[UTF8]{ctex}\n":"")+"\\begin{document}\n"+code+"\\end{document}\n";}
+ return code;
+}
+function updateLatex(){try{$("latex-code").value=tikzCode({standalone:$("latex-standalone").checked,vertexLabels:$("latex-vertices").checked,edgeLabels:$("edge-labels").checked});$("latex-note").textContent="保留当前完整布局和曲线。取消“完整文档”可粘贴到论文；导言区需要加载 tikz。";}catch(error){message(error.message,"error");}}
+$("export-latex").addEventListener("click",()=>{updateLatex();$("latex-dialog").showModal();});
+$("latex-close").addEventListener("click",()=>$("latex-dialog").close());
+$("latex-standalone").addEventListener("change",updateLatex);$("latex-vertices").addEventListener("change",updateLatex);
+$("latex-download").addEventListener("click",()=>{download($("latex-standalone").checked?"hypergraph.tex":"hypergraph-tikz.tex",$("latex-code").value,"application/x-tex;charset=utf-8");message("LaTeX代码已发起下载，保留当前完整布局。","success");});
+$("latex-copy").addEventListener("click",async()=>{try{if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText($("latex-code").value);else{$("latex-code").focus();$("latex-code").select();if(!document.execCommand("copy"))throw Error("请在代码框中按Ctrl+C复制。");}$("latex-note").textContent="代码已复制。中文标签请使用XeLaTeX；普通数字标签可使用pdfLaTeX。";}catch(error){$("latex-code").focus();$("latex-code").select();$("latex-note").textContent="请在已选中的代码框中按Ctrl+C复制。";}});
+function download(name,text,type){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
+$("save").addEventListener("click",()=>{download("hypergraph-layout.json",JSON.stringify(documentData(),null,2),"application/json;charset=utf-8");baseline=JSON.stringify(positions);buttons();message("坐标文件已发起下载。可在浏览器下载列表查看，再导入或加载回 Python。","success");});
+$("export-svg").addEventListener("click",()=>{const copy=svg.cloneNode(true);copy.setAttribute("xmlns",NS);copy.setAttribute("width",viewport.width);copy.setAttribute("height",viewport.height);copy.querySelectorAll(".hit-area").forEach(el=>el.remove());copy.querySelectorAll(".node").forEach(g=>{g.removeAttribute("tabindex");g.removeAttribute("role");g.classList.remove("selected");});
+ copy.querySelectorAll(".hyperedge,.edge-label").forEach(el=>{el.style.opacity="1";if(el.classList.contains("hyperedge"))el.style.strokeWidth="2.3";});
+ const style=make("style",{},".hyperedge{fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}.node circle{fill:#1b2932;stroke:white;stroke-width:1.4}.node text{font:15px 'Microsoft YaHei',sans-serif;fill:#253b47;paint-order:stroke;stroke:white;stroke-width:4px}.edge-label{font:12px 'Microsoft YaHei',sans-serif;paint-order:stroke;stroke:white;stroke-width:5px}");copy.prepend(style);
+ const background=make("rect",{width:viewport.width,height:viewport.height,fill:"white"});style.after(background);download("hypergraph.svg",new XMLSerializer().serializeToString(copy),"image/svg+xml;charset=utf-8");message("当前结构图已发起 SVG 下载。","success");});
+function validateImport(data){
+ if(!data||data.format!==original.format||data.version!==1||!Array.isArray(data.vertices)||!Array.isArray(data.edges)||!Array.isArray(data.positions))throw Error("文件格式不正确，请选择本编辑器保存的坐标 JSON。");
+ const incoming=data.vertices;if(incoming.some(v=>!(typeof v==="string"||Number.isSafeInteger(v)))||new Set(incoming.map(key)).size!==incoming.length)throw Error("顶点标签无效或重复。");
+ if(incoming.length!==labels.length||data.positions.length!==labels.length)throw Error("顶点数量不匹配，未改变当前布局。");
+ const indices=new Map(incoming.map((v,i)=>[key(v),i]));if(labels.some(v=>!indices.has(key(v))))throw Error("顶点标签不匹配，未改变当前布局。");
+ function edgeKeys(es,names){return es.map(e=>{if(!Array.isArray(e)||e.length<2||new Set(e).size!==e.length||e.some(i=>!Number.isInteger(i)||i<0||i>=names.length))throw Error("超边数据无效。");return JSON.stringify(e.map(i=>key(names[i])).sort());}).sort();}
+ if(JSON.stringify(edgeKeys(data.edges,incoming))!==JSON.stringify(edgeKeys(edges,labels)))throw Error("超边成员不匹配，未改变当前布局。");
+ const p=labels.map(v=>data.positions[indices.get(key(v))]);if(p.some(xy=>!Array.isArray(xy)||xy.length!==2||xy.some(v=>typeof v!=="number"||!Number.isFinite(v)||Math.abs(v)>1e9)))throw Error("坐标必须是有效数值，绝对值不能超过十亿。");
+ if(new Set(p.map(xy=>JSON.stringify(xy))).size!==p.length)throw Error("两个顶点的坐标完全重合，请先修正文件。");return p.map(xy=>[...xy]);
+}
+$("import").addEventListener("click",()=>$("file-input").click());
+$("file-input").addEventListener("change",async event=>{const file=event.target.files[0];if(!file)return;try{if(file.size>2000000)throw Error("坐标文件不能超过 2 MB。");const imported=validateImport(JSON.parse((await file.text()).replace(/^\uFEFF/,"")));const before=clone();positions=imported;remember(before);baseline=JSON.stringify(positions);fit();message("坐标已导入；可撤销，可继续编辑。","success");}catch(error){message(error.message,"error");}finally{event.target.value="";}});
+document.addEventListener("keydown",event=>{if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="z"){event.preventDefault();event.shiftKey?redo():undo();}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="s"){event.preventDefault();$("save").click();}});
+window.addEventListener("beforeunload",event=>{if(JSON.stringify(positions)!==baseline){event.preventDefault();event.returnValue="";}});
+$("vertex-count").textContent=labels.length;$("edge-count").textContent=edges.length;
+const sizes=[...new Set(edges.map(e=>e.length))];$("graph-kind").textContent=!edges.length?"无超边 · 可调整孤立点":sizes.length===1?`${sizes[0]} 一致超图`:`非一致超图 · 边大小 ${sizes.sort((a,b)=>a-b).join(" / ")}`;
+function resize(){viewport={width:Math.max(svg.clientWidth,200),height:Math.max(svg.clientHeight,200)};svg.setAttribute("viewBox",`0 0 ${viewport.width} ${viewport.height}`);fit();}
+new ResizeObserver(resize).observe(svg);resize();$("dirty").textContent="初始布局";
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Run the same fast gate before local commits; no model API requests.
+if [ -x .venv/Scripts/python.exe ]; then
+    exec .venv/Scripts/python.exe -X utf8 tools/launch_checks.py
+fi
+if [ -x .venv/bin/python ]; then
+    exec .venv/bin/python -X utf8 tools/launch_checks.py
+fi
+exec python -X utf8 tools/launch_checks.py

@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+outputs/
+.env
+tool_packages/
+dist/
+build/
+tmp/
+user_memory/
+*.egg-info/
+
+.venv-*/
+.ruff_cache/
+.pytest_cache/
+.env.*
+*.key
+*.pem

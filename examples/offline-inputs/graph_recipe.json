@@ -1,0 +1,25 @@
+{
+  "graph_type": "graph",
+  "base": {
+    "kind": "path",
+    "n": "t+2"
+  },
+  "parameters": {
+    "t": 2
+  },
+  "steps": [
+    {
+      "operation": "attach_star",
+      "roots": [
+        0
+      ],
+      "count": "t"
+    }
+  ],
+  "assertions": {
+    "order": "2*t+2",
+    "size": "2*t+1",
+    "connected": true,
+    "cycle_rank": 0
+  }
+}

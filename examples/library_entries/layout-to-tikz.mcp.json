@@ -1,0 +1,35 @@
+{
+  "task": {
+    "version": 1,
+    "request_id": "library-layout-tikz-001",
+    "objective": "生成路径图谱布局并导出相同坐标的TikZ",
+    "execution": {
+      "mode": "batch",
+      "batch": {
+        "steps": [
+          {
+            "id": "layout",
+            "tool": "graph_layout",
+            "arguments": {"operation": "spectral", "kind": "path", "n": 5}
+          },
+          {
+            "id": "tikz",
+            "tool": "graph_tikz",
+            "arguments": {},
+            "bindings": {
+              "edges": {"step": "layout", "path": ["graph_spec", "edges"]},
+              "vertices": {"step": "layout", "path": ["vertices"]},
+              "positions": {"step": "layout", "path": ["positions"]}
+            }
+          }
+        ],
+        "outputs": {
+          "positions": {"step": "layout", "path": ["positions"]},
+          "tex": {"step": "tikz", "path": ["files", "standalone"]}
+        }
+      }
+    },
+    "constraints": {"max_model_calls": 0, "max_tool_calls": 2, "allow_extensions": false}
+  },
+  "wait_seconds": 5
+}

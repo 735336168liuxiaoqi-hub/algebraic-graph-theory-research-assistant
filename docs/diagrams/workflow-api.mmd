@@ -1,0 +1,35 @@
+flowchart TB
+    ask["提出自然语言问题<br/>可插入明确版本的图对象"]:::manual
+    context["读取任务上下文<br/>当前图对象、偏好与已审阅经验"]:::data
+    clear{"需求是否明确？"}:::decision
+    reply["向用户澄清<br/>等待真实回复"]:::manual
+    known{"已有工具能解决？"}:::decision
+    extension["进入新工具评估<br/>见扩展工作流程"]:::warning
+    plan["选择单工具或生成工具计划<br/>明确参数、图版本和前序结果绑定"]:::model
+    review["按需查看并确认计划<br/>或回复修改需求"]:::manual
+    run["在本地执行确定步骤<br/>确定步骤之间无需逐步请求模型"]:::guard
+    failure["失败、取消或预算用尽<br/>保留已有记录与错误"]:::warning
+    interpret["模型读取摘要并解释结果<br/>完整数据保留本地，可按需查询"]:::model
+    save["保存回答、计算记录与附件<br/>继续提问、成果导出与回溯"]:::data
+    ask --> context
+    context --> clear
+    clear -->|不明确| reply
+    reply -->|补充需求| context
+    clear -->|明确| known
+    known -->|不能| extension
+    known -->|可以| plan
+    plan -->|启用计划查看| review
+    plan -->|直接执行| run
+    review -->|用户确认| run
+    run -->|异常/停止| failure
+    run -->|取得结果| interpret
+    failure -->|保存记录| save
+    interpret --> save
+    classDef process fill:#f5f7fa,stroke:#c6d1da,color:#233845,stroke-width:1.5px
+    classDef manual fill:#eaf5f1,stroke:#8dbbb0,color:#175a4a,stroke-width:1.5px
+    classDef model fill:#edf2fc,stroke:#a1b8e7,color:#284f91,stroke-width:1.5px
+    classDef host fill:#f0edfa,stroke:#b5a7da,color:#5b438c,stroke-width:1.5px
+    classDef guard fill:#e9f3f7,stroke:#8fb1c3,color:#224d64,stroke-width:1.5px
+    classDef data fill:#f0f6f4,stroke:#adc7bc,color:#2b574a,stroke-width:1.5px
+    classDef warning fill:#fcf4e7,stroke:#d7b985,color:#805b26,stroke-width:1.5px
+    classDef decision fill:#ffffff,stroke:#9fadb9,color:#344c5c,stroke-width:1.5px

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1565" viewBox="0 0 1120 1565" role="img" aria-labelledby="title desc">
+<title id="title">新工具引入 · 先复用，再评估与审批</title>
+<desc id="desc">API对话或获准的外部主agent均可参与；新增代码独立封包</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a9aa6"/></marker></defs>
+<rect width="1120" height="1565" rx="16" fill="#ffffff"/>
+<rect x="44" y="35" width="5" height="31" rx="2" fill="#167467"/>
+<text x="67" y="51" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="600" fill="#1b3440">新工具引入 · 先复用，再评估与审批</text>
+<text x="67" y="86" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="400" fill="#647481">API对话或获准的外部主agent均可参与；新增代码独立封包</text>
+<path d="M 560 178 L 560 230" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 385 280 L 315 280" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 75 280 L 65 280 L 65 140 L 300 140" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 330 L 560 390" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 735 440 L 812.5 440" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 490 L 560 560" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 385 610 L 315 610" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 660 L 560 737" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 823 L 560 885" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 385 935 L 345 935 L 345 865 L 195 865 L 195 892" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 985 L 560 1047" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 1133 L 560 1187" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 1273 L 560 1320" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 385 1370 L 315 1370" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 735 1370 L 812.5 1370" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="300" y="102" width="520" height="76" rx="14" fill="#eaf5f1" stroke="#8dbbb0" stroke-width="1.5"/>
+<text x="560" y="126.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#175a4a">提出尚未满足的科研需求</text>
+<text x="560" y="153.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#175a4a">说明数学目标与期望输出</text>
+<path d="M 560 230 L 735 280 L 560 330 L 385 280 Z" fill="#ffffff" stroke="#9fadb9" stroke-width="1.5"/>
+<text x="560" y="280.0" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#344c5c">定义、规模与样例齐全？</text>
+<rect x="75" y="237" width="240" height="86" rx="14" fill="#eaf5f1" stroke="#8dbbb0" stroke-width="1.5"/>
+<text x="195" y="266.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#175a4a">先向用户澄清</text>
+<text x="195" y="293.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#175a4a">补齐输入输出和验收依据</text>
+<path d="M 560 390 L 735 440 L 560 490 L 385 440 Z" fill="#ffffff" stroke="#9fadb9" stroke-width="1.5"/>
+<text x="560" y="440.0" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#344c5c">可复用或组合已有工具？</text>
+<rect x="812.5" y="397" width="245" height="86" rx="14" fill="#f0f6f4" stroke="#adc7bc" stroke-width="1.5"/>
+<text x="935" y="426.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#2b574a">直接调用已有工具</text>
+<text x="935" y="453.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#2b574a">不创建新的工具包</text>
+<path d="M 560 560 L 735 610 L 560 660 L 385 610 Z" fill="#ffffff" stroke="#9fadb9" stroke-width="1.5"/>
+<text x="560" y="610.0" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#344c5c">适合受限扩展机制？</text>
+<rect x="75" y="555" width="240" height="110" rx="14" fill="#fcf4e7" stroke="#d7b985" stroke-width="1.5"/>
+<text x="195" y="583.0" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#805b26">形成独立开发说明</text>
+<text x="195" y="610.0" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#805b26">需要新依赖或超出限制</text>
+<text x="195" y="637.0" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#805b26">转人工开发与独立评估</text>
+<rect x="300" y="737" width="520" height="86" rx="14" fill="#f0f6f4" stroke="#adc7bc" stroke-width="1.5"/>
+<text x="560" y="766.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#2b574a">评估新增范围与大致消耗</text>
+<text x="560" y="793.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#2b574a">数学定义、适用范围、验收、估算与限制</text>
+<path d="M 560 885 L 735 935 L 560 985 L 385 935 Z" fill="#ffffff" stroke="#9fadb9" stroke-width="1.5"/>
+<text x="560" y="935.0" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#344c5c">用户批准本次范围？</text>
+<rect x="75" y="892" width="240" height="86" rx="14" fill="#eaf5f1" stroke="#8dbbb0" stroke-width="1.5"/>
+<text x="195" y="921.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#175a4a">拒绝或修改需求</text>
+<text x="195" y="948.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#175a4a">未获批准不生成并安装</text>
+<rect x="300" y="1047" width="520" height="86" rx="14" fill="#edf2fc" stroke="#a1b8e7" stroke-width="1.5"/>
+<text x="560" y="1076.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#284f91">模型实现独立工具包</text>
+<text x="560" y="1103.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#284f91">按批准范围生成，不修改基础包</text>
+<rect x="300" y="1187" width="520" height="86" rx="14" fill="#e9f3f7" stroke="#8fb1c3" stroke-width="1.5"/>
+<text x="560" y="1216.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#224d64">受保护验证与范围核验</text>
+<text x="560" y="1243.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#224d64">样例、预算与完整性；失败证据保留</text>
+<path d="M 560 1320 L 735 1370 L 560 1420 L 385 1370 Z" fill="#ffffff" stroke="#9fadb9" stroke-width="1.5"/>
+<text x="560" y="1370.0" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#344c5c">验证通过？</text>
+<rect x="75" y="1327" width="240" height="86" rx="14" fill="#fcf4e7" stroke="#d7b985" stroke-width="1.5"/>
+<text x="195" y="1356.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#805b26">验证失败或中断</text>
+<text x="195" y="1383.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#805b26">未安装；保留失败证据</text>
+<rect x="812.5" y="1320" width="245" height="100" rx="14" fill="#f0f6f4" stroke="#adc7bc" stroke-width="1.5"/>
+<text x="935" y="1356.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#2b574a">登记独立扩展工具</text>
+<text x="935" y="1383.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#2b574a">可发现、可复用、版本可追溯</text>
+<rect x="319" y="248" width="62" height="24" rx="5" fill="#ffffff"/>
+<text x="350" y="260" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#526575">不齐全</text>
+<rect x="141" y="103" width="78" height="24" rx="5" fill="#ffffff"/>
+<text x="180" y="115" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#526575">补充需求</text>
+<rect x="583" y="351" width="46" height="24" rx="5" fill="#ffffff"/>
+<text x="606" y="363" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#526575">齐全</text>
+<rect x="745" y="408" width="46" height="24" rx="5" fill="#ffffff"/>
+<text x="768" y="420" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#526575">可以</text>
+<rect x="583" y="514" width="46" height="24" rx="5" fill="#ffffff"/>
+<text x="606" y="526" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#526575">不能</text>
+<rect x="319" y="578" width="62" height="24" rx="5" fill="#ffffff"/>
+<text x="350" y="590" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#526575">不适合</text>
+<rect x="583" y="684" width="46" height="24" rx="5" fill="#ffffff"/>
+<text x="606" y="696" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#526575">适合</text>
+<rect x="152.5" y="828" width="85" height="24" rx="5" fill="#ffffff"/>
+<text x="195" y="840" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#526575">拒绝/修改</text>
+<rect x="584" y="1004" width="46" height="24" rx="5" fill="#ffffff"/>
+<text x="607" y="1016" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#526575">批准</text>
+<rect x="319" y="1338" width="62" height="24" rx="5" fill="#ffffff"/>
+<text x="350" y="1350" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#526575">未通过</text>
+<rect x="747" y="1338" width="46" height="24" rx="5" fill="#ffffff"/>
+<text x="770" y="1350" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#526575">通过</text>
+<line x1="60" x2="1060" y1="1485" y2="1485" stroke="#e3e9ec"/>
+<text x="60" y="1511" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#647481">已有工具联动不创建新包；扩展不能覆盖原生工具或授予自身审批权。</text>
+<text x="60" y="1535" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#647481">记忆仅提供偏好和经验参考，不替用户批准开发，也不训练模型权重。</text>
+</svg>

@@ -1,0 +1,92 @@
+{
+  "operation": "assess",
+  "request_id": "example-h-index-001",
+  "request": {
+    "name": "degree_h_index",
+    "goal": "计算度序列h指数",
+    "requirements": "给定最多128项非负整数，求至少有h项不小于h的最大整数h，空序列输出0。",
+    "checked_tools": [
+      {
+        "tool": "graph_invariants",
+        "reason": "可提供度序列，但没有h指数分支"
+      }
+    ],
+    "composition_possible": false,
+    "why_not_composition": "需要新实现按定义扫描序列的算法；原图度序列由外层已有工具准备。",
+    "new_algorithm": "排序，逐项比较阈值h。",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "degrees": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "maxItems": 128,
+          "title": "度序列",
+          "description": "最多128项非负整数；空序列约定h指数为0。"
+        }
+      },
+      "required": [
+        "degrees"
+      ],
+      "additionalProperties": false
+    },
+    "acceptance_tests": [
+      {
+        "arguments": {
+          "degrees": [
+            3,
+            2,
+            2,
+            1
+          ]
+        },
+        "expected": {
+          "h_index": 2
+        },
+        "basis": "按定义手工验算的小例；不证明一般正确性。"
+      },
+      {
+        "arguments": {
+          "degrees": []
+        },
+        "expected": {
+          "h_index": 0
+        },
+        "basis": "按定义手工验算的小例；不证明一般正确性。"
+      },
+      {
+        "arguments": {
+          "degrees": [
+            4,
+            4,
+            4,
+            4
+          ]
+        },
+        "expected": {
+          "h_index": 4
+        },
+        "basis": "按定义手工验算的小例；不证明一般正确性。"
+      }
+    ],
+    "complexity": "small",
+    "library_metadata": {
+      "title": "度序列h指数",
+      "summary": "从度序列计算h指数",
+      "preconditions": [
+        "输入为非负整数序列"
+      ],
+      "limitations": [
+        "最多128项；仅通过列出的验收样例"
+      ],
+      "returns": "h_index为整数",
+      "tags": [
+        "图论",
+        "度序列"
+      ]
+    }
+  }
+}

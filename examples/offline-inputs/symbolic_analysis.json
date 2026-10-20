@@ -1,0 +1,9 @@
+{
+  "operation": "summation",
+  "expression": "x^2",
+  "variable": "x",
+  "upper": "n",
+  "parameters": [
+    "n"
+  ]
+}

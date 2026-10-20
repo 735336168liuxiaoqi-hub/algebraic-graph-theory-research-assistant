@@ -1,0 +1,82 @@
+{
+  "task": {
+    "version": 1,
+    "request_id": "batch-path-study-001",
+    "objective": "批量计算路径图谱并核验矩阵秩",
+    "inputs": {
+      "kind": "path"
+    },
+    "execution": {
+      "mode": "batch",
+      "batch": {
+        "cases": [
+          {
+            "id": "P3",
+            "inputs": {
+              "n": 3
+            }
+          },
+          {
+            "id": "P4",
+            "inputs": {
+              "n": 4
+            }
+          }
+        ],
+        "steps": [
+          {
+            "id": "rank",
+            "tool": "matrix_analysis",
+            "arguments": {},
+            "bindings": {
+              "matrix": {
+                "step": "spectrum",
+                "path": [
+                  "matrix"
+                ]
+              }
+            }
+          },
+          {
+            "id": "spectrum",
+            "tool": "graph_spectrum",
+            "arguments": {},
+            "bindings": {
+              "kind": {
+                "input": [
+                  "kind"
+                ]
+              },
+              "n": {
+                "case": [
+                  "n"
+                ]
+              }
+            }
+          }
+        ],
+        "on_error": "continue_independent",
+        "outputs": {
+          "rho": {
+            "step": "spectrum",
+            "path": [
+              "rho"
+            ]
+          },
+          "rank": {
+            "step": "rank",
+            "path": [
+              "rank"
+            ]
+          }
+        }
+      }
+    },
+    "constraints": {
+      "max_model_calls": 0,
+      "max_tool_calls": 4,
+      "allow_extensions": false
+    }
+  },
+  "wait_seconds": 5
+}

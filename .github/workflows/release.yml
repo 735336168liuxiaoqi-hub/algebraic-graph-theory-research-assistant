@@ -1,0 +1,98 @@
+name: Prepare or publish a reviewed release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag matching graph_research/_version.py, for example v0.36.0rc4
+        required: true
+      publish:
+        description: Publish the reviewed release after the rights/license check passes
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    env:
+      PYTHONUTF8: '1'
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: |
+            requirements-lock.txt
+            requirements-dev.txt
+      - name: Use long-form temporary paths
+        shell: pwsh
+        run: |
+          "TEMP=$env:USERPROFILE\AppData\Local\Temp" >> $env:GITHUB_ENV
+          "TMP=$env:USERPROFILE\AppData\Local\Temp" >> $env:GITHUB_ENV
+      - name: Install locked dependencies and source
+        shell: pwsh
+        run: |
+          python -m venv .venv
+          .venv/Scripts/python.exe -m pip install -r requirements-lock.txt -r requirements-dev.txt
+          if ($LASTEXITCODE -ne 0) { throw "Dependency installation failed" }
+          .venv/Scripts/python.exe -m pip install --no-deps --no-build-isolation -e .
+          if ($LASTEXITCODE -ne 0) { throw "Project installation failed" }
+      - name: Match requested tag to this source
+        env:
+          REQUESTED_TAG: ${{ inputs.tag }}
+        run: .venv/Scripts/python.exe -c "import os,graph_research; assert os.environ['REQUESTED_TAG']=='v'+graph_research.__version__, 'Tag does not match package version'"
+      - name: Reject public publication without confirmed rights
+        if: ${{ inputs.publish }}
+        run: .venv/Scripts/python.exe tools/check_public_release.py
+      - name: Full checks
+        run: .venv/Scripts/python.exe -X utf8 tools/checks.py --full --strict-lock --report-dir outputs/release-acceptance
+      - name: Build and independently verify wheel
+        shell: pwsh
+        run: |
+          .venv/Scripts/python.exe -X utf8 tools/build_release.py
+          if ($LASTEXITCODE -ne 0) { throw "Wheel build failed" }
+          .venv/Scripts/python.exe -X utf8 tools/verify_release.py
+          if ($LASTEXITCODE -ne 0) { throw "Independent wheel verification failed" }
+      - name: Export clean source candidate
+        run: .venv/Scripts/python.exe -X utf8 tools/prepare_public_release.py --output dist/source-candidate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate
+          path: |
+            dist/*.whl
+            dist/source-candidate/*-source-candidate.zip
+            dist/source-candidate/candidate.json
+            outputs/release-acceptance
+
+  publish:
+    if: ${{ inputs.publish }}
+    needs: build
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate
+          path: release-artifacts
+      - name: Create the requested release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          TARGET_COMMIT: ${{ github.sha }}
+        shell: pwsh
+        run: |
+          $assets = @(Get-ChildItem -LiteralPath release-artifacts -Recurse -File | Where-Object { $_.Name -like '*.whl' -or $_.Name -like '*-source-candidate.zip' })
+          if ($assets.Count -ne 2) { throw "Expected exactly a wheel and a source archive" }
+          $assetPaths = @($assets | ForEach-Object FullName)
+          $releaseArgs = @('release', 'create', $env:RELEASE_TAG, '--target', $env:TARGET_COMMIT, '--title', "Algebraic Graph Theory Research Assistant $env:RELEASE_TAG", '--generate-notes')
+          if ($env:RELEASE_TAG -match 'rc|alpha|beta') { $releaseArgs += '--prerelease' }
+          & gh @releaseArgs @assetPaths
+          if ($LASTEXITCODE -ne 0) { throw "GitHub release creation failed" }

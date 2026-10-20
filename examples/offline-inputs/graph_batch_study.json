@@ -1,0 +1,23 @@
+{
+  "cases": [
+    {
+      "name": "P3",
+      "input": {
+        "kind": "path",
+        "n": 3
+      }
+    },
+    {
+      "name": "K3",
+      "input": {
+        "kind": "complete",
+        "n": 3
+      }
+    }
+  ],
+  "calculations": [
+    "structure",
+    "spectrum",
+    "charpoly"
+  ]
+}

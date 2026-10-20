@@ -1,0 +1,11 @@
+{
+  "edges": [
+    [
+      0,
+      1,
+      2
+    ]
+  ],
+  "operation": "expand_edges",
+  "count": 1
+}

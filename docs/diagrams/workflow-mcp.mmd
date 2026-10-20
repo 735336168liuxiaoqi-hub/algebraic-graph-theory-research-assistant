@@ -1,0 +1,42 @@
+flowchart TB
+    host["主agent理解用户任务<br/>自然语言规划使用主agent自己的模型"]:::host
+    catalog["research_catalog<br/>发现工具、读取契约与版本指纹"]:::host
+    submit["research_submit<br/>提交固定步骤 / 扫描 / 批量任务"]:::host
+    replay["相同编号与相同输入<br/>返回原任务，不新增计算"]:::data
+    run["后台受保护计算<br/>快速返回task_id，保存预算与逐步记录"]:::guard
+    cancel["research_cancel<br/>请求停止，保留已有记录"]:::warning
+    get["research_get<br/>按原task_id查询，不重复创建任务"]:::host
+    state{"当前任务状态？"}:::decision
+    running["仍在运行<br/>短暂等待后再查询"]:::data
+    interaction["等待用户回复或审批<br/>主agent完整转交interaction"]:::manual
+    user["可信用户入口<br/>用户操作后签发event_id"]:::manual
+    resume["research_resume<br/>只转交已签发的event_id"]:::host
+    settled["完成、失败或已取消<br/>保留实际结果和未完成部分"]:::data
+    inspect["按需读取结果与已登记附件<br/>research_inspect_result<br/>research_read_artifact"]:::host
+    deliver["主agent整理并交付给用户<br/>数据、图形、TeX或结果包"]:::host
+    host --> catalog
+    catalog --> submit
+    submit -->|已有任务| replay
+    submit -->|新任务| run
+    replay --> get
+    run -->|用户停止| cancel
+    cancel --> settled
+    run --> get
+    get --> state
+    state -->|运行中| running
+    running --> get
+    state -->|需用户操作| interaction
+    interaction --> user
+    user --> resume
+    resume -->|核验事件后继续| run
+    state -->|已停止/结束| settled
+    settled --> inspect
+    inspect --> deliver
+    classDef process fill:#f5f7fa,stroke:#c6d1da,color:#233845,stroke-width:1.5px
+    classDef manual fill:#eaf5f1,stroke:#8dbbb0,color:#175a4a,stroke-width:1.5px
+    classDef model fill:#edf2fc,stroke:#a1b8e7,color:#284f91,stroke-width:1.5px
+    classDef host fill:#f0edfa,stroke:#b5a7da,color:#5b438c,stroke-width:1.5px
+    classDef guard fill:#e9f3f7,stroke:#8fb1c3,color:#224d64,stroke-width:1.5px
+    classDef data fill:#f0f6f4,stroke:#adc7bc,color:#2b574a,stroke-width:1.5px
+    classDef warning fill:#fcf4e7,stroke:#d7b985,color:#805b26,stroke-width:1.5px
+    classDef decision fill:#ffffff,stroke:#9fadb9,color:#344c5c,stroke-width:1.5px

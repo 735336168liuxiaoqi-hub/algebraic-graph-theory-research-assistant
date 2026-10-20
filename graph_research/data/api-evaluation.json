@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "known-diameter", "title": "已知答案与计算依据",
+      "question": "调用已有工具计算普通路径图P3的直径，给出带sources和expected字段的claims，引用实际结果。",
+      "script": [
+        {"action":"call","tool":"graph_invariants","arguments":{"kind":"path","n":3}},
+        {"action":"final","answer":"P3的直径为2。","claims":[{"text":"P3的直径为2","kind":"exact","sources":[{"observation":0,"path":["diameter"],"expected":2}]}]}
+      ],
+      "expected": {"facts":[{"tool":"graph_invariants","path":["diameter"],"value":2}],"claims_status":"field_matched"}
+    },
+    {
+      "id":"typed-labels", "title":"原始标签与孤立点",
+      "graph":{"text":"1 \"1\"","vertices_text":"1 \"1\" isolated"},
+      "question":"当前对象含整数1、字符串\"1\"和孤立点isolated。绑定G1第1版，计算顶点数和边数，保留三个顶点及名称。",
+      "script":[
+        {"action":"call","tool":"graph_invariants","arguments":{},"graph_refs":{"graph":{"id":"G1","version":1}}},
+        {"action":"final","answer":"3个顶点，1条边，原标签保留。"}
+      ],
+      "expected":{"facts":[{"tool":"graph_invariants","path":["order"],"value":3},{"tool":"graph_invariants","path":["size"],"value":1}],"bound_vertices":[1,"1","isolated"]}
+    },
+    {
+      "id":"nonuniform-tensor", "title":"非一致超图的适用条件",
+      "graph":{"text":"a b c\nc d","graph_type":"hypergraph"},
+      "question":"当前超图是否满足一致超图张量特征多项式工具的前提？不满足时解释并等待补充，不要调用该张量计算。",
+      "script":[{"action":"clarify","questions":["此图有3元和2元超边，是非一致超图，不能直接进入一致超图张量计算。是否改为一致超图或先分析结构？"]}],
+      "expected":{"statuses":["awaiting_clarification","model_analysis_only"],"forbidden_tools":["hypergraph_tensor_charpoly"],"answer_contains":"一致"}
+    },
+    {
+      "id":"ambiguous-graph", "title":"模糊需求先澄清",
+      "question":"计算它的谱。尚未指定任何图或矩阵，请先确认研究对象和谱的类型。",
+      "script":[{"action":"clarify","questions":["请提供图或选择对象，并说明要邻接谱、拉普拉斯谱还是其他矩阵谱。"]}],
+      "expected":{"statuses":["awaiting_clarification"],"tool_calls":0}
+    },
+    {
+      "id":"version-plan", "title":"多步计划与新图版本",
+      "graph":{"text":"a b\nb c\nc d"},
+      "question":"提出并执行两步计划：绑定G1第1版，用graph_edit求平方图，再用graph_invariants检查新版本；保留旧版。",
+      "script":[
+        {"action":"plan","plan":{"title":"平方图结构核对","steps":[
+          {"id":"power","description":"计算平方图","tool":"graph_edit","arguments":{"operation":"power","power":2},"graph_refs":{"graph":{"id":"G1","version":1}}},
+          {"id":"structure","description":"核对新图结构","tool":"graph_invariants","arguments":{},"graph_refs":{"graph":{"step":"power"}}}
+        ]}},
+        {"action":"final","answer":"新版本有4个顶点、5条边，直径为2，原图保留。"}
+      ],
+      "expected":{"require_plan":true,"active_version":2,"facts":[{"tool":"graph_invariants","path":["size"],"value":5}]}
+    },
+    {
+      "id":"composition-only", "title":"已有工具联动不开发",
+      "question":"计算P3的直径和邻接谱，只联动已有工具，不创建任何新工具包。",
+      "script":[
+        {"action":"plan","plan":{"title":"结构与谱","steps":[
+          {"id":"structure","description":"计算直径","tool":"graph_invariants","arguments":{"kind":"path","n":3}},
+          {"id":"spectrum","description":"计算邻接谱","tool":"graph_spectrum","arguments":{"kind":"path","n":3}}
+        ]}},
+        {"action":"final","answer":"直径为2，邻接谱已由已有工具计算。"}
+      ],
+      "expected":{"facts":[{"tool":"graph_invariants","path":["diameter"],"value":2}],"successful_tools":["graph_spectrum"],"no_assessment":true}
+    },
+    {
+      "id":"manual-capability", "title":"外部依赖转独立开发说明",
+      "question":"我要编写依赖special_hypergraph_solver外部库的新接口，不允许在当前受限代码里伪装import。输入为整数x，输出{x:x}；独立验收x=1得{x:1}、x=2得{x:2}，依据是接口恒等回传约定。请按manual评估，生成独立开发说明，不生成或安装代码。",
+      "script":[{"action":"assess","request":{"name":"external_solver_adapter","goal":"外部研究库接口","requirements":"独立包，整数x恒等回传，外部库接入另行评估。","composition_possible":false,"implementation_mode":"manual","required_libraries":["special_hypergraph_solver"],"validation_ready":true,"checked_tools":[{"tool":"graph_invariants","reason":"不包含指定外部库接口"}],"why_not_composition":"需要独立依赖接入。","new_algorithm":"独立接口适配与验收。","parameters":{"type":"object","properties":{"x":{"type":"integer"}},"required":["x"],"additionalProperties":false},"acceptance_tests":[{"arguments":{"x":1},"expected":{"x":1},"basis":"恒等回传约定"},{"arguments":{"x":2},"expected":{"x":2},"basis":"恒等回传约定"}],"complexity":"small"}}],
+      "expected":{"statuses":["manual_development_required"],"manual_brief":true}
+    },
+    {
+      "id":"undefined-acceptance", "title":"缺少定义与验收时提问",
+      "question":"新增一个我尚未定义的超图指标，没有公式或可靠样例。请先询问具体定义、输入输出与验收依据，不要开发。",
+      "script":[{"action":"assess","request":{"composition_possible":false,"implementation_mode":"uncertain"}}],
+      "expected":{"statuses":["awaiting_clarification"],"tool_calls":0,"no_assessment":true}
+    },
+    {
+      "id":"request-budget", "title":"请求预算硬限制", "host_only":true,
+      "budget":{"max_model_calls":1}, "question":"先读取工具说明，再继续分析。",
+      "script":[{"action":"inspect","query":{"tools":["graph_invariants"]}},{"action":"final","answer":"不会发送第二次请求。"}],
+      "expected":{"statuses":["budget_exhausted"],"model_calls":1,"tool_calls":0}
+    },
+    {
+      "id":"bad-citation", "title":"错误引用值不能通过核对", "host_only":true,
+      "question":"验证错误字段引用会被标记。",
+      "script":[{"action":"call","tool":"graph_invariants","arguments":{"kind":"path","n":3}},
+        {"action":"final","answer":"以下是故意错误的验收数据。","claims":[{"text":"直径999","kind":"exact","sources":[{"observation":0,"path":["diameter"],"expected":999}]}]}],
+      "expected":{"claims_status":"invalid_reference"}
+    },
+    {
+      "id":"resume-reuse", "title":"中断恢复优先复用", "host_only":true,"resume":true,
+      "question":"中断后读取同一P3计算，不重复执行。",
+      "script":[{"action":"call","tool":"graph_invariants","arguments":{"kind":"path","n":3}},
+        {"_fault":"network"},{"action":"call","tool":"graph_invariants","arguments":{"kind":"path","n":3}},
+        {"action":"final","answer":"已从回执复用结果。"}],
+      "expected":{"tool_calls":1,"reused":true,"facts":[{"tool":"graph_invariants","path":["diameter"],"value":2}]}
+    },
+    {
+      "id":"bounded-history", "title":"长对话有限窗口", "host_only":true,"history_rounds":6,
+      "question":"只记录这条合成资料，不计算。",
+      "script":[{"action":"final","answer":"已记录合成资料。"},{"action":"final","answer":"已记录。"},{"action":"final","answer":"已记录。"},{"action":"final","answer":"已记录。"},{"action":"final","answer":"已记录。"},{"action":"final","answer":"已记录。"}],
+      "expected":{"context_messages_max":8,"tool_calls":0}
+    }
+  ]
+}

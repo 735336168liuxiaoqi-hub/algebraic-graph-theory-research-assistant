@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "request_id": "batch-branches-001",
+  "objective": "失败分支跳过，继续独立步骤和其他案例",
+  "inputs": {
+    "kind": "cycle"
+  },
+  "execution": {
+    "mode": "batch",
+    "batch": {
+      "cases": [
+        {
+          "id": "invalid-cycle",
+          "inputs": {
+            "n": 2
+          }
+        },
+        {
+          "id": "valid-cycle",
+          "inputs": {
+            "n": 4
+          }
+        }
+      ],
+      "steps": [
+        {
+          "id": "rank",
+          "tool": "matrix_analysis",
+          "arguments": {},
+          "bindings": {
+            "matrix": {
+              "step": "spectrum",
+              "path": [
+                "matrix"
+              ]
+            }
+          }
+        },
+        {
+          "id": "spectrum",
+          "tool": "graph_spectrum",
+          "arguments": {},
+          "bindings": {
+            "kind": {
+              "input": [
+                "kind"
+              ]
+            },
+            "n": {
+              "case": [
+                "n"
+              ]
+            }
+          }
+        },
+        {
+          "id": "independent",
+          "tool": "graph_invariants",
+          "arguments": {
+            "kind": "path",
+            "n": 3
+          }
+        }
+      ],
+      "on_error": "continue_independent",
+      "outputs": {
+        "rho": {
+          "step": "spectrum",
+          "path": [
+            "rho"
+          ]
+        },
+        "rank": {
+          "step": "rank",
+          "path": [
+            "rank"
+          ]
+        }
+      }
+    }
+  },
+  "constraints": {
+    "max_model_calls": 0,
+    "max_tool_calls": 6,
+    "allow_extensions": false
+  }
+}

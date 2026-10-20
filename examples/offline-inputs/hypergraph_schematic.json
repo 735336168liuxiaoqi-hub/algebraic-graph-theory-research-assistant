@@ -1,0 +1,81 @@
+{
+  "diagram": {
+    "format": "graph-research-schematic",
+    "version": 1,
+    "name": "E型论文示意图",
+    "rank": "k",
+    "vertices": [
+      {
+        "id": "v",
+        "xy": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "id": "a",
+        "xy": [
+          0.0,
+          2.5
+        ]
+      },
+      {
+        "id": "b",
+        "xy": [
+          -2.165,
+          -1.25
+        ]
+      },
+      {
+        "id": "c",
+        "xy": [
+          2.165,
+          -1.25
+        ]
+      }
+    ],
+    "edges": [],
+    "paths": [
+      {
+        "start": "v",
+        "end": "a",
+        "length": "a",
+        "brace": "left",
+        "first_edges": 1,
+        "last_edges": 1,
+        "ellipsis": true,
+        "label_offset": 0.28,
+        "vertex_ellipsis": true
+      },
+      {
+        "start": "v",
+        "end": "b",
+        "length": "b",
+        "brace": "left",
+        "first_edges": 1,
+        "last_edges": 1,
+        "ellipsis": true,
+        "label_offset": 0.28,
+        "vertex_ellipsis": true
+      },
+      {
+        "start": "v",
+        "end": "c",
+        "length": "c",
+        "brace": "left",
+        "first_edges": 1,
+        "last_edges": 1,
+        "ellipsis": true,
+        "label_offset": 0.28,
+        "vertex_ellipsis": true
+      }
+    ],
+    "style": {
+      "line_color": "#161616",
+      "vertex_color": "#c03036",
+      "edge_fill": "#eeeeee",
+      "line_width": 0.018,
+      "vertex_radius": 0.03
+    }
+  }
+}

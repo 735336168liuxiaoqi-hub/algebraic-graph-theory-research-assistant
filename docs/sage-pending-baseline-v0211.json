@@ -1,0 +1,1290 @@
+{
+  "baseline_version": "0.21.1",
+  "definition_count": 180,
+  "note": "待迁移定义记录包含类、方法、不同版本的重复用途，不等于独立算法数。",
+  "definitions": [
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "my_print",
+      "line": 65,
+      "kind": "def",
+      "meaning": "生成求和式的LaTeX文本。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyIdentity",
+      "line": 68,
+      "kind": "class",
+      "meaning": "保存求和项、上下限和求和值，逐步变换与展示求和恒等式。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyIdentity.__mul__",
+      "line": 78,
+      "kind": "def",
+      "meaning": "给求和项乘因子并重新求和。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyIdentity.action",
+      "line": 84,
+      "kind": "def",
+      "meaning": "对求和项或等式两侧应用函数。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyIdentity.subs",
+      "line": 94,
+      "kind": "def",
+      "meaning": "代入符号并重新计算或同步变换两侧。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyIdentity.factor",
+      "line": 103,
+      "kind": "def",
+      "meaning": "分解求和值。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyIdentity.simplify",
+      "line": 106,
+      "kind": "def",
+      "meaning": "简化求和项并重新求和。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyIdentity.show1",
+      "line": 110,
+      "kind": "def",
+      "meaning": "显示求和恒等式。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyIdentity.actionlist",
+      "line": 112,
+      "kind": "def",
+      "meaning": "记录一串变换的中间状态。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyIdentity.show",
+      "line": 118,
+      "kind": "def",
+      "meaning": "显示求和值与未求值求和式。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "getGridPath",
+      "line": 124,
+      "kind": "def",
+      "meaning": "把0/1步序列画成平面格路径。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "gridPath",
+      "line": 132,
+      "kind": "def",
+      "meaning": "逐步向右或向上画格路径，可同时返回坐标。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "lattice_path",
+      "line": 146,
+      "kind": "def",
+      "meaning": "由指定向右步的位置集合生成格路径。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "rectangle",
+      "line": 162,
+      "kind": "def",
+      "meaning": "画矩形边框或填充矩形。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "chess_board",
+      "line": 169,
+      "kind": "def",
+      "meaning": "按回调颜色绘制矩阵棋盘并显示行列标签。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyPowerSeries",
+      "line": 225,
+      "kind": "def",
+      "meaning": "通过字符串求值将表达式转到幂级数环；原实现使用eval，应改用显式符号级数。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "getCycleIndex1",
+      "line": 257,
+      "kind": "def",
+      "meaning": "将群循环分拆直接作为单项式指数的旧编码；与标准循环指标表示不同。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "getCycleIndex",
+      "line": 284,
+      "kind": "def",
+      "meaning": "按群元素的循环长度计算标准归一化循环指标多项式。"
+    },
+    {
+      "source_file": "MyTools.sage",
+      "symbol": "l2math",
+      "line": 140,
+      "kind": "def",
+      "meaning": "读取剪贴板中的整数LaTeX数组并转矩阵。"
+    },
+    {
+      "source_file": "MyTools.sage",
+      "symbol": "L2Math",
+      "line": 151,
+      "kind": "def",
+      "meaning": "读取剪贴板并求值LaTeX数组的符号单元格。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "Latex2Image",
+      "line": 9,
+      "kind": "def",
+      "meaning": "调用TeX引擎把对象排版成PNG。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "Graph2Image",
+      "line": 17,
+      "kind": "def",
+      "meaning": "通过TeX/TikZ渲染图像，依赖外部TeX环境。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "my_repr_html",
+      "line": 41,
+      "kind": "def",
+      "meaning": "把Sage绘图转为嵌入PNG的HTML。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "Reshape",
+      "line": 83,
+      "kind": "def",
+      "meaning": "按列数重排对象列表并补空格。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "Table",
+      "line": 153,
+      "kind": "def",
+      "meaning": "混排图像、Pandas样式表和普通对象为HTML表格。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "viewgraph",
+      "line": 170,
+      "kind": "def",
+      "meaning": "输出交互图HTML并嵌入iframe。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "htmlview",
+      "line": 188,
+      "kind": "def",
+      "meaning": "展示图与不变量的对照表。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "showGA",
+      "line": 206,
+      "kind": "def",
+      "meaning": "按网格批量展示图。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "latex_draw",
+      "line": 211,
+      "kind": "def",
+      "meaning": "通过LaTeX生成多幅图并排展示。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "Graphics2Data",
+      "line": 232,
+      "kind": "def",
+      "meaning": "把图、绘图对象或图片编码为PNG/HTML。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "graph_to_html",
+      "line": 282,
+      "kind": "def",
+      "meaning": "将图绘成base64内嵌PNG的HTML。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "graphs_list_save",
+      "line": 305,
+      "kind": "def",
+      "meaning": "批量把图编码为内嵌PNG，实际返回HTML片段列表。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "variable_name",
+      "line": 413,
+      "kind": "def",
+      "meaning": "按对象身份在全局命名空间寻找变量名，结果不唯一。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "TCBSpline",
+      "line": 427,
+      "kind": "class",
+      "meaning": "控制张力、连续性、偏置的插值样条类。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "TCBSpline._calc_tangents_kochanek_bartel",
+      "line": 436,
+      "kind": "def",
+      "meaning": "计算TCB样条的入/出切向量。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "TCBSpline._calc_tangents_catmull_rom",
+      "line": 464,
+      "kind": "def",
+      "meaning": "计算Catmull–Rom切向量。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "TCBSpline.interpolate",
+      "line": 484,
+      "kind": "def",
+      "meaning": "采样开曲线或闭曲线的TCB插值点。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "graphs_list_show",
+      "line": 561,
+      "kind": "def",
+      "meaning": "带编号或名字批量展示图表。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "base64ToPng",
+      "line": 572,
+      "kind": "def",
+      "meaning": "解码HTML中的base64图片并保存PNG。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "html_add",
+      "line": 581,
+      "kind": "def",
+      "meaning": "连接两个HTML片段。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "table_add",
+      "line": 588,
+      "kind": "def",
+      "meaning": "按行拼接两个表格。"
+    },
+    {
+      "source_file": "Tensor.sage",
+      "symbol": "Tensor.__call__",
+      "line": 294,
+      "kind": "def",
+      "meaning": "原代码调用NumPy数组对象；该数组本身不可调用。现有Tensor方括号索引已可取元素。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "edge",
+      "line": 25,
+      "kind": "class",
+      "meaning": "带边序号、权重和标签的顶点元组。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "edge.issuperset",
+      "line": 38,
+      "kind": "def",
+      "meaning": "判断边是否包含指定顶点集。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "edge.__sub__",
+      "line": 41,
+      "kind": "def",
+      "meaning": "边顶点集合差。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "edge.intersection",
+      "line": 44,
+      "kind": "def",
+      "meaning": "边顶点集合交。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "edge.__add__",
+      "line": 47,
+      "kind": "def",
+      "meaning": "合并两组边顶点。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "edge.__and__",
+      "line": 62,
+      "kind": "def",
+      "meaning": "边顶点集合交。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "edge.__getitem__",
+      "line": 65,
+      "kind": "def",
+      "meaning": "按位置读取边的顶点。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "Index",
+      "line": 70,
+      "kind": "def",
+      "meaning": "提取一组边对象的序号。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "plot_by_eigenvector",
+      "line": 401,
+      "kind": "def",
+      "meaning": "用指定两个或三个特征向量的分量作为绘图坐标。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "polynomials_for_addstarsgraph",
+      "line": 564,
+      "kind": "def",
+      "meaning": "用原矩阵和附叶数量推导加星图的特征多项式。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "De_subdivide_claw",
+      "line": 611,
+      "kind": "def",
+      "meaning": "对剖分并附叶后的多项式比值作对数积分，计算能量差及误差。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "De_subdivide_edge",
+      "line": 634,
+      "kind": "def",
+      "meaning": "剖分和删根后用多项式比值积分比较能量。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "energy_polynomial",
+      "line": 709,
+      "kind": "def",
+      "meaning": "对反转特征多项式作Coulson型积分求能量；需核对收敛与适用条件。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "set_edge_weight",
+      "line": 965,
+      "kind": "def",
+      "meaning": "按边或按同权边组赋权，未指定边可取默认权重。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "edge2graph",
+      "line": 1032,
+      "kind": "def",
+      "meaning": "用有两个指定端点的图替换原图一条边。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "replace_edges_by_graph",
+      "line": 1049,
+      "kind": "def",
+      "meaning": "批量用指定图替换指定边，识别端点并隔离内部顶点。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "PartProduct",
+      "line": 1392,
+      "kind": "def",
+      "meaning": "只在选定顶点子图上作图积，再接回外部邻边。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "perm_block",
+      "line": 1470,
+      "kind": "def",
+      "meaning": "根据已有分块交换矩阵块行和块列。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "checksign1",
+      "line": 1478,
+      "kind": "def",
+      "meaning": "返回多项式非零系数的符号集合。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "weight_edges",
+      "line": 1624,
+      "kind": "def",
+      "meaning": "返回加权邻接矩阵并设置权重；原实现引用未定义D。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "complex_weight",
+      "line": 1646,
+      "kind": "def",
+      "meaning": "给选定有向边赋i、反向赋−i，依赖原有问题的weight_edges。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "slip_graph",
+      "line": 1671,
+      "kind": "def",
+      "meaning": "在附接路不同位置粘合另一个图，生成滑移构图。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "pick_vertices",
+      "line": 1704,
+      "kind": "def",
+      "meaning": "按度把顶点分组，可取第k小的度及对应顶点。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "list2dict",
+      "line": 1763,
+      "kind": "def",
+      "meaning": "按二元记录首项分组收集第二项。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "cayley_graph",
+      "line": 1838,
+      "kind": "def",
+      "meaning": "有限半群或群的左/右/双侧Cayley有向图，可保留生成元标签、重边和自环。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "mygraphmul",
+      "line": 2016,
+      "kind": "def",
+      "meaning": "整数参数表示不交并复制，图参数表示迭代笛卡尔积。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "mygraphsub",
+      "line": 2047,
+      "kind": "def",
+      "meaning": "复制原图并删去另一个图的边。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "subdivide",
+      "line": 2168,
+      "kind": "def",
+      "meaning": "给矩阵标注行列分块；不是图的边剖分。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "random_symmetric_matrix",
+      "line": 2181,
+      "kind": "def",
+      "meaning": "生成指定整数区间的随机对称矩阵。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "subdivide1",
+      "line": 2186,
+      "kind": "def",
+      "meaning": "矩阵分块后求块和及归一化商矩阵，两个分支的sym含义不一致。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "add_blossom",
+      "line": 2244,
+      "kind": "def",
+      "meaning": "在指定点附接双重边形成多重图花瓣；当前普通谱接口要求简单图。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "gline_graph_forbidden_subgraphs",
+      "line": 2269,
+      "kind": "def",
+      "meaning": "解码旧包给出的31个广义线图禁诱导子图。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "is_gline_graph",
+      "line": 2278,
+      "kind": "def",
+      "meaning": "通过禁诱导子图判断广义线图，证书分支混用了普通线图根图，需单独修复。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "layout_Tree",
+      "line": 2404,
+      "kind": "def",
+      "meaning": "按根与方向生成树的层次坐标。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "ShiftPos",
+      "line": 2511,
+      "kind": "def",
+      "meaning": "平移并分别缩放两个坐标轴。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "Pos",
+      "line": 2524,
+      "kind": "def",
+      "meaning": "生成、设置并保存顶点布局坐标。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "VerticesLabel",
+      "line": 2543,
+      "kind": "def",
+      "meaning": "设置顶点显示标签。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "Init",
+      "line": 2553,
+      "kind": "def",
+      "meaning": "初始化坐标、标签和标签偏移。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "local_spring",
+      "line": 2563,
+      "kind": "def",
+      "meaning": "固定一部分坐标，对其他顶点作弹簧布局。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "Rotate_Shift",
+      "line": 2604,
+      "kind": "def",
+      "meaning": "让两组顶点重心连线转到目标方向，并平移指定原点。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "GraphPlot",
+      "line": 2812,
+      "kind": "def",
+      "meaning": "合并边颜色、标签等选项并返回Sage绘图对象。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "Plot",
+      "line": 2869,
+      "kind": "def",
+      "meaning": "使用共享绘图选项画图。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "plot_graph_with_labels",
+      "line": 2905,
+      "kind": "def",
+      "meaning": "用特征向量分量生成顶点标签并画图。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "Set_Label_with_Eigenvector",
+      "line": 2947,
+      "kind": "def",
+      "meaning": "设置特征向量顶点标签和规范化坐标。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "plotbycycle",
+      "line": 3005,
+      "kind": "def",
+      "meaning": "原函数忽略输入，画写死的二十面体图Hamilton圈布局。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "Latex",
+      "line": 3016,
+      "kind": "def",
+      "meaning": "按布局导出图的LaTeX/TikZ。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "Graph2TeX",
+      "line": 3054,
+      "kind": "def",
+      "meaning": "生成TeX并调用外部引擎渲染，现有TikZ导出仅覆盖源码部分。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "AMdb",
+      "line": 3094,
+      "kind": "def",
+      "meaning": "按相邻端点度倒数之和构造赋权邻接矩阵。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "Cycle",
+      "line": 3147,
+      "kind": "def",
+      "meaning": "根据给定顶点循环顺序构造圈。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "Merge_And_Append_Edge",
+      "line": 3206,
+      "kind": "def",
+      "meaning": "合并边端点再加边，可能产生自环/多重边，需明确目标图模型。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "GraphList2TeX",
+      "line": 3480,
+      "kind": "def",
+      "meaning": "把多幅图排成带子图的TeX表格，另可预览/编译。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "GL2TeX",
+      "line": 3574,
+      "kind": "def",
+      "meaning": "批量图排版、旋转与长表格TeX导出。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "align_HV",
+      "line": 3654,
+      "kind": "def",
+      "meaning": "把选定顶点组分别对齐到水平线或竖直线。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "CenterPos",
+      "line": 3676,
+      "kind": "def",
+      "meaning": "将布局以重心或指定点居中；原实现忽略c参数。"
+    },
+    {
+      "source_file": "GraphTheory.sage",
+      "symbol": "rich_repr",
+      "line": 3697,
+      "kind": "def",
+      "meaning": "根据Sage富显示管理器自动展示图像、LaTeX或文本。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperG.edge_coloring",
+      "line": 257,
+      "kind": "def",
+      "meaning": "当前只返回空字典，是未实现的着色占位。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperG._spring_layout",
+      "line": 260,
+      "kind": "def",
+      "meaning": "在点边关联二部图上计算弹簧布局。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperG.Pos",
+      "line": 265,
+      "kind": "def",
+      "meaning": "缓存点边布局并更新超边中心。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperG.setLposDeg1",
+      "line": 283,
+      "kind": "def",
+      "meaning": "根据样条切向量放置叶顶点标签；v22的后定义覆盖前定义且不保存结果。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperG.setLabPos",
+      "line": 313,
+      "kind": "def",
+      "meaning": "配置顶点标签偏移并调用叶点标签放置。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperG.add_star",
+      "line": 360,
+      "kind": "def",
+      "meaning": "附加若干共享同一个根顶点集的超边。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperG.add_stars",
+      "line": 380,
+      "kind": "def",
+      "meaning": "按多组根集批量附加超边。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperG.eigenVfun",
+      "line": 442,
+      "kind": "def",
+      "meaning": "生成一致超图Laplacian张量的特征方程向量。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperG._rich_repr_",
+      "line": 556,
+      "kind": "def",
+      "meaning": "连接Sage富显示管理器，自动显示超图。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperG.Latex",
+      "line": 591,
+      "kind": "def",
+      "meaning": "按保存坐标和显示标签导出超图TikZ。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperG._latex_",
+      "line": 653,
+      "kind": "def",
+      "meaning": "Sage的LaTeX显示钩子。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperGraphPlot._repr_",
+      "line": 675,
+      "kind": "def",
+      "meaning": "绘图对象的简短文本表示。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperGraphPlot.set_vertices",
+      "line": 686,
+      "kind": "def",
+      "meaning": "更新顶点样式和标签绘制组件。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperGraphPlot.set_edges",
+      "line": 715,
+      "kind": "def",
+      "meaning": "更新超边曲线、颜色、线型和标签组件。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "myreprhtml",
+      "line": 1083,
+      "kind": "def",
+      "meaning": "规范化布局后输出超图HTML预览。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "getPath",
+      "line": 1097,
+      "kind": "def",
+      "meaning": "沿指定方向追踪超图内部路，原循环缺少歧义与终止保护。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "list2dtopanda",
+      "line": 1116,
+      "kind": "def",
+      "meaning": "把二维数据转换为带行列名的Pandas样式表。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "get_components",
+      "line": 1127,
+      "kind": "def",
+      "meaning": "抽取指定内部路及对应的赋权关联子矩阵，并展示表格。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "LinkG",
+      "line": 1578,
+      "kind": "def",
+      "meaning": "用两条内部路在主超图上接入根超图；单根分支写死了顶点与路长。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "weighted_incidence_graph",
+      "line": 1670,
+      "kind": "def",
+      "meaning": "画带归一化关联权的点边二部图。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "Rotate_Shift",
+      "line": 1736,
+      "kind": "def",
+      "meaning": "让两组顶点重心连线转到目标方向，并平移指定原点。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "Valleys",
+      "line": 1762,
+      "kind": "def",
+      "meaning": "扫描旋转角度，寻找包围盒面积指标的局部极小值。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "Rotate",
+      "line": 1790,
+      "kind": "def",
+      "meaning": "旋转、缩放并居中超图坐标。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "Normalize_Pos",
+      "line": 1808,
+      "kind": "def",
+      "meaning": "按包围盒指标的极小值选择绘图旋转方向。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "Graph2TeX",
+      "line": 1820,
+      "kind": "def",
+      "meaning": "生成TeX并调用外部引擎渲染，现有TikZ导出仅覆盖源码部分。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "HyperTree1",
+      "line": 1944,
+      "kind": "def",
+      "meaning": "拼接四个基本分支与内部路的专门超树族。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "U1",
+      "line": 2067,
+      "kind": "def",
+      "meaning": "由两个3一致松路与两条内部路构造的专门图族，使用固定顶点编号。"
+    },
+    {
+      "source_file": "hypergraph_v2.sage",
+      "symbol": "U2",
+      "line": 2074,
+      "kind": "def",
+      "meaning": "在三边3一致松路中加内部路的专门图族。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG.edge_coloring",
+      "line": 287,
+      "kind": "def",
+      "meaning": "当前只返回空字典，是未实现的着色占位。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG._spring_layout",
+      "line": 292,
+      "kind": "def",
+      "meaning": "在点边关联二部图上计算弹簧布局。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG.Pos",
+      "line": 297,
+      "kind": "def",
+      "meaning": "缓存点边布局并更新超边中心。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG.setLposDeg1",
+      "line": 319,
+      "kind": "def",
+      "meaning": "根据样条切向量放置叶顶点标签；v22的后定义覆盖前定义且不保存结果。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG.setLposDeg1",
+      "line": 341,
+      "kind": "def",
+      "meaning": "根据样条切向量放置叶顶点标签；v22的后定义覆盖前定义且不保存结果。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG.setLabPos",
+      "line": 350,
+      "kind": "def",
+      "meaning": "配置顶点标签偏移并调用叶点标签放置。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG.add_star",
+      "line": 416,
+      "kind": "def",
+      "meaning": "附加若干共享同一个根顶点集的超边。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG.add_stars",
+      "line": 436,
+      "kind": "def",
+      "meaning": "按多组根集批量附加超边。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG.eigenVfun",
+      "line": 498,
+      "kind": "def",
+      "meaning": "生成一致超图Laplacian张量的特征方程向量。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG._rich_repr_",
+      "line": 612,
+      "kind": "def",
+      "meaning": "连接Sage富显示管理器，自动显示超图。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG.Latex",
+      "line": 647,
+      "kind": "def",
+      "meaning": "按保存坐标和显示标签导出超图TikZ。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperG._latex_",
+      "line": 710,
+      "kind": "def",
+      "meaning": "Sage的LaTeX显示钩子。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperGraphPlot._repr_",
+      "line": 732,
+      "kind": "def",
+      "meaning": "绘图对象的简短文本表示。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperGraphPlot.set_vertices",
+      "line": 743,
+      "kind": "def",
+      "meaning": "更新顶点样式和标签绘制组件。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperGraphPlot.set_edges",
+      "line": 772,
+      "kind": "def",
+      "meaning": "更新超边曲线、颜色、线型和标签组件。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "WeigthedIncidenceMatrixForQuotientGraph",
+      "line": 943,
+      "kind": "def",
+      "meaning": "从边轨道选代表并构造赋权关联矩阵；连通代表不存在时可能失败，当前采用更稳健的轨道商算子。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "myreprhtml",
+      "line": 1322,
+      "kind": "def",
+      "meaning": "规范化布局后输出超图HTML预览。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "getPath",
+      "line": 1336,
+      "kind": "def",
+      "meaning": "沿指定方向追踪超图内部路，原循环缺少歧义与终止保护。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "list2dtopanda",
+      "line": 1355,
+      "kind": "def",
+      "meaning": "把二维数据转换为带行列名的Pandas样式表。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "get_components",
+      "line": 1366,
+      "kind": "def",
+      "meaning": "抽取指定内部路及对应的赋权关联子矩阵，并展示表格。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "LinkG",
+      "line": 1943,
+      "kind": "def",
+      "meaning": "用两条内部路在主超图上接入根超图；单根分支写死了顶点与路长。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "weighted_incidence_graph",
+      "line": 2058,
+      "kind": "def",
+      "meaning": "画带归一化关联权的点边二部图。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "Rotate_Shift",
+      "line": 2139,
+      "kind": "def",
+      "meaning": "让两组顶点重心连线转到目标方向，并平移指定原点。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "Valleys",
+      "line": 2178,
+      "kind": "def",
+      "meaning": "扫描旋转角度，寻找包围盒面积指标的局部极小值。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "Rotate",
+      "line": 2206,
+      "kind": "def",
+      "meaning": "旋转、缩放并居中超图坐标。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "Normalize_Pos",
+      "line": 2224,
+      "kind": "def",
+      "meaning": "按包围盒指标的极小值选择绘图旋转方向。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "Graph2TeX",
+      "line": 2236,
+      "kind": "def",
+      "meaning": "生成TeX并调用外部引擎渲染，现有TikZ导出仅覆盖源码部分。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "HyperTree1",
+      "line": 2396,
+      "kind": "def",
+      "meaning": "拼接四个基本分支与内部路的专门超树族。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "U1",
+      "line": 2573,
+      "kind": "def",
+      "meaning": "由两个3一致松路与两条内部路构造的专门图族，使用固定顶点编号。"
+    },
+    {
+      "source_file": "hypergraph_v22.sage",
+      "symbol": "U2",
+      "line": 2580,
+      "kind": "def",
+      "meaning": "在三边3一致松路中加内部路的专门图族。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "bk_rop1",
+      "line": 63,
+      "kind": "def",
+      "meaning": "交换矩阵的两个块行。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "bk_rop2",
+      "line": 72,
+      "kind": "def",
+      "meaning": "用标量或方阵左乘某一块行。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "bk_rop3",
+      "line": 80,
+      "kind": "def",
+      "meaning": "向某一块行加另一块行的矩阵倍数。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "show_equtions",
+      "line": 96,
+      "kind": "def",
+      "meaning": "把方程组排版为大括号LaTeX。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "stdequs",
+      "line": 106,
+      "kind": "def",
+      "meaning": "将线性等式整理为变量项在左、常数项在右。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "movelines",
+      "line": 114,
+      "kind": "def",
+      "meaning": "平移二维直线，使它们经过指定位置。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "plotequs",
+      "line": 121,
+      "kind": "def",
+      "meaning": "画二维隐式方程组。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "plot3dequs",
+      "line": 128,
+      "kind": "def",
+      "meaning": "画三维隐式曲面组。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "el_rop2",
+      "line": 149,
+      "kind": "def",
+      "meaning": "某一行数乘，并显示变换过程。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "el_rop3",
+      "line": 154,
+      "kind": "def",
+      "meaning": "向某一行加另一行的倍数，并显示过程。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "el_cop2",
+      "line": 164,
+      "kind": "def",
+      "meaning": "某一列数乘，并显示过程。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "el_cop3",
+      "line": 169,
+      "kind": "def",
+      "meaning": "向某一列加另一列的倍数，并显示过程。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "lst2ltx",
+      "line": 174,
+      "kind": "def",
+      "meaning": "把矩阵和符号列表连接为LaTeX，可用行列式边框。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "sum_hold",
+      "line": 184,
+      "kind": "def",
+      "meaning": "生成不提前合并的矩阵/行列式求和LaTeX。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "split_row",
+      "line": 194,
+      "kind": "def",
+      "meaning": "拆分矩阵某行，将行列式展开为各拆分矩阵的和。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "split_vector",
+      "line": 206,
+      "kind": "def",
+      "meaning": "把向量拆成若干只有一个非零分量的向量。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "mat_generlize",
+      "line": 256,
+      "kind": "def",
+      "meaning": "用省略号替换矩阵指定行列，生成概括性排版。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "do_Actions",
+      "line": 285,
+      "kind": "def",
+      "meaning": "执行按顺序给出的六类初等行列变换。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "Op_links",
+      "line": 301,
+      "kind": "def",
+      "meaning": "把初等变换编码生成LaTeX箭头说明。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "do_show_ops",
+      "line": 318,
+      "kind": "def",
+      "meaning": "生成初等变换前后矩阵与箭头的LaTeX过程。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "Mat2PR",
+      "line": 323,
+      "kind": "def",
+      "meaning": "把符号矩阵转换为多项式系数域中的矩阵。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "matrix_round",
+      "line": 331,
+      "kind": "def",
+      "meaning": "仅在误差阈值允许时对矩阵元素舍入/转整数。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "map_round",
+      "line": 335,
+      "kind": "def",
+      "meaning": "对矩阵或序列逐项按误差阈值舍入。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "Jordan_block",
+      "line": 359,
+      "kind": "def",
+      "meaning": "用多项式伴随块与次对角连接构造块，不能直接当成普通Jordan块。"
+    },
+    {
+      "source_file": "LinearAlgebra.sage",
+      "symbol": "Jordan_form",
+      "line": 364,
+      "kind": "def",
+      "meaning": "按多项式因子列表拼接上述块；原实现只取第一个因子，需核对。"
+    }
+  ],
+  "review_corrections": [
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyIdentity.__init__",
+      "line": 69,
+      "kind": "def",
+      "meaning": "求和恒等式容器的初始化；类尚未实现，旧目录误把None.__init__当作实现。"
+    },
+    {
+      "source_file": "myCombinatorics.sage",
+      "symbol": "MyIdentity.__repr__",
+      "line": 76,
+      "kind": "def",
+      "meaning": "求和恒等式对象的文本显示；类尚未实现，旧目录误把None.__repr__当作实现。"
+    },
+    {
+      "source_file": "MyUtility.sage",
+      "symbol": "TCBSpline.__init__",
+      "line": 428,
+      "kind": "def",
+      "meaning": "初始化TCB样条参数与控制点缓存；类尚未实现，旧目录误判此构造器可用。"
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "format": "dependency-license-metadata/1",
+  "project_license_selected": false,
+  "dependencies_bundled": false,
+  "records": [
+    {
+      "distribution": "numpy",
+      "version": "2.3.5",
+      "license_expression": null,
+      "license_field_summary": "Copyright (c) 2005-2025, NumPy Developers.",
+      "upstream_urls": [
+        "homepage, https://numpy.org",
+        "documentation, https://numpy.org/doc/",
+        "source, https://github.com/numpy/numpy",
+        "download, https://pypi.org/project/numpy/#files",
+        "tracker, https://github.com/numpy/numpy/issues",
+        "release notes, https://numpy.org/doc/stable/release"
+      ],
+      "note": "Metadata records upstream dependency terms; it does not grant permission for the supplied research code."
+    },
+    {
+      "distribution": "networkx",
+      "version": "3.5",
+      "license_expression": null,
+      "license_field_summary": null,
+      "upstream_urls": [
+        "Homepage, https://networkx.org/",
+        "Bug Tracker, https://github.com/networkx/networkx/issues",
+        "Documentation, https://networkx.org/documentation/stable/",
+        "Source Code, https://github.com/networkx/networkx"
+      ],
+      "note": "Metadata records upstream dependency terms; it does not grant permission for the supplied research code."
+    },
+    {
+      "distribution": "sympy",
+      "version": "1.14.0",
+      "license_expression": null,
+      "license_field_summary": "BSD",
+      "upstream_urls": [
+        "Source, https://github.com/sympy/sympy"
+      ],
+      "note": "Metadata records upstream dependency terms; it does not grant permission for the supplied research code."
+    },
+    {
+      "distribution": "matplotlib",
+      "version": "3.10.6",
+      "license_expression": null,
+      "license_field_summary": "License agreement for matplotlib versions 1.3.0 and later",
+      "upstream_urls": [
+        "Homepage, https://matplotlib.org",
+        "Download, https://matplotlib.org/stable/install/index.html",
+        "Documentation, https://matplotlib.org",
+        "Source Code, https://github.com/matplotlib/matplotlib",
+        "Bug Tracker, https://github.com/matplotlib/matplotlib/issues",
+        "Forum, https://discourse.matplotlib.org/",
+        "Donate, https://numfocus.org/donate-to-matplotlib"
+      ],
+      "note": "Metadata records upstream dependency terms; it does not grant permission for the supplied research code."
+    },
+    {
+      "distribution": "PySide6",
+      "version": "6.9.2",
+      "license_expression": null,
+      "license_field_summary": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
+      "upstream_urls": [
+        "Homepage, https://pyside.org",
+        "Documentation, https://doc.qt.io/qtforpython",
+        "Repository, https://code.qt.io/cgit/pyside/pyside-setup.git/",
+        "Changelog, https://code.qt.io/cgit/pyside/pyside-setup.git/tree/doc/changelogs",
+        "Tracker, https://bugreports.qt.io/projects/PYSIDE"
+      ],
+      "note": "Metadata records upstream dependency terms; it does not grant permission for the supplied research code."
+    },
+    {
+      "distribution": "langgraph",
+      "version": "1.2.15",
+      "license_expression": "MIT",
+      "license_field_summary": null,
+      "upstream_urls": [
+        "Homepage, https://docs.langchain.com/oss/python/langgraph/overview",
+        "Documentation, https://reference.langchain.com/python/langgraph/",
+        "Source, https://github.com/langchain-ai/langgraph/tree/main/libs/langgraph",
+        "Changelog, https://github.com/langchain-ai/langgraph/releases",
+        "Twitter, https://x.com/langchain_oss",
+        "Slack, https://www.langchain.com/join-community",
+        "Reddit, https://www.reddit.com/r/LangChain/"
+      ],
+      "note": "Metadata records upstream dependency terms; it does not grant permission for the supplied research code."
+    },
+    {
+      "distribution": "httpx",
+      "version": "0.28.1",
+      "license_expression": null,
+      "license_field_summary": "BSD-3-Clause",
+      "upstream_urls": [
+        "Changelog, https://github.com/encode/httpx/blob/master/CHANGELOG.md",
+        "Documentation, https://www.python-httpx.org",
+        "Homepage, https://github.com/encode/httpx",
+        "Source, https://github.com/encode/httpx"
+      ],
+      "note": "Metadata records upstream dependency terms; it does not grant permission for the supplied research code."
+    },
+    {
+      "distribution": "jsonschema",
+      "version": "4.25.0",
+      "license_expression": "MIT",
+      "license_field_summary": null,
+      "upstream_urls": [
+        "Homepage, https://github.com/python-jsonschema/jsonschema",
+        "Documentation, https://python-jsonschema.readthedocs.io/",
+        "Issues, https://github.com/python-jsonschema/jsonschema/issues/",
+        "Funding, https://github.com/sponsors/Julian",
+        "Tidelift, https://tidelift.com/subscription/pkg/pypi-jsonschema?utm_source=pypi-jsonschema&utm_medium=referral&utm_campaign=pypi-link",
+        "Changelog, https://github.com/python-jsonschema/jsonschema/blob/main/CHANGELOG.rst",
+        "Source, https://github.com/python-jsonschema/jsonschema"
+      ],
+      "note": "Metadata records upstream dependency terms; it does not grant permission for the supplied research code."
+    },
+    {
+      "distribution": "mcp",
+      "version": "2.3.0",
+      "license_expression": null,
+      "license_field_summary": "MIT",
+      "upstream_urls": [
+        "Homepage, https://modelcontextprotocol.io",
+        "Documentation, https://py.sdk.modelcontextprotocol.io/",
+        "Repository, https://github.com/modelcontextprotocol/python-sdk",
+        "Issues, https://github.com/modelcontextprotocol/python-sdk/issues"
+      ],
+      "note": "Metadata records upstream dependency terms; it does not grant permission for the supplied research code."
+    }
+  ]
+}

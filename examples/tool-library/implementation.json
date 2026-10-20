@@ -1,0 +1,60 @@
+{
+  "name": "degree_h_index",
+  "description": "输入非负整数度序列，计算至少有h个值不小于h的最大h；仅通过所列验收样例。",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "degrees": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxItems": 128,
+        "title": "度序列",
+        "description": "最多128项非负整数；空序列约定h指数为0。"
+      }
+    },
+    "required": [
+      "degrees"
+    ],
+    "additionalProperties": false
+  },
+  "source": "def run(args):\n    values = sorted(args['degrees'])\n    n = len(values)\n    result = 0\n    i = 0\n    while i < n:\n        if values[n-1-i] >= i+1:\n            result = i+1\n        i += 1\n    return {'h_index': result}\n",
+  "tests": [
+    {
+      "arguments": {
+        "degrees": [
+          3,
+          2,
+          2,
+          1
+        ]
+      },
+      "expected": {
+        "h_index": 2
+      }
+    },
+    {
+      "arguments": {
+        "degrees": []
+      },
+      "expected": {
+        "h_index": 0
+      }
+    },
+    {
+      "arguments": {
+        "degrees": [
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      "expected": {
+        "h_index": 4
+      }
+    }
+  ]
+}

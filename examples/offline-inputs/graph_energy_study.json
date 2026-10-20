@@ -1,0 +1,22 @@
+{
+  "left": {
+    "recipe": {
+      "base": {
+        "kind": "path",
+        "n": "t+2"
+      }
+    }
+  },
+  "right": {
+    "recipe": {
+      "base": {
+        "kind": "complete",
+        "n": "t+2"
+      }
+    }
+  },
+  "values": [
+    1,
+    2
+  ]
+}

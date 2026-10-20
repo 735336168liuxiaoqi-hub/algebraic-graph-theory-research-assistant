@@ -1,0 +1,1699 @@
+{
+  "format": "research-assistant-workflow-diagrams/1",
+  "date": "2026-10-20",
+  "scope": "Implemented behavior, not planned performance optimizations",
+  "charts": [
+    {
+      "width": 1120,
+      "id": "workflow-overview",
+      "height": 1175,
+      "title": "代数图论科研助手 · 工作流程",
+      "subtitle": "三种使用入口，共用本地计算、执行证据与成果管理",
+      "footer": [
+        "可选记忆：按用户读取偏好与已审阅经验；当前请求优先。",
+        "计算记录可形成经验候选，经用户审阅后才用于后续参考。"
+      ],
+      "nodes": [
+        {
+          "id": "offline",
+          "x": 205,
+          "y": 170,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "本地工具",
+            "分类选择函数，无需模型API"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "api",
+          "x": 560,
+          "y": 170,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "API 科研对话",
+            "配置兼容模型服务"
+          ],
+          "kind": "model"
+        },
+        {
+          "id": "mcp",
+          "x": 915,
+          "y": 170,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "MCP 主agent接入",
+            "使用主agent的模型"
+          ],
+          "kind": "host"
+        },
+        {
+          "id": "form",
+          "x": 205,
+          "y": 300,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "填写参数或输入图",
+            "表单、JSON、鼠标构图"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "plan",
+          "x": 560,
+          "y": 300,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "自然语言提出需求",
+            "模型澄清、选择或组合工具"
+          ],
+          "kind": "model"
+        },
+        {
+          "id": "delegate",
+          "x": 915,
+          "y": 300,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "委派结构化计算任务",
+            "固定步骤、批量或参数扫描"
+          ],
+          "kind": "host"
+        },
+        {
+          "id": "validate",
+          "x": 560,
+          "y": 455,
+          "w": 740,
+          "h": 80,
+          "lines": [
+            "统一参数与图对象",
+            "校验工具契约、图类型及数学前提"
+          ],
+          "kind": "guard"
+        },
+        {
+          "id": "execute",
+          "x": 560,
+          "y": 590,
+          "w": 740,
+          "h": 80,
+          "lines": [
+            "受保护的本地执行",
+            "预算、完整性、资源限制、取消及执行回执"
+          ],
+          "kind": "guard"
+        },
+        {
+          "id": "evidence",
+          "x": 560,
+          "y": 725,
+          "w": 740,
+          "h": 80,
+          "lines": [
+            "保留结果与执行证据",
+            "数值、图对象、坐标、逐步状态与验证信息"
+          ],
+          "kind": "data"
+        },
+        {
+          "id": "present",
+          "x": 560,
+          "y": 860,
+          "w": 740,
+          "h": 80,
+          "lines": [
+            "查看、导出与继续研究",
+            "表格、结构图、PNG / SVG / PDF、TikZ / TeX"
+          ],
+          "kind": "data"
+        },
+        {
+          "id": "bundle",
+          "x": 560,
+          "y": 995,
+          "w": 740,
+          "h": 80,
+          "lines": [
+            "成果中心与结果包",
+            "保存当前任务 / 对话的记录、数据和附件"
+          ],
+          "kind": "data"
+        }
+      ],
+      "edges": [
+        {
+          "source": "offline",
+          "target": "form",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "api",
+          "target": "plan",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "mcp",
+          "target": "delegate",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "form",
+          "target": "validate",
+          "label": "",
+          "via": [
+            [
+              205,
+              380
+            ],
+            [
+              560,
+              380
+            ]
+          ],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "plan",
+          "target": "validate",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "delegate",
+          "target": "validate",
+          "label": "",
+          "via": [
+            [
+              915,
+              380
+            ],
+            [
+              560,
+              380
+            ]
+          ],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "validate",
+          "target": "execute",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "execute",
+          "target": "evidence",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "evidence",
+          "target": "present",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "present",
+          "target": "bundle",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        }
+      ]
+    },
+    {
+      "width": 1120,
+      "id": "workflow-api",
+      "height": 1335,
+      "title": "API 科研对话 · 从问题到计算结果",
+      "subtitle": "模型负责理解、规划与解释；确定的工具步骤在本地连续执行",
+      "footer": [
+        "“先查看计划”是可选步骤；新增工具开发另走评估与用户审批。"
+      ],
+      "nodes": [
+        {
+          "id": "ask",
+          "x": 560,
+          "y": 145,
+          "w": 500,
+          "h": 76,
+          "lines": [
+            "提出自然语言问题",
+            "可插入明确版本的图对象"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "context",
+          "x": 560,
+          "y": 270,
+          "w": 500,
+          "h": 76,
+          "lines": [
+            "读取任务上下文",
+            "当前图对象、偏好与已审阅经验"
+          ],
+          "kind": "data"
+        },
+        {
+          "id": "clear",
+          "x": 560,
+          "y": 405,
+          "w": 330,
+          "h": 100,
+          "lines": [
+            "需求是否明确？"
+          ],
+          "kind": "decision"
+        },
+        {
+          "id": "reply",
+          "x": 180,
+          "y": 405,
+          "w": 220,
+          "h": 86,
+          "lines": [
+            "向用户澄清",
+            "等待真实回复"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "known",
+          "x": 560,
+          "y": 555,
+          "w": 330,
+          "h": 100,
+          "lines": [
+            "已有工具能解决？"
+          ],
+          "kind": "decision"
+        },
+        {
+          "id": "extension",
+          "x": 925,
+          "y": 555,
+          "w": 230,
+          "h": 86,
+          "lines": [
+            "进入新工具评估",
+            "见扩展工作流程"
+          ],
+          "kind": "warning"
+        },
+        {
+          "id": "plan",
+          "x": 560,
+          "y": 725,
+          "w": 500,
+          "h": 86,
+          "lines": [
+            "选择单工具或生成工具计划",
+            "明确参数、图版本和前序结果绑定"
+          ],
+          "kind": "model"
+        },
+        {
+          "id": "review",
+          "x": 180,
+          "y": 725,
+          "w": 220,
+          "h": 86,
+          "lines": [
+            "按需查看并确认计划",
+            "或回复修改需求"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "run",
+          "x": 560,
+          "y": 905,
+          "w": 500,
+          "h": 86,
+          "lines": [
+            "在本地执行确定步骤",
+            "确定步骤之间无需逐步请求模型"
+          ],
+          "kind": "guard"
+        },
+        {
+          "id": "failure",
+          "x": 950,
+          "y": 905,
+          "w": 230,
+          "h": 86,
+          "lines": [
+            "失败、取消或预算用尽",
+            "保留已有记录与错误"
+          ],
+          "kind": "warning"
+        },
+        {
+          "id": "interpret",
+          "x": 560,
+          "y": 1050,
+          "w": 500,
+          "h": 86,
+          "lines": [
+            "模型读取摘要并解释结果",
+            "完整数据保留本地，可按需查询"
+          ],
+          "kind": "model"
+        },
+        {
+          "id": "save",
+          "x": 560,
+          "y": 1195,
+          "w": 500,
+          "h": 86,
+          "lines": [
+            "保存回答、计算记录与附件",
+            "继续提问、成果导出与回溯"
+          ],
+          "kind": "data"
+        }
+      ],
+      "edges": [
+        {
+          "source": "ask",
+          "target": "context",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "context",
+          "target": "clear",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "clear",
+          "target": "reply",
+          "label": "不明确",
+          "via": [],
+          "from_port": "l",
+          "to_port": "r",
+          "label_position": [
+            355,
+            386
+          ]
+        },
+        {
+          "source": "reply",
+          "target": "context",
+          "label": "补充需求",
+          "via": [
+            [
+              75,
+              405
+            ],
+            [
+              75,
+              270
+            ]
+          ],
+          "from_port": "l",
+          "to_port": "l",
+          "label_position": [
+            175,
+            245
+          ]
+        },
+        {
+          "source": "clear",
+          "target": "known",
+          "label": "明确",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": [
+            593,
+            482
+          ]
+        },
+        {
+          "source": "known",
+          "target": "extension",
+          "label": "不能",
+          "via": [],
+          "from_port": "r",
+          "to_port": "l",
+          "label_position": [
+            750,
+            535
+          ]
+        },
+        {
+          "source": "known",
+          "target": "plan",
+          "label": "可以",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": [
+            593,
+            640
+          ]
+        },
+        {
+          "source": "plan",
+          "target": "review",
+          "label": "启用计划查看",
+          "via": [
+            [
+              310,
+              650
+            ],
+            [
+              180,
+              650
+            ]
+          ],
+          "from_port": "l",
+          "to_port": "t",
+          "label_position": [
+            200,
+            625
+          ]
+        },
+        {
+          "source": "plan",
+          "target": "run",
+          "label": "直接执行",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": [
+            612,
+            820
+          ]
+        },
+        {
+          "source": "review",
+          "target": "run",
+          "label": "用户确认",
+          "via": [
+            [
+              205,
+              840
+            ],
+            [
+              310,
+              840
+            ]
+          ],
+          "from_port": "b",
+          "to_port": "l",
+          "label_position": [
+            217,
+            817
+          ]
+        },
+        {
+          "source": "run",
+          "target": "failure",
+          "label": "异常/停止",
+          "via": [
+            [
+              825,
+              905
+            ],
+            [
+              825,
+              825
+            ],
+            [
+              950,
+              825
+            ]
+          ],
+          "from_port": "r",
+          "to_port": "t",
+          "label_position": [
+            950,
+            805
+          ]
+        },
+        {
+          "source": "run",
+          "target": "interpret",
+          "label": "取得结果",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": [
+            612,
+            978
+          ]
+        },
+        {
+          "source": "failure",
+          "target": "save",
+          "label": "保存记录",
+          "via": [
+            [
+              950,
+              1195
+            ]
+          ],
+          "from_port": "b",
+          "to_port": "r",
+          "label_position": [
+            965,
+            1100
+          ]
+        },
+        {
+          "source": "interpret",
+          "target": "save",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        }
+      ]
+    },
+    {
+      "width": 1120,
+      "id": "workflow-mcp",
+      "height": 1490,
+      "title": "MCP 委派 · 主agent如何调用科研助手",
+      "subtitle": "默认只执行已有工具；无需单独配置科研助手的模型API",
+      "footer": [
+        "status是任务状态；operation.status/error说明最近后台操作是否成功。",
+        "取消后继续需用户真实操作；相同request_id的输入必须一致。",
+        "等待交互按宿主启用能力使用；新工具开发审批走独立流程。"
+      ],
+      "nodes": [
+        {
+          "id": "host",
+          "x": 560,
+          "y": 140,
+          "w": 500,
+          "h": 76,
+          "lines": [
+            "主agent理解用户任务",
+            "自然语言规划使用主agent自己的模型"
+          ],
+          "kind": "host"
+        },
+        {
+          "id": "catalog",
+          "x": 560,
+          "y": 265,
+          "w": 500,
+          "h": 76,
+          "lines": [
+            "research_catalog",
+            "发现工具、读取契约与版本指纹"
+          ],
+          "kind": "host"
+        },
+        {
+          "id": "submit",
+          "x": 560,
+          "y": 400,
+          "w": 500,
+          "h": 86,
+          "lines": [
+            "research_submit",
+            "提交固定步骤 / 扫描 / 批量任务"
+          ],
+          "kind": "host"
+        },
+        {
+          "id": "replay",
+          "x": 170,
+          "y": 400,
+          "w": 220,
+          "h": 86,
+          "lines": [
+            "相同编号与相同输入",
+            "返回原任务，不新增计算"
+          ],
+          "kind": "data"
+        },
+        {
+          "id": "run",
+          "x": 560,
+          "y": 545,
+          "w": 500,
+          "h": 86,
+          "lines": [
+            "后台受保护计算",
+            "快速返回task_id，保存预算与逐步记录"
+          ],
+          "kind": "guard"
+        },
+        {
+          "id": "cancel",
+          "x": 170,
+          "y": 545,
+          "w": 220,
+          "h": 86,
+          "lines": [
+            "research_cancel",
+            "请求停止，保留已有记录"
+          ],
+          "kind": "warning"
+        },
+        {
+          "id": "get",
+          "x": 560,
+          "y": 695,
+          "w": 500,
+          "h": 76,
+          "lines": [
+            "research_get",
+            "按原task_id查询，不重复创建任务"
+          ],
+          "kind": "host"
+        },
+        {
+          "id": "state",
+          "x": 560,
+          "y": 835,
+          "w": 300,
+          "h": 100,
+          "lines": [
+            "当前任务状态？"
+          ],
+          "kind": "decision"
+        },
+        {
+          "id": "running",
+          "x": 170,
+          "y": 835,
+          "w": 220,
+          "h": 86,
+          "lines": [
+            "仍在运行",
+            "短暂等待后再查询"
+          ],
+          "kind": "data"
+        },
+        {
+          "id": "interaction",
+          "x": 950,
+          "y": 835,
+          "w": 230,
+          "h": 86,
+          "lines": [
+            "等待用户回复或审批",
+            "主agent完整转交interaction"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "user",
+          "x": 950,
+          "y": 1005,
+          "w": 230,
+          "h": 100,
+          "lines": [
+            "可信用户入口",
+            "用户操作后签发event_id"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "resume",
+          "x": 950,
+          "y": 1175,
+          "w": 230,
+          "h": 86,
+          "lines": [
+            "research_resume",
+            "只转交已签发的event_id"
+          ],
+          "kind": "host"
+        },
+        {
+          "id": "settled",
+          "x": 560,
+          "y": 1010,
+          "w": 500,
+          "h": 86,
+          "lines": [
+            "完成、失败或已取消",
+            "保留实际结果和未完成部分"
+          ],
+          "kind": "data"
+        },
+        {
+          "id": "inspect",
+          "x": 560,
+          "y": 1175,
+          "w": 500,
+          "h": 110,
+          "lines": [
+            "按需读取结果与已登记附件",
+            "research_inspect_result",
+            "research_read_artifact"
+          ],
+          "kind": "host"
+        },
+        {
+          "id": "deliver",
+          "x": 560,
+          "y": 1325,
+          "w": 500,
+          "h": 86,
+          "lines": [
+            "主agent整理并交付给用户",
+            "数据、图形、TeX或结果包"
+          ],
+          "kind": "host"
+        }
+      ],
+      "edges": [
+        {
+          "source": "host",
+          "target": "catalog",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "catalog",
+          "target": "submit",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "submit",
+          "target": "replay",
+          "label": "已有任务",
+          "via": [
+            [
+              295,
+              400
+            ],
+            [
+              295,
+              335
+            ],
+            [
+              170,
+              335
+            ]
+          ],
+          "from_port": "l",
+          "to_port": "t",
+          "label_position": [
+            170,
+            315
+          ]
+        },
+        {
+          "source": "submit",
+          "target": "run",
+          "label": "新任务",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": [
+            617,
+            476
+          ]
+        },
+        {
+          "source": "replay",
+          "target": "get",
+          "label": "",
+          "via": [
+            [
+              50,
+              400
+            ],
+            [
+              50,
+              695
+            ]
+          ],
+          "from_port": "l",
+          "to_port": "l",
+          "label_position": null
+        },
+        {
+          "source": "run",
+          "target": "cancel",
+          "label": "用户停止",
+          "via": [
+            [
+              300,
+              545
+            ],
+            [
+              300,
+              480
+            ],
+            [
+              170,
+              480
+            ]
+          ],
+          "from_port": "l",
+          "to_port": "t",
+          "label_position": [
+            170,
+            480
+          ]
+        },
+        {
+          "source": "cancel",
+          "target": "settled",
+          "label": "",
+          "via": [
+            [
+              35,
+              545
+            ],
+            [
+              35,
+              1010
+            ]
+          ],
+          "from_port": "l",
+          "to_port": "l",
+          "label_position": null
+        },
+        {
+          "source": "run",
+          "target": "get",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "get",
+          "target": "state",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "state",
+          "target": "running",
+          "label": "运行中",
+          "via": [],
+          "from_port": "l",
+          "to_port": "r",
+          "label_position": [
+            360,
+            815
+          ]
+        },
+        {
+          "source": "running",
+          "target": "get",
+          "label": "",
+          "via": [
+            [
+              195,
+              755
+            ],
+            [
+              290,
+              755
+            ]
+          ],
+          "from_port": "t",
+          "to_port": "l",
+          "label_position": null
+        },
+        {
+          "source": "state",
+          "target": "interaction",
+          "label": "需用户操作",
+          "via": [],
+          "from_port": "r",
+          "to_port": "l",
+          "label_position": [
+            775,
+            810
+          ]
+        },
+        {
+          "source": "interaction",
+          "target": "user",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "user",
+          "target": "resume",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "resume",
+          "target": "run",
+          "label": "核验事件后继续",
+          "via": [
+            [
+              1090,
+              1175
+            ],
+            [
+              1090,
+              545
+            ]
+          ],
+          "from_port": "r",
+          "to_port": "r",
+          "label_position": [
+            1032,
+            665
+          ]
+        },
+        {
+          "source": "state",
+          "target": "settled",
+          "label": "已停止/结束",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": [
+            634,
+            930
+          ]
+        },
+        {
+          "source": "settled",
+          "target": "inspect",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "inspect",
+          "target": "deliver",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        }
+      ]
+    },
+    {
+      "width": 1120,
+      "id": "workflow-extension",
+      "height": 1565,
+      "title": "新工具引入 · 先复用，再评估与审批",
+      "subtitle": "API对话或获准的外部主agent均可参与；新增代码独立封包",
+      "footer": [
+        "已有工具联动不创建新包；扩展不能覆盖原生工具或授予自身审批权。",
+        "记忆仅提供偏好和经验参考，不替用户批准开发，也不训练模型权重。"
+      ],
+      "nodes": [
+        {
+          "id": "need",
+          "x": 560,
+          "y": 140,
+          "w": 520,
+          "h": 76,
+          "lines": [
+            "提出尚未满足的科研需求",
+            "说明数学目标与期望输出"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "defined",
+          "x": 560,
+          "y": 280,
+          "w": 350,
+          "h": 100,
+          "lines": [
+            "定义、规模与样例齐全？"
+          ],
+          "kind": "decision"
+        },
+        {
+          "id": "clarify",
+          "x": 195,
+          "y": 280,
+          "w": 240,
+          "h": 86,
+          "lines": [
+            "先向用户澄清",
+            "补齐输入输出和验收依据"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "reuse",
+          "x": 560,
+          "y": 440,
+          "w": 350,
+          "h": 100,
+          "lines": [
+            "可复用或组合已有工具？"
+          ],
+          "kind": "decision"
+        },
+        {
+          "id": "existing",
+          "x": 935,
+          "y": 440,
+          "w": 245,
+          "h": 86,
+          "lines": [
+            "直接调用已有工具",
+            "不创建新的工具包"
+          ],
+          "kind": "data"
+        },
+        {
+          "id": "bounded",
+          "x": 560,
+          "y": 610,
+          "w": 350,
+          "h": 100,
+          "lines": [
+            "适合受限扩展机制？"
+          ],
+          "kind": "decision"
+        },
+        {
+          "id": "manual",
+          "x": 195,
+          "y": 610,
+          "w": 240,
+          "h": 110,
+          "lines": [
+            "形成独立开发说明",
+            "需要新依赖或超出限制",
+            "转人工开发与独立评估"
+          ],
+          "kind": "warning"
+        },
+        {
+          "id": "assess",
+          "x": 560,
+          "y": 780,
+          "w": 520,
+          "h": 86,
+          "lines": [
+            "评估新增范围与大致消耗",
+            "数学定义、适用范围、验收、估算与限制"
+          ],
+          "kind": "data"
+        },
+        {
+          "id": "approve",
+          "x": 560,
+          "y": 935,
+          "w": 350,
+          "h": 100,
+          "lines": [
+            "用户批准本次范围？"
+          ],
+          "kind": "decision"
+        },
+        {
+          "id": "reject",
+          "x": 195,
+          "y": 935,
+          "w": 240,
+          "h": 86,
+          "lines": [
+            "拒绝或修改需求",
+            "未获批准不生成并安装"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "generate",
+          "x": 560,
+          "y": 1090,
+          "w": 520,
+          "h": 86,
+          "lines": [
+            "模型实现独立工具包",
+            "按批准范围生成，不修改基础包"
+          ],
+          "kind": "model"
+        },
+        {
+          "id": "test",
+          "x": 560,
+          "y": 1230,
+          "w": 520,
+          "h": 86,
+          "lines": [
+            "受保护验证与范围核验",
+            "样例、预算与完整性；失败证据保留"
+          ],
+          "kind": "guard"
+        },
+        {
+          "id": "pass",
+          "x": 560,
+          "y": 1370,
+          "w": 350,
+          "h": 100,
+          "lines": [
+            "验证通过？"
+          ],
+          "kind": "decision"
+        },
+        {
+          "id": "fail",
+          "x": 195,
+          "y": 1370,
+          "w": 240,
+          "h": 86,
+          "lines": [
+            "验证失败或中断",
+            "未安装；保留失败证据"
+          ],
+          "kind": "warning"
+        },
+        {
+          "id": "installed",
+          "x": 935,
+          "y": 1370,
+          "w": 245,
+          "h": 100,
+          "lines": [
+            "登记独立扩展工具",
+            "可发现、可复用、版本可追溯"
+          ],
+          "kind": "data"
+        }
+      ],
+      "edges": [
+        {
+          "source": "need",
+          "target": "defined",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "defined",
+          "target": "clarify",
+          "label": "不齐全",
+          "via": [],
+          "from_port": "l",
+          "to_port": "r",
+          "label_position": [
+            350,
+            260
+          ]
+        },
+        {
+          "source": "clarify",
+          "target": "need",
+          "label": "补充需求",
+          "via": [
+            [
+              65,
+              280
+            ],
+            [
+              65,
+              140
+            ]
+          ],
+          "from_port": "l",
+          "to_port": "l",
+          "label_position": [
+            180,
+            115
+          ]
+        },
+        {
+          "source": "defined",
+          "target": "reuse",
+          "label": "齐全",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": [
+            606,
+            363
+          ]
+        },
+        {
+          "source": "reuse",
+          "target": "existing",
+          "label": "可以",
+          "via": [],
+          "from_port": "r",
+          "to_port": "l",
+          "label_position": [
+            768,
+            420
+          ]
+        },
+        {
+          "source": "reuse",
+          "target": "bounded",
+          "label": "不能",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": [
+            606,
+            526
+          ]
+        },
+        {
+          "source": "bounded",
+          "target": "manual",
+          "label": "不适合",
+          "via": [],
+          "from_port": "l",
+          "to_port": "r",
+          "label_position": [
+            350,
+            590
+          ]
+        },
+        {
+          "source": "bounded",
+          "target": "assess",
+          "label": "适合",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": [
+            606,
+            696
+          ]
+        },
+        {
+          "source": "assess",
+          "target": "approve",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "approve",
+          "target": "reject",
+          "label": "拒绝/修改",
+          "via": [
+            [
+              345,
+              935
+            ],
+            [
+              345,
+              865
+            ],
+            [
+              195,
+              865
+            ]
+          ],
+          "from_port": "l",
+          "to_port": "t",
+          "label_position": [
+            195,
+            840
+          ]
+        },
+        {
+          "source": "approve",
+          "target": "generate",
+          "label": "批准",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": [
+            607,
+            1016
+          ]
+        },
+        {
+          "source": "generate",
+          "target": "test",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "test",
+          "target": "pass",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "pass",
+          "target": "fail",
+          "label": "未通过",
+          "via": [],
+          "from_port": "l",
+          "to_port": "r",
+          "label_position": [
+            350,
+            1350
+          ]
+        },
+        {
+          "source": "pass",
+          "target": "installed",
+          "label": "通过",
+          "via": [],
+          "from_port": "r",
+          "to_port": "l",
+          "label_position": [
+            770,
+            1350
+          ]
+        }
+      ]
+    },
+    {
+      "width": 1120,
+      "id": "workflow-overview-en",
+      "height": 1175,
+      "title": "Algebraic Graph Theory Research Assistant",
+      "subtitle": "Three entry points, shared computation, execution evidence and result management",
+      "footer": [
+        "Optional memory: user preferences and reviewed cases; the current request takes priority.",
+        "Verified executions may become experience candidates; user review precedes later reference."
+      ],
+      "nodes": [
+        {
+          "id": "offline",
+          "x": 205,
+          "y": 170,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "Local tools",
+            "Choose a tool; no model API"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "api",
+          "x": 560,
+          "y": 170,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "API research chat",
+            "Connect a model service"
+          ],
+          "kind": "model"
+        },
+        {
+          "id": "mcp",
+          "x": 915,
+          "y": 170,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "MCP host integration",
+            "Use the host agent's model"
+          ],
+          "kind": "host"
+        },
+        {
+          "id": "form",
+          "x": 205,
+          "y": 300,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "Enter parameters or a graph",
+            "Forms, JSON or visual editing"
+          ],
+          "kind": "manual"
+        },
+        {
+          "id": "plan",
+          "x": 560,
+          "y": 300,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "Describe a research task",
+            "Clarify, select or compose tools"
+          ],
+          "kind": "model"
+        },
+        {
+          "id": "delegate",
+          "x": 915,
+          "y": 300,
+          "w": 290,
+          "h": 86,
+          "lines": [
+            "Delegate a structured task",
+            "Steps, batches or alpha scans"
+          ],
+          "kind": "host"
+        },
+        {
+          "id": "validate",
+          "x": 560,
+          "y": 455,
+          "w": 740,
+          "h": 80,
+          "lines": [
+            "Shared parameters and graph objects",
+            "Validate contracts, graph types and mathematical assumptions"
+          ],
+          "kind": "guard"
+        },
+        {
+          "id": "execute",
+          "x": 560,
+          "y": 590,
+          "w": 740,
+          "h": 80,
+          "lines": [
+            "Protected local execution",
+            "Budgets, core integrity, resource limits, cancellation and receipts"
+          ],
+          "kind": "guard"
+        },
+        {
+          "id": "evidence",
+          "x": 560,
+          "y": 725,
+          "w": 740,
+          "h": 80,
+          "lines": [
+            "Results with execution evidence",
+            "Values, graph objects, coordinates, step status and verification"
+          ],
+          "kind": "data"
+        },
+        {
+          "id": "present",
+          "x": 560,
+          "y": 860,
+          "w": 740,
+          "h": 80,
+          "lines": [
+            "Inspect, export and continue research",
+            "Tables, graph drawings, PNG / SVG / PDF and TikZ / TeX"
+          ],
+          "kind": "data"
+        },
+        {
+          "id": "bundle",
+          "x": 560,
+          "y": 995,
+          "w": 740,
+          "h": 80,
+          "lines": [
+            "Result center and bundles",
+            "Preserve records, data and artifacts for the task or conversation"
+          ],
+          "kind": "data"
+        }
+      ],
+      "edges": [
+        {
+          "source": "offline",
+          "target": "form",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "api",
+          "target": "plan",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "mcp",
+          "target": "delegate",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "form",
+          "target": "validate",
+          "label": "",
+          "via": [
+            [
+              205,
+              380
+            ],
+            [
+              560,
+              380
+            ]
+          ],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "plan",
+          "target": "validate",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "delegate",
+          "target": "validate",
+          "label": "",
+          "via": [
+            [
+              915,
+              380
+            ],
+            [
+              560,
+              380
+            ]
+          ],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "validate",
+          "target": "execute",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "execute",
+          "target": "evidence",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "evidence",
+          "target": "present",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        },
+        {
+          "source": "present",
+          "target": "bundle",
+          "label": "",
+          "via": [],
+          "from_port": "b",
+          "to_port": "t",
+          "label_position": null
+        }
+      ]
+    }
+  ]
+}

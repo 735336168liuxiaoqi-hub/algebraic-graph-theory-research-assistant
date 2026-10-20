@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1175" viewBox="0 0 1120 1175" role="img" aria-labelledby="title desc">
+<title id="title">Algebraic Graph Theory Research Assistant</title>
+<desc id="desc">Three entry points, shared computation, execution evidence and result management</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a9aa6"/></marker></defs>
+<rect width="1120" height="1175" rx="16" fill="#ffffff"/>
+<rect x="44" y="35" width="5" height="31" rx="2" fill="#167467"/>
+<text x="67" y="51" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="600" fill="#1b3440">Algebraic Graph Theory Research Assistant</text>
+<text x="67" y="86" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="400" fill="#647481">Three entry points, shared computation, execution evidence and result management</text>
+<path d="M 205 213 L 205 257" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 213 L 560 257" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 915 213 L 915 257" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 205 343 L 205 380 L 560 380 L 560 415" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 343 L 560 415" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 915 343 L 915 380 L 560 380 L 560 415" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 495 L 560 550" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 630 L 560 685" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 765 L 560 820" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 560 900 L 560 955" fill="none" stroke="#8a9aa6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="60" y="127" width="290" height="86" rx="14" fill="#eaf5f1" stroke="#8dbbb0" stroke-width="1.5"/>
+<text x="205" y="156.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#175a4a">Local tools</text>
+<text x="205" y="183.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#175a4a">Choose a tool; no model API</text>
+<rect x="415" y="127" width="290" height="86" rx="14" fill="#edf2fc" stroke="#a1b8e7" stroke-width="1.5"/>
+<text x="560" y="156.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#284f91">API research chat</text>
+<text x="560" y="183.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#284f91">Connect a model service</text>
+<rect x="770" y="127" width="290" height="86" rx="14" fill="#f0edfa" stroke="#b5a7da" stroke-width="1.5"/>
+<text x="915" y="156.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#5b438c">MCP host integration</text>
+<text x="915" y="183.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#5b438c">Use the host agent&#x27;s model</text>
+<rect x="60" y="257" width="290" height="86" rx="14" fill="#eaf5f1" stroke="#8dbbb0" stroke-width="1.5"/>
+<text x="205" y="286.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#175a4a">Enter parameters or a graph</text>
+<text x="205" y="313.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#175a4a">Forms, JSON or visual editing</text>
+<rect x="415" y="257" width="290" height="86" rx="14" fill="#edf2fc" stroke="#a1b8e7" stroke-width="1.5"/>
+<text x="560" y="286.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#284f91">Describe a research task</text>
+<text x="560" y="313.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#284f91">Clarify, select or compose tools</text>
+<rect x="770" y="257" width="290" height="86" rx="14" fill="#f0edfa" stroke="#b5a7da" stroke-width="1.5"/>
+<text x="915" y="286.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#5b438c">Delegate a structured task</text>
+<text x="915" y="313.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#5b438c">Steps, batches or alpha scans</text>
+<rect x="190" y="415" width="740" height="80" rx="14" fill="#e9f3f7" stroke="#8fb1c3" stroke-width="1.5"/>
+<text x="560" y="441.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#224d64">Shared parameters and graph objects</text>
+<text x="560" y="468.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#224d64">Validate contracts, graph types and mathematical assumptions</text>
+<rect x="190" y="550" width="740" height="80" rx="14" fill="#e9f3f7" stroke="#8fb1c3" stroke-width="1.5"/>
+<text x="560" y="576.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#224d64">Protected local execution</text>
+<text x="560" y="603.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#224d64">Budgets, core integrity, resource limits, cancellation and receipts</text>
+<rect x="190" y="685" width="740" height="80" rx="14" fill="#f0f6f4" stroke="#adc7bc" stroke-width="1.5"/>
+<text x="560" y="711.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#2b574a">Results with execution evidence</text>
+<text x="560" y="738.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#2b574a">Values, graph objects, coordinates, step status and verification</text>
+<rect x="190" y="820" width="740" height="80" rx="14" fill="#f0f6f4" stroke="#adc7bc" stroke-width="1.5"/>
+<text x="560" y="846.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#2b574a">Inspect, export and continue research</text>
+<text x="560" y="873.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#2b574a">Tables, graph drawings, PNG / SVG / PDF and TikZ / TeX</text>
+<rect x="190" y="955" width="740" height="80" rx="14" fill="#f0f6f4" stroke="#adc7bc" stroke-width="1.5"/>
+<text x="560" y="981.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="19" font-weight="600" fill="#2b574a">Result center and bundles</text>
+<text x="560" y="1008.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#2b574a">Preserve records, data and artifacts for the task or conversation</text>
+<line x1="60" x2="1060" y1="1095" y2="1095" stroke="#e3e9ec"/>
+<text x="60" y="1121" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#647481">Optional memory: user preferences and reviewed cases; the current request takes priority.</text>
+<text x="60" y="1145" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#647481">Verified executions may become experience candidates; user review precedes later reference.</text>
+</svg>

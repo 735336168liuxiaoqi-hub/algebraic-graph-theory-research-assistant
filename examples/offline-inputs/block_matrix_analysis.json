@@ -1,0 +1,29 @@
+{
+  "operation": "multiply",
+  "matrix": [
+    [
+      1,
+      2
+    ],
+    [
+      3,
+      4
+    ]
+  ],
+  "row_sizes": [
+    1,
+    1
+  ],
+  "column_sizes": [
+    1,
+    1
+  ],
+  "right": [
+    [
+      2
+    ],
+    [
+      1
+    ]
+  ]
+}

@@ -1,0 +1,30 @@
+flowchart TB
+    offline["Local tools<br/>Choose a tool; no model API"]:::manual
+    api["API research chat<br/>Connect a model service"]:::model
+    mcp["MCP host integration<br/>Use the host agent's model"]:::host
+    form["Enter parameters or a graph<br/>Forms, JSON or visual editing"]:::manual
+    plan["Describe a research task<br/>Clarify, select or compose tools"]:::model
+    delegate["Delegate a structured task<br/>Steps, batches or alpha scans"]:::host
+    validate["Shared parameters and graph objects<br/>Validate contracts, graph types and mathematical assumptions"]:::guard
+    execute["Protected local execution<br/>Budgets, core integrity, resource limits, cancellation and receipts"]:::guard
+    evidence["Results with execution evidence<br/>Values, graph objects, coordinates, step status and verification"]:::data
+    present["Inspect, export and continue research<br/>Tables, graph drawings, PNG / SVG / PDF and TikZ / TeX"]:::data
+    bundle["Result center and bundles<br/>Preserve records, data and artifacts for the task or conversation"]:::data
+    offline --> form
+    api --> plan
+    mcp --> delegate
+    form --> validate
+    plan --> validate
+    delegate --> validate
+    validate --> execute
+    execute --> evidence
+    evidence --> present
+    present --> bundle
+    classDef process fill:#f5f7fa,stroke:#c6d1da,color:#233845,stroke-width:1.5px
+    classDef manual fill:#eaf5f1,stroke:#8dbbb0,color:#175a4a,stroke-width:1.5px
+    classDef model fill:#edf2fc,stroke:#a1b8e7,color:#284f91,stroke-width:1.5px
+    classDef host fill:#f0edfa,stroke:#b5a7da,color:#5b438c,stroke-width:1.5px
+    classDef guard fill:#e9f3f7,stroke:#8fb1c3,color:#224d64,stroke-width:1.5px
+    classDef data fill:#f0f6f4,stroke:#adc7bc,color:#2b574a,stroke-width:1.5px
+    classDef warning fill:#fcf4e7,stroke:#d7b985,color:#805b26,stroke-width:1.5px
+    classDef decision fill:#ffffff,stroke:#9fadb9,color:#344c5c,stroke-width:1.5px

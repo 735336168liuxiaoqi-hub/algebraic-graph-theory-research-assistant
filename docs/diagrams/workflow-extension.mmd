@@ -1,0 +1,39 @@
+flowchart TB
+    need["提出尚未满足的科研需求<br/>说明数学目标与期望输出"]:::manual
+    defined{"定义、规模与样例齐全？"}:::decision
+    clarify["先向用户澄清<br/>补齐输入输出和验收依据"]:::manual
+    reuse{"可复用或组合已有工具？"}:::decision
+    existing["直接调用已有工具<br/>不创建新的工具包"]:::data
+    bounded{"适合受限扩展机制？"}:::decision
+    manual["形成独立开发说明<br/>需要新依赖或超出限制<br/>转人工开发与独立评估"]:::warning
+    assess["评估新增范围与大致消耗<br/>数学定义、适用范围、验收、估算与限制"]:::data
+    approve{"用户批准本次范围？"}:::decision
+    reject["拒绝或修改需求<br/>未获批准不生成并安装"]:::manual
+    generate["模型实现独立工具包<br/>按批准范围生成，不修改基础包"]:::model
+    test["受保护验证与范围核验<br/>样例、预算与完整性；失败证据保留"]:::guard
+    pass{"验证通过？"}:::decision
+    fail["验证失败或中断<br/>未安装；保留失败证据"]:::warning
+    installed["登记独立扩展工具<br/>可发现、可复用、版本可追溯"]:::data
+    need --> defined
+    defined -->|不齐全| clarify
+    clarify -->|补充需求| need
+    defined -->|齐全| reuse
+    reuse -->|可以| existing
+    reuse -->|不能| bounded
+    bounded -->|不适合| manual
+    bounded -->|适合| assess
+    assess --> approve
+    approve -->|拒绝/修改| reject
+    approve -->|批准| generate
+    generate --> test
+    test --> pass
+    pass -->|未通过| fail
+    pass -->|通过| installed
+    classDef process fill:#f5f7fa,stroke:#c6d1da,color:#233845,stroke-width:1.5px
+    classDef manual fill:#eaf5f1,stroke:#8dbbb0,color:#175a4a,stroke-width:1.5px
+    classDef model fill:#edf2fc,stroke:#a1b8e7,color:#284f91,stroke-width:1.5px
+    classDef host fill:#f0edfa,stroke:#b5a7da,color:#5b438c,stroke-width:1.5px
+    classDef guard fill:#e9f3f7,stroke:#8fb1c3,color:#224d64,stroke-width:1.5px
+    classDef data fill:#f0f6f4,stroke:#adc7bc,color:#2b574a,stroke-width:1.5px
+    classDef warning fill:#fcf4e7,stroke:#d7b985,color:#805b26,stroke-width:1.5px
+    classDef decision fill:#ffffff,stroke:#9fadb9,color:#344c5c,stroke-width:1.5px

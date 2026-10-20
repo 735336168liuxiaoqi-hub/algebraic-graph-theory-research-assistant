@@ -1,0 +1,15 @@
+{
+  "name": "simple_graph_density",
+  "description": "简单无向图的边密度2m/[n(n-1)]；n<2时约定为0，仅经过所列样例验证。",
+  "parameters": {
+    "type": "object",
+    "properties": {"kind": {"enum": ["path", "cycle", "complete", "star", "empty"]}, "n": {"type": "integer", "minimum": 1, "maximum": 64}},
+    "required": ["kind", "n"], "additionalProperties": false
+  },
+  "source": "def run(args):\n    g = call_tool('graph_invariants', args)\n    n = g['order']\n    if n < 2:\n        return {'density': 0.0}\n    return {'density': 2*g['size']/(n*(n-1))}\n",
+  "tests": [
+    {"arguments": {"kind": "path", "n": 4}, "expected": {"density": 0.5}},
+    {"arguments": {"kind": "complete", "n": 4}, "expected": {"density": 1.0}},
+    {"arguments": {"kind": "empty", "n": 1}, "expected": {"density": 0.0}}
+  ]
+}
