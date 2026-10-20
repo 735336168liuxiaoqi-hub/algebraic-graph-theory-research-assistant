@@ -1,10 +1,16 @@
 # Algebraic Graph Theory Research Assistant — User Guide
 
-Version **0.36.0rc4**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
+Version **0.36.0rc5**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
 
 This Python application provides graph and hypergraph computation, symbolic algebra, interactive drawing and research result management. Use the desktop manually, connect a model for research chat, or expose the same computation tools to a host agent through MCP. SageMath and WSL are not required.
 
-The desktop currently uses Chinese labels. This guide gives their English meanings beside the labels you will see; it does not imply that an English interface is available.
+The desktop supports **Simplified Chinese and English**. Open **语言 / Language** at the top and select **English** or **简体中文**. This guide retains Chinese labels alongside English meanings so it also works when the interface is in Chinese.
+
+The menu switches open UI labels and built-in tool help immediately and saves the selection for the next launch. Form/JSON drafts, model settings and running calculations are preserved. Switching sends no model request and does not recompute anything.
+
+Preferences are saved in `~/.graph_research/desktop-language.json`. For a one-launch override, run `python -m graph_research desktop --language en` or `--language zh`; this does not automatically overwrite the saved selection.
+
+User input, graph names/vertex labels, raw JSON, code, model replies and historical record contents remain in their original language. UI language does not alter user-memory preferences for model answers, mathematical parameters or budgets. Custom third-party extension text retains recognizable original names. Standard buttons in native OS file dialogs can follow the operating-system language. Restart after upgrading to load the new menu.
 
 ## 1. Capabilities and usage modes
 
@@ -32,12 +38,12 @@ Non-uniform hypergraphs can be drawn. Hypergraph tensor-spectrum tools enforce u
 
 ### Choose a package
 
-Use the [v0.36.0rc4 release page](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.36.0rc4). While the repository is private, sign in with an authorized GitHub account.
+Use the [v0.36.0rc5 release page](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.36.0rc5). While the repository is private, sign in with an authorized GitHub account.
 
 | Asset | Intended use |
 | --- | --- |
-| [Source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc4/algebraic-graph-theory-research-assistant-0.36.0rc4-source-candidate.zip) | Recommended for first-time desktop use; includes the source and launchers |
-| [Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc4/graph_research_assistant-0.36.0rc4-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
+| [Source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc5/algebraic-graph-theory-research-assistant-0.36.0rc5-source-candidate.zip) | Recommended for first-time desktop use; includes the source and launchers |
+| [Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc5/graph_research_assistant-0.36.0rc5-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
 | `SHA256SUMS.txt` / `RELEASE_VALIDATION.json` | Checksums and validation evidence; these are not installers |
 
 Expand **Assets** at the bottom of the release page. Download one application package; you do not need both ZIP and wheel. The first installation downloads dependencies. A fully offline new computer needs separately prepared dependency wheels matching its Windows/Python version.
@@ -85,7 +91,7 @@ For editable development, use `python -m pip install -e ".[all]"`. Ordinary use 
 Download the wheel through your browser. From its directory, use the Python environment you selected:
 
 ```powershell
-python -m pip install ".\graph_research_assistant-0.36.0rc4-py3-none-any.whl[all]"
+python -m pip install ".\graph_research_assistant-0.36.0rc5-py3-none-any.whl[all]"
 python -m graph_research desktop
 ```
 
@@ -95,14 +101,14 @@ A wheel is not a double-click application. pip does not inherit browser authenti
 
 ### First computation
 
-1. Choose **本地工具** (Local tools).
+1. Choose **Local tools / 本地工具**.
 2. Under **普通图** (Graphs), select **图的基本信息** (`graph_invariants`).
 3. Set graph type to `path` and vertex count to `5`, or use **填入示例** (Fill example).
 4. Click **开始计算** (Start computation).
 5. Expect 5 vertices, 4 edges, diameter 4 and degrees `[1,2,2,2,1]`.
 6. Inspect the overview, tables, graphics/files and raw data. **查看结构图** means View structure.
 
-Required fields must be filled. Optional fields are enabled by checkboxes. Dropdowns have Chinese names and contextual hover help; **说明与示例** means Help and examples. Full JSON and parameter-file import are also available. Filling/importing parameters prepares a form without starting computation.
+Required fields must be filled. Optional fields are enabled by checkboxes. Dropdowns have localized names and contextual hover help; **说明与示例** means Help and examples. Full JSON and parameter-file import are also available. Filling/importing parameters prepares a form without starting computation.
 
 See the [input manual — Chinese](OFFLINE_INPUTS.md) and [importable examples](../examples/offline-inputs).
 

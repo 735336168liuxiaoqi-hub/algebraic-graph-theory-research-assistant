@@ -3,19 +3,20 @@ import copy
 import json
 import os
 from PySide6.QtCore import QObject,QThread,Signal,Qt
-from PySide6.QtWidgets import (QDialog,QVBoxLayout,QHBoxLayout,QFormLayout,QLineEdit,QComboBox,
-    QCheckBox,QSpinBox,QPushButton,QMessageBox,QInputDialog,QWidget,QScrollArea)
+from PySide6.QtWidgets import QVBoxLayout,QHBoxLayout,QWidget,QScrollArea
+from .widgets import QDialog,QFormLayout,QLineEdit,QComboBox,QCheckBox,QSpinBox,QPushButton,QMessageBox,QInputDialog
 from graph_research.assistant.model_config import load_settings,validate_settings,save_configuration,normalize_endpoint
 from graph_research.assistant.model_profiles import load_profiles,save_profiles,credential_scope,public_name
 from graph_research.assistant.model_capabilities import reasoning_choices,EFFORT_LABELS
 from .app import label
+from .i18n import UiText,bind
 
 
 class ModelChoice(QComboBox):
     """Editable IDs, retaining old text-field accessors for integrations."""
     def __init__(self):
-        super().__init__();self.setEditable(True);self.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
-        self.lineEdit().setPlaceholderText('选择或填写服务商模型ID');self.lineEdit().setMaxLength(256)
+        super().__init__();self.setProperty('i18n_raw',True);self.setEditable(True);self.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        bind(self.lineEdit(),'placeholder',type(self.lineEdit()).setPlaceholderText,'选择或填写服务商模型ID');self.lineEdit().setMaxLength(256)
         self.setMinimumContentsLength(18);self.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
     def text(self):return self.currentText()
     def setText(self,text):self.setEditText(text)
@@ -23,7 +24,7 @@ class ModelChoice(QComboBox):
 
 def fill_efforts(widget,base,model,profile,selected=None):
     widget.blockSignals(True);widget.clear()
-    for value in reasoning_choices(base,model,profile):widget.addItem(EFFORT_LABELS[value],value)
+    for value in reasoning_choices(base,model,profile):widget.addItem(UiText(EFFORT_LABELS[value],'Off') if value=='none' else EFFORT_LABELS[value],value)
     widget.setCurrentIndex(max(0,widget.findData(selected)));widget.blockSignals(False)
 
 
@@ -56,7 +57,7 @@ class ModelDialog(QDialog):
         values=settings.public() if settings else {}
         outer=QVBoxLayout(self);outer.addWidget(label('模型设置','title'))
         row=QHBoxLayout();row.addWidget(label('配置'));self.profile_choice=QComboBox();self.profile_choice.addItem('当前设置',None)
-        for name in self.profiles:self.profile_choice.addItem(name,name)
+        for name in self.profiles:self.profile_choice.addRawItem(name,name)
         self.profile_choice.setCurrentIndex(max(0,self.profile_choice.findData(self.current_profile)));row.addWidget(self.profile_choice,1)
         self.save_as=QPushButton('另存配置');self.save_as.clicked.connect(self.save_as_profile);row.addWidget(self.save_as)
         self.remove=QPushButton('删除配置');self.remove.clicked.connect(self.delete_profile);row.addWidget(self.remove);outer.addLayout(row)

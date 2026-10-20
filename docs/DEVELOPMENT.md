@@ -150,3 +150,11 @@ CPython Windows venv启动器将107用于配置文件打开、读取、home字�
 受保护计算记录实际输入、耗时、预算、执行错误和诊断编号。MCP中区分任务状态、后台调度操作及导出状态；重用请求不应解释为重新计算。计时与本机RPC记录不等于宿主模型的token或费用。
 
 源码导出运行 `tools/prepare_public_release.py --output 新目录`，只选择应用、测试、维护工具和有效文档，拒绝链接，排除环境、用户状态、实验输出和私有历史。`tools/check_public_release.py`核对授权；不要把本地备份ZIP上传。当前版本说明和验收见[发布记录](releases/CURRENT.md)，来源追溯见[provenance](provenance/README.md)。
+
+## 桌面翻译维护
+
+`desktop/i18n.py`负责语言设置和呈现绑定，`desktop/widgets.py`提供明确导入的Qt显示组件，`data/desktop_en.json`保存静态词汇，`desktop/english.py`保存内置工具英文说明。未知文本保留原文；不要直接替换工具Schema、原始参数、JSON、图标签或模型回复。
+
+新增界面文本应补充词表或显式上下文翻译，并使用绑定控件；数据单元格默认不翻译，只有明确标为UI状态的单元格才翻译。共享说明必须按实际语义翻译，不能用某个工具摘要覆盖通用提示。保持草稿、选项UserRole值、计算预算和线程状态，语言切换期间阻止控件选择信号产生业务动作。
+
+回归位于 `tests/test_desktop_localization.py`，涵盖双语覆盖、所有枚举原值、实时切换、原子保存失败、已销毁Qt对象及计算中切换。原始记录和导出科研数据不因界面语言重写。

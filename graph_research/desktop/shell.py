@@ -1,5 +1,6 @@
 """One native application with lazy, independent offline and API workspaces."""
-from PySide6.QtWidgets import QMainWindow,QTabWidget,QWidget,QVBoxLayout,QLabel,QMessageBox
+from PySide6.QtWidgets import QWidget,QVBoxLayout
+from .widgets import QMainWindow,QTabWidget,QLabel,QMessageBox
 from .app import DesktopWindow,app_icon
 
 
@@ -18,6 +19,13 @@ class IntegratedWindow(QMainWindow):
         self.statusBar().setSizeGripEnabled(False);self.statusBar().addPermanentWidget(self.version_label)
         self.menuBar().addMenu('成果').addAction('成果中心',lambda:self.offline.open_results_center())
         self.menuBar().addMenu('工具').addAction('扩展工具库',self.open_tool_library)
+        from .widgets import language_menu
+        from .i18n import listen
+        language_menu(self);listen(self._language_changed)
+
+    def _language_changed(self):
+        from .i18n import language
+        for code,action in self._language_actions.items():action.setChecked(code==language())
 
     def open_tool_library(self):
         from .tool_library import ToolLibraryDialog

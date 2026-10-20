@@ -5,10 +5,11 @@ from html import escape
 from pathlib import Path
 from PySide6.QtCore import Qt,QTimer
 from PySide6.QtGui import QColor,QTextCursor,QTextCharFormat
-from PySide6.QtWidgets import (QDialog,QWidget,QVBoxLayout,QHBoxLayout,QFormLayout,QSplitter,QTabWidget,
-    QLabel,QLineEdit,QPlainTextEdit,QComboBox,QCheckBox,QPushButton,QSpinBox,QListWidget,QListWidgetItem,QFileDialog,QMessageBox,QTextEdit)
+from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QSplitter,QListWidget,QTextEdit
+from .widgets import QDialog,QFormLayout,QTabWidget,QLabel,QLineEdit,QPlainTextEdit,QComboBox,QCheckBox,QPushButton,QSpinBox,QListWidgetItem,QFileDialog,QMessageBox
 from graph_research.graph_input.document import GraphInputError,GraphDocument,document,parse_graph,graph_family,MAX_TEXT
 from .graph_canvas import GraphCanvas,choice_help
+from .i18n import tr
 
 FORMATS=[('快捷边表','edge_list'),('邻接矩阵','adjacency'),('关联矩阵','incidence'),('图对象JSON','json'),('普通图 graph6','graph6')]
 HINTS={
@@ -23,7 +24,7 @@ class GraphInputDialog(QDialog):
     def __init__(self,library,graph=None,parent=None):
         super().__init__(parent);self.library=library;self.graph=None;self._syncing=False;self._last_tab=0;self.valid=True;self.use_recipe=False;self.schematic_result=None
         self.setWindowTitle('图输入');self.resize(1180,810);self.setMinimumSize(960,650)
-        root=QVBoxLayout(self);header=QHBoxLayout();self.name=QLineEdit('未命名图');self.name.setPlaceholderText('图的名称');header.addWidget(self.name,1)
+        root=QVBoxLayout(self);header=QHBoxLayout();self.name=QLineEdit(tr('未命名图'));self.name.setPlaceholderText('图的名称');header.addWidget(self.name,1)
         self.graph_type=QComboBox();self.graph_type.addItem('普通图','graph');self.graph_type.addItem('超图','hypergraph');header.addWidget(self.graph_type)
         choice_help(self.graph_type,{'graph':'每条边恰有两个不同端点，可以选择方向和权重。','hypergraph':'每条超边至少两个不同顶点，允许非一致；当前不支持有向超图。'})
         self.directed=QCheckBox('有向');header.addWidget(self.directed);self.weighted=QCheckBox('带权');header.addWidget(self.weighted);root.addLayout(header)
@@ -185,7 +186,7 @@ class GraphInputDialog(QDialog):
         self.library_list.clear()
         try:
             for entry in self.library.entries():
-                item=QListWidgetItem(('' if entry['valid'] else '⚠ ')+entry['summary']);item.setData(Qt.ItemDataRole.UserRole,entry['id']);item.setToolTip(escape(entry['summary']));self.library_list.addItem(item)
+                item=QListWidgetItem(('' if entry['valid'] else '⚠ ')+entry['summary'],raw=True);item.setData(Qt.ItemDataRole.UserRole,entry['id']);item.setToolTip(escape(entry['summary']));self.library_list.addItem(item)
         except (ValueError,OSError) as error:self._status(str(error),True)
 
     def load_selected(self):

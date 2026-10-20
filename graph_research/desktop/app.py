@@ -8,11 +8,11 @@ import time
 from html import escape
 
 import jsonschema
+from shiboken6 import isValid
 from PySide6.QtCore import Qt,QObject,QThread,Signal,QTimer,QUrl
 from PySide6.QtGui import QColor,QIcon,QPainter,QPen,QPixmap,QDesktopServices,QPalette
-from PySide6.QtWidgets import (QApplication,QMainWindow,QWidget,QFrame,QLabel,QPushButton,QLineEdit,QPlainTextEdit,
-    QComboBox,QCheckBox,QVBoxLayout,QHBoxLayout,QGridLayout,QSplitter,QScrollArea,QTabWidget,QTreeWidget,QTreeWidgetItem,
-    QListWidget,QListWidgetItem,QTableWidget,QTableWidgetItem,QHeaderView,QFileDialog,QMessageBox,QProgressBar,QToolButton)
+from PySide6.QtWidgets import QApplication,QWidget,QFrame,QVBoxLayout,QHBoxLayout,QGridLayout,QSplitter,QScrollArea,QListWidget,QHeaderView,QProgressBar,QSizePolicy
+from .widgets import QMainWindow,QLabel,QPushButton,QLineEdit,QPlainTextEdit,QComboBox,QCheckBox,QTabWidget,QTreeWidget,QTreeWidgetItem,QListWidgetItem,QTableWidget,QFileDialog,QMessageBox,QToolButton,QTableWidgetItem
 
 from graph_research.assistant.offline import parse_parameter,read_arguments,validation_message
 from graph_research.rendering.results import TITLES,LABELS,METRIC_KEYS,display_value,display_field,display_error,terminal_result
@@ -20,6 +20,7 @@ from graph_research.tools.input_guides import input_guide,compact
 from graph_research.runtime.storage import staged_file,safe_path,read_json
 from .service import DesktopWorkspace
 from .localization import parameter_title,option_presentation
+from .i18n import listen
 
 
 STYLE='''
@@ -65,8 +66,8 @@ def desktop_palette():
     return palette
 
 
-def label(text,object_name=None):
-    result=QLabel(text);result.setWordWrap(True);result.setTextFormat(Qt.TextFormat.PlainText)
+def label(text,object_name=None,*,raw=False):
+    result=QLabel();result.setProperty('i18n_raw',raw);result.setText(text);result.setWordWrap(True);result.setTextFormat(Qt.TextFormat.PlainText)
     if object_name:result.setObjectName(object_name)
     return result
 
@@ -78,6 +79,7 @@ def scroll_panel(widget):
 class ParameterField(QWidget):
     def __init__(self,name,schema,guide,required,definition=None):
         super().__init__();self.name=name;self.schema=schema;self.required=required
+        self.setSizePolicy(QSizePolicy.Policy.Expanding,QSizePolicy.Policy.Minimum)
         definition=definition or {}
         layout=QVBoxLayout(self);layout.setContentsMargins(0,4,0,12);layout.setSpacing(6)
         row=QHBoxLayout();self.enabled=QCheckBox();self.enabled.setChecked(required or 'default' in schema)
@@ -118,6 +120,18 @@ class ParameterField(QWidget):
         self.help_toggle.toggled.connect(self.help.setVisible);layout.addWidget(self.help_toggle);layout.addWidget(self.help)
         self.enabled.toggled.connect(self.editor.setEnabled);self.editor.setEnabled(self.enabled.isChecked())
         if 'default' in schema:self.set_value(schema['default'])
+        self.help_toggle.toggled.connect(self._reflow);listen(self._reflow)
+        QTimer.singleShot(0,self._reflow)
+
+    def _reflow(self,*_):
+        """Let the scroll area grow fields when translated help wraps to more lines."""
+        if not isValid(self):return
+        layout=self.layout();layout.invalidate()
+        needed=max(layout.minimumSize().height(),layout.heightForWidth(max(100,self.width())))
+        if needed>=0 and needed!=self.minimumHeight():self.setMinimumHeight(needed)
+
+    def resizeEvent(self,event):
+        super().resizeEvent(event);self._reflow()
 
     def set_value(self,value):
         self.enabled.setChecked(True)
@@ -181,6 +195,8 @@ class DesktopWindow(QMainWindow):
         super().__init__();self.workspace=workspace;self.current_tool=None;self.fields={};self.drafts={};self.observation=None
         self.thread=None;self.worker=None;self.started=0;self.close_after=False;self._files=[];self._table_fields={}
         self.graph_bindings={};self.graph_drafts={};self.input_graph=None
+        from .english import register_registry
+        register_registry(workspace.registry)
         self.setWindowTitle('图论科研助手 · 桌面版');self.setWindowIcon(app_icon());self.setMinimumSize(1020,650)
         geometry=QApplication.primaryScreen().availableGeometry();self.resize(min(1480,geometry.width()-40),min(940,geometry.height()-60))
         self._build();self._menus();self._fill_tools();self.refresh_history()
@@ -314,7 +330,7 @@ class DesktopWindow(QMainWindow):
             for definition in group['tools']:
                 if definition['name']=='hypergraph_editor':continue
                 title=TITLES.get(definition['name'],definition.get('documentation',{}).get('title',definition['name']))
-                item=QTreeWidgetItem([title]);item.setData(0,Qt.ItemDataRole.UserRole,definition['name']);item.setToolTip(0,escape(definition['description']))
+                item=QTreeWidgetItem([title],raw=definition.get('documentation',{}).get('coverage')!='reviewed_native');item.setData(0,Qt.ItemDataRole.UserRole,definition['name']);item.setToolTip(0,escape(definition['description']))
                 category.addChild(item);self.items[definition['name']]=item
 
     def filter_tools(self,text):
@@ -446,7 +462,7 @@ class DesktopWindow(QMainWindow):
             graphs=self._result_graphs()
             if len(graphs)==1:self.open_graph_input(graphs[0][1])
             elif graphs:
-                from PySide6.QtWidgets import QInputDialog
+                from .widgets import QInputDialog
                 titles=[str(i+1)+' · '+title+' · '+graph.summary() for i,(title,graph) in enumerate(graphs)]
                 selected,accepted=QInputDialog.getItem(self,'继续使用图','选择图对象',titles,0,False)
                 if accepted:self.open_graph_input(graphs[titles.index(selected)][1])
@@ -628,7 +644,8 @@ class DesktopWindow(QMainWindow):
                 source.setPlainText('输入图与顶点编号对照\n'+mapping_summary(observation['graph_inputs']));self.overview_layout.addWidget(source)
             for key,value in data.items():
                 if isinstance(value,list):self._table_fields[key]=value
-            details=QPlainTextEdit();details.setReadOnly(True);details.setPlainText(terminal_result(observation));details.setMinimumHeight(230);self.overview_layout.addWidget(details,1)
+            from .result_text import result_text
+            details=QPlainTextEdit();details.setReadOnly(True);details.setLocalizedRenderer(lambda:result_text(observation));details.setMinimumHeight(230);self.overview_layout.addWidget(details,1)
             if observation.get('tool_status')=='fixture_tested_experimental':self.overview_layout.addWidget(label('实验工具：只通过登记的样例，需要独立复核。','muted'))
         self.table_selector.clear();self.table_selector.addItems([LABELS.get(key,key)+'  ['+key+']' for key in self._table_fields])
         if not self._table_fields:self.table.clear();self.table.setRowCount(0);self.table.setColumnCount(0)
@@ -667,7 +684,7 @@ class DesktopWindow(QMainWindow):
         self.table.setHorizontalHeaderLabels([str(i) for i in range(ncols)])
         for i,row in enumerate(rows[:nrows]):
             for j,cell in enumerate(row[:ncols]):
-                item=QTableWidgetItem(display_value(cell));item.setToolTip(escape(json.dumps(cell,ensure_ascii=False)));self.table.setItem(i,j,item)
+                item=QTableWidgetItem(display_value(cell),ui=isinstance(cell,bool));item.setToolTip(escape(json.dumps(cell,ensure_ascii=False)));self.table.setItem(i,j,item)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.table_note.setText(f'{len(rows)}行 × {max_cols}列'+(' · 仅预览前128行、32列，完整数据见JSON。' if len(rows)>128 or max_cols>32 else ' · 悬停查看原始值。'))
 
@@ -692,7 +709,7 @@ class DesktopWindow(QMainWindow):
         self.file_text.hide()
         if path.suffix.lower() in ('.png','.svg','.jpg','.jpeg'):self.image.show_image(path)
         elif path.suffix.lower() in ('.tex','.json','.txt'):
-            self.image.original=None;self.image.setText(path.name)
+            self.image.original=None;self.image.setRawText(path.name)
             with path.open('r',encoding='utf-8') as stream:text=stream.read(100000)
             self.file_text.setPlainText(text);self.file_text.show()
         elif path.suffix.lower()=='.html':
@@ -793,8 +810,13 @@ class DesktopWindow(QMainWindow):
 def desktop_command(arguments):
     parser=argparse.ArgumentParser(description='独立桌面科研助手：本地工具、参数表单、计算及结果，无需浏览器')
     parser.add_argument('--workspace',default='outputs/desktop');parser.add_argument('--session');parser.add_argument('--tool-dir')
+    parser.add_argument('--language',choices=('zh','en'),help='Desktop language; defaults to the saved selection')
     options=parser.parse_args(arguments)
-    application=QApplication.instance() or QApplication([]);application.setApplicationName('图论科研助手');application.setStyle('Fusion');application.setPalette(desktop_palette());application.setStyleSheet(STYLE)
+    from .i18n import initialize
+    initialize(options.language)
+    application=QApplication.instance() or QApplication([]);application.setApplicationName('GraphResearchAssistant');application.setStyle('Fusion');application.setPalette(desktop_palette());application.setStyleSheet(STYLE)
+    from .widgets import QtLanguageController
+    application._language_controller=QtLanguageController(application)
     application.setWindowIcon(app_icon())
     from graph_research.assistant.result_catalog import ResultPreferences
     workspace=DesktopWorkspace(options.workspace,session_directory=options.session,tool_directory=options.tool_dir,results_preferences=ResultPreferences())

@@ -4,7 +4,8 @@ from pathlib import Path
 from threading import Event
 from PySide6.QtCore import QObject,QThread,Signal,Qt,QUrl
 from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QDialog,QWidget,QVBoxLayout,QHBoxLayout,QFormLayout,QListWidget,QListWidgetItem,QCheckBox,QSpinBox,QLineEdit,QPushButton,QTextBrowser,QMessageBox
+from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QListWidget,QTextBrowser
+from .widgets import QDialog,QFormLayout,QListWidgetItem,QCheckBox,QSpinBox,QLineEdit,QPushButton,QMessageBox
 from .app import label
 from graph_research.assistant.evaluation import evaluation_cases,run_evaluation
 from graph_research.assistant.governance import validate_policy
