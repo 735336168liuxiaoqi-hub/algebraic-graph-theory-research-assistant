@@ -26,6 +26,6 @@
 | [开发维护](DEVELOPMENT.md) | 环境、完整性保护、回归检查与源码导出 |
 | [当前版本与验收](releases/CURRENT.md) | 核对交付范围及发布时验证 |
 | [源码迁移与来源](provenance/README.md) | 追溯原始定义、摘要、Python映射与授权 |
-| [English quick start](QUICKSTART.md) | Installation and the three usage modes |
+| [English user guide](QUICKSTART.md) | Capabilities, installation, three modes, graphics, results, memory, extensions and troubleshooting |
 
 当前功能和操作以首页、使用指南、工具契约为准。迁移台账不代表功能待办；生成的参数手册不手工重复维护。历史计划和过程记录不随当前源码分发。

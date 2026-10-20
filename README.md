@@ -1,6 +1,6 @@
 # 代数图论科研助手
 
-**Algebraic Graph Theory Research Assistant** · 0.36.0rc4 · [MIT](LICENSE) · [English quick start](docs/QUICKSTART.md)
+**Algebraic Graph Theory Research Assistant** · 0.36.0rc4 · [MIT](LICENSE) · [English user guide](docs/QUICKSTART.md)
 
 面向图与超图科研的 Python 计算工具和桌面应用，支持谱计算、符号运算、交互绘图与论文图形导出。既可独立使用，也可作为主 agent 的 MCP 计算服务。无需 SageMath 或 WSL。
 
