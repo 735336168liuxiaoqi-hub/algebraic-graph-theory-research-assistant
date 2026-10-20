@@ -4,8 +4,8 @@ from html import escape
 from pathlib import Path
 
 from PySide6.QtCore import Qt,QPointF,QRect,Signal,QTimer
-from PySide6.QtGui import QColor,QPainter,QPainterPath,QPainterPathStroker,QPen,QBrush,QRadialGradient
-from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QGraphicsScene,QGraphicsPathItem,QGraphicsEllipseItem,QGraphicsTextItem
+from PySide6.QtGui import QColor,QPainter,QPainterPath,QPainterPathStroker,QPen,QBrush,QRadialGradient,QPixmap,QIcon
+from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QGraphicsScene,QGraphicsPathItem,QGraphicsEllipseItem,QGraphicsTextItem,QGraphicsItem,QSizePolicy
 from .widgets import QDialog,QPushButton,QComboBox,QLineEdit,QLabel,QSpinBox,QDoubleSpinBox,QCheckBox,QFileDialog,QColorDialog
 
 from graph_research.graph_input.document import strict_json,tokens
@@ -13,6 +13,8 @@ from graph_research.schematics import SchematicDocument,template,from_graph,comp
 from graph_research.schematics.geometry import primitives
 from .graph_canvas import GraphView,choice_help
 from .layout import VertexItem
+from .i18n import UiText,bind
+from .graph_text import graph_summary,schematic_conditions
 
 
 class SchematicView(GraphView):
@@ -159,9 +161,12 @@ class SchematicCanvas(QWidget):
         self.settings_panel.setVisible(visible);self.path_settings.setVisible(kind=='path');self.core_settings.setVisible(kind=='edge')
         self.label_input.setVisible(mode=='vertex');self.connect_button.setVisible(mode=='edge');self.compress_button.setVisible(mode=='compress')
         self.connect_button.setEnabled(mode=='edge' and not editing and len(self.selected)>=2)
-        self.apply_button.setEnabled(editing and visible);self.apply_button.setText('应用到所选'+('超路' if kind=='path' else '中心边'))
-        if editing:self.context_label.setText(('超路 p'+str(self.selected_path) if kind=='path' else '中心边 e'+str(self.selected_core))+' · 编辑（修改后点击应用）')
-        else:self.context_label.setText('创建中心边 · 已选'+str(len(self.selected))+'个锚点' if kind=='edge' else '创建超路 · '+('请选择终点' if self.selected else '先点击起点，再点击终点'))
+        self.apply_button.setEnabled(editing and visible);self.apply_button.setText(UiText('应用到所选'+('超路' if kind=='path' else '中心边'),'Apply to selected '+('hyperpath' if kind=='path' else 'central edge')))
+        if editing:
+            index=self.selected_path if kind=='path' else self.selected_core
+            self.context_label.setText(UiText(('超路 p' if kind=='path' else '中心边 e')+str(index)+' · 编辑（修改后点击应用）',('Hyperpath p' if kind=='path' else 'Central edge e')+str(index)+' · Edit, then apply'))
+        elif kind=='edge':self.context_label.setText(UiText('创建中心边 · 已选'+str(len(self.selected))+'个锚点',f'Create central edge · {len(self.selected)} anchors selected'))
+        else:self.context_label.setText(UiText('创建超路 · '+('请选择终点' if self.selected else '先点击起点，再点击终点'),'Create hyperpath · '+('Select the end anchor' if self.selected else 'Select start, then end')))
 
     def _hit_tag(self,event):
         """Pick visible outlines, with Alt-click to cycle overlapping edges."""
@@ -331,7 +336,9 @@ class SchematicCanvas(QWidget):
                 box=item.boundingRect();x,y=primitive['xy'];item.setPos(x*160-box.width()/2,-y*160-box.height()/2)
             item.setZValue(primitive['layer']);item.setData(0,tuple(tag))
             action='再次点击确认删除；Esc取消。' if self.mode.currentData()=='delete' else '点击切换选中；交叠边界用 Alt+单击切换。'
-            item.setToolTip(('中心边 e' if tag[0]=='edge' else '超路 p')+str(tag[1])+'：'+action)
+            english_action='Click again to delete; Esc cancels.' if self.mode.currentData()=='delete' else 'Click to toggle selection; Alt+click cycles overlapping boundaries.'
+            tip=UiText(('中心边 e' if tag[0]=='edge' else '超路 p')+str(tag[1])+'：'+action,('Central edge e' if tag[0]=='edge' else 'Hyperpath p')+str(tag[1])+': '+english_action)
+            bind(item,'tooltip',QGraphicsItem.setToolTip,tip)
             self.scene.addItem(item);self.draw_items.append(item)
         self.undo_button.setEnabled(bool(self.undo_stack))
 
@@ -358,11 +365,16 @@ class SchematicDialog(QDialog):
         row.addWidget(self.templates);apply=QPushButton('载入模板');apply.clicked.connect(lambda:self.set_document(template(self.templates.currentData())));row.addWidget(apply)
         row.addWidget(QLabel('一致度'));self.rank=QLineEdit();self.rank.setMaximumWidth(65);self.rank.setToolTip('填数值或符号k。已画中心边的不同连接顶点数不能超过k。');row.addWidget(self.rank)
         self.name=QLineEdit();self.name.setPlaceholderText('示意图名称');row.addWidget(self.name,1)
-        row.addWidget(QLabel('线宽'));self.line_width=QDoubleSpinBox();self.line_width.setDecimals(3);self.line_width.setRange(.003,.08);self.line_width.setSingleStep(.002);self.line_width.setMaximumWidth(70);self.line_width.setToolTip('图线宽度，单位cm；保存后TeX和SVG同步使用。');row.addWidget(self.line_width)
-        for title,key in [('线色','line_color'),('点色','vertex_color'),('底色','edge_fill')]:
-            button=QPushButton(title);button.setMaximumWidth(55);button.clicked.connect(lambda checked=False,k=key:self.choose_color(k));row.addWidget(button)
         load=QPushButton('打开示意图');load.clicked.connect(self.load_scene);row.addWidget(load)
         save_button=QPushButton('保存布局');save_button.clicked.connect(lambda:self.export_file('.json'));row.addWidget(save_button);root.addLayout(row)
+        style_row=QHBoxLayout();style_row.addWidget(QLabel(UiText('线宽（cm）','Line width (cm)')))
+        self.line_width=QDoubleSpinBox();self.line_width.setDecimals(3);self.line_width.setRange(.003,.08);self.line_width.setSingleStep(.002);self.line_width.setMaximumWidth(70);self.line_width.setToolTip('图线宽度，单位cm；保存后TeX和SVG同步使用。');style_row.addWidget(self.line_width)
+        self.color_buttons={};self.color_titles={}
+        for chinese,english,key in [('线条颜色','Line color','line_color'),('顶点颜色','Vertex color','vertex_color'),('超边填充','Hyperedge fill','edge_fill')]:
+            title=UiText(chinese,english);button=QPushButton(title);button.setSizePolicy(QSizePolicy.Policy.Minimum,QSizePolicy.Policy.Fixed)
+            button.setObjectName('schematic_color_'+key);button.clicked.connect(lambda checked=False,k=key:self.choose_color(k))
+            self.color_buttons[key]=button;self.color_titles[key]=title;style_row.addWidget(button)
+        style_row.addStretch();root.addLayout(style_row)
         self.canvas=SchematicCanvas(scene or template('blank'));self.canvas.error.connect(lambda text:self.status.setText(text));self.canvas.changed.connect(self._changed);root.addWidget(self.canvas,1)
         self.status=QLabel();self.status.setWordWrap(True);self.status.setTextFormat(Qt.TextFormat.PlainText);root.addWidget(self.status)
         row=QHBoxLayout();self.parameters=QLineEdit();self.parameters.setPlaceholderText('展开参数，例如 {"k":3,"a":4}');self.parameters.setMaximumWidth(330);row.addWidget(self.parameters)
@@ -378,7 +390,14 @@ class SchematicDialog(QDialog):
     def _changed(self,scene):
         data=scene.to_dict();self.rank.setText(str(data['rank']));self.name.setText(data['name'])
         self.line_width.setValue(data['style']['line_width'])
-        self.status.setText('；'.join(scene.conditions()) or '具体路长示意；可导出TeX或展开成新超图。')
+        self.status.setText(schematic_conditions(scene));self._update_colors(data['style'])
+
+    def _update_colors(self,style):
+        for key,button in self.color_buttons.items():
+            value=style[key];swatch=QPixmap(18,18);swatch.fill(Qt.GlobalColor.transparent)
+            painter=QPainter(swatch);painter.setPen(QPen(QColor('#627780'),1));painter.setBrush(QBrush(QColor(value)));painter.drawRect(1,1,15,15);painter.end()
+            button.setIcon(QIcon(swatch));title=self.color_titles[key]
+            button.setToolTip(UiText(str(title)+'：'+value+'；点击选择颜色。',title.english+': '+value+'; click to choose a color.'))
 
     def set_document(self,scene):
         self.canvas.set_document(scene,reset_undo=True)
@@ -409,7 +428,7 @@ class SchematicDialog(QDialog):
     def expand_graph(self):
         try:
             parameters=strict_json(self.parameters.text()) if self.parameters.text().strip() else {}
-            graph=expand(self.canvas.current_document(),parameters);self.graph_ready.emit(graph);self.status.setText(graph.summary()+'；已生成独立具体超图。')
+            graph=expand(self.canvas.current_document(),parameters);self.graph_ready.emit(graph);self.status.setText(graph_summary(graph,expanded_notice=True))
         except ValueError as error:self.status.setText(str(error))
 
     def use_diagram(self):self.diagram_ready.emit(self.canvas.current_document());self.accept()

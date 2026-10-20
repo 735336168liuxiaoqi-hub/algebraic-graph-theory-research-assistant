@@ -85,7 +85,8 @@ class ModelDialog(QDialog):
         self.token_field=QComboBox();self.token_field.addItem('输出上限 · max_tokens','max_tokens');self.token_field.addItem('补全上限 · max_completion_tokens','max_completion_tokens')
         self.token_field.setToolTip('按服务商要求选择；仅用于 Chat Completions。');form.addRow('对话补全上限字段',self.token_field)
         for combo in (self.protocol,self.token_field,self.reasoning_profile):
-            for i in range(combo.count()):combo.setItemData(i,combo.itemText(i)+'；'+combo.toolTip(),Qt.ItemDataRole.ToolTipRole)
+            source_hint=combo.sourceToolTip()
+            for i in range(combo.count()):combo.setItemData(i,combo.sourceItemText(i)+'；'+source_hint,Qt.ItemDataRole.ToolTipRole)
             combo.view().setMouseTracking(True)
         self.feedback=label(self.profiles_error or '保存和启用不发送请求；密钥不写入配置。','muted');outer.addWidget(self.feedback)
         row=QHBoxLayout();self.save=QPushButton('保存配置');self.save.clicked.connect(self.save_public);row.addWidget(self.save)

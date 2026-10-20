@@ -1,6 +1,6 @@
 # Algebraic Graph Theory Research Assistant — User Guide
 
-Version **0.36.0rc5**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
+Version **0.36.0rc6**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
 
 This Python application provides graph and hypergraph computation, symbolic algebra, interactive drawing and research result management. Use the desktop manually, connect a model for research chat, or expose the same computation tools to a host agent through MCP. SageMath and WSL are not required.
 
@@ -38,12 +38,12 @@ Non-uniform hypergraphs can be drawn. Hypergraph tensor-spectrum tools enforce u
 
 ### Choose a package
 
-Use the [v0.36.0rc5 release page](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.36.0rc5). While the repository is private, sign in with an authorized GitHub account.
+Use the [v0.36.0rc6 release page](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.36.0rc6). While the repository is private, sign in with an authorized GitHub account.
 
 | Asset | Intended use |
 | --- | --- |
-| [Source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc5/algebraic-graph-theory-research-assistant-0.36.0rc5-source-candidate.zip) | Recommended for first-time desktop use; includes the source and launchers |
-| [Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc5/graph_research_assistant-0.36.0rc5-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
+| [Source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc6/algebraic-graph-theory-research-assistant-0.36.0rc6-source-candidate.zip) | Recommended for first-time desktop use; includes the source and launchers |
+| [Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc6/graph_research_assistant-0.36.0rc6-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
 | `SHA256SUMS.txt` / `RELEASE_VALIDATION.json` | Checksums and validation evidence; these are not installers |
 
 Expand **Assets** at the bottom of the release page. Download one application package; you do not need both ZIP and wheel. The first installation downloads dependencies. A fully offline new computer needs separately prepared dependency wheels matching its Windows/Python version.
@@ -91,7 +91,7 @@ For editable development, use `python -m pip install -e ".[all]"`. Ordinary use 
 Download the wheel through your browser. From its directory, use the Python environment you selected:
 
 ```powershell
-python -m pip install ".\graph_research_assistant-0.36.0rc5-py3-none-any.whl[all]"
+python -m pip install ".\graph_research_assistant-0.36.0rc6-py3-none-any.whl[all]"
 python -m graph_research desktop
 ```
 
@@ -134,6 +134,10 @@ Generating TeX needs no compiler. Compiling it to PDF requires a separate TeX en
 ### Paper schematics
 
 **论文示意图** (Paper schematic) supports central edges, omitted hyperpath sections, ellipsis points inside edges, parameter labels and braces. Use mouse editing, save scene JSON and export SVG/TeX. Ordinary structure drawing remains available.
+
+Line width and the three color buttons have their own style row. **Line color**, **Vertex color** and **Hyperedge fill** show current swatches; hover to read the color code. They resize to fit both languages, update on scene loading, and leave data unchanged if color selection is cancelled. Hyperedge fill controls central-edge fill, not the canvas background.
+
+Graph summaries distinguish vertices, edges/arcs and hyperedges, including singular/plural counts and **No hyperedges**. Generated **Expanded** markers and **Structure preview / Input graph / Result graph** labels follow the selected language. Custom names, labels and stored graph data remain unchanged.
 
 A path of unspecified length is a symbolic diagram, not a fully defined computation graph. Fix its parameters and expand it into a concrete graph before numerical calculation.
 
