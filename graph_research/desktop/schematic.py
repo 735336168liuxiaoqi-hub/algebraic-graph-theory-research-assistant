@@ -5,8 +5,8 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt,QPointF,QRect,Signal,QTimer
 from PySide6.QtGui import QColor,QPainter,QPainterPath,QPainterPathStroker,QPen,QBrush,QRadialGradient
-from PySide6.QtWidgets import (QWidget,QDialog,QVBoxLayout,QHBoxLayout,QGraphicsScene,QGraphicsPathItem,
-    QGraphicsEllipseItem,QGraphicsTextItem,QPushButton,QComboBox,QLineEdit,QLabel,QSpinBox,QDoubleSpinBox,QCheckBox,QFileDialog,QColorDialog)
+from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QGraphicsScene,QGraphicsPathItem,QGraphicsEllipseItem,QGraphicsTextItem
+from .widgets import QDialog,QPushButton,QComboBox,QLineEdit,QLabel,QSpinBox,QDoubleSpinBox,QCheckBox,QFileDialog,QColorDialog
 
 from graph_research.graph_input.document import strict_json,tokens
 from graph_research.schematics import SchematicDocument,template,from_graph,compress_path,expand,save

@@ -5,8 +5,8 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt,QPointF,Signal,QTimer
 from PySide6.QtGui import QColor,QPainter,QPainterPath,QPen,QBrush
-from PySide6.QtWidgets import (QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QGraphicsView,QGraphicsScene,
-                               QGraphicsEllipseItem,QGraphicsItem,QFileDialog,QMessageBox)
+from PySide6.QtWidgets import QVBoxLayout,QHBoxLayout,QGraphicsView,QGraphicsScene,QGraphicsEllipseItem,QGraphicsItem
+from .widgets import QDialog,QLabel,QPushButton,QFileDialog,QMessageBox
 
 from graph_research.hypergraphs import Hypergraph
 from graph_research.rendering.editor import layout_document,read_layout,validate_layout

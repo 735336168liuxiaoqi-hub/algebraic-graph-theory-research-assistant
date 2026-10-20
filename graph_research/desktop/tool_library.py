@@ -2,7 +2,8 @@
 import json
 import sqlite3
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLabel,QLineEdit,QPushButton,QTableWidget,QTableWidgetItem,QPlainTextEdit,QMessageBox,QHeaderView
+from PySide6.QtWidgets import QVBoxLayout,QHBoxLayout,QHeaderView
+from .widgets import QDialog,QLabel,QLineEdit,QPushButton,QTableWidget,QPlainTextEdit,QMessageBox,QTableWidgetItem
 from graph_research.tools.library import ToolLibrary
 
 
@@ -45,7 +46,7 @@ class ToolLibraryDialog(QDialog):
         self.table.setRowCount(len(self.visible))
         for index,record in enumerate(self.visible):
             title=record.get('metadata',{}).get('title',record['name']);values=[title+' · '+record['name'],(record.get('version') or '—')[:12],STATES.get(record['state'],record['state']),str(record.get('tests_passed',0))]
-            for column,text in enumerate(values):self.table.setItem(index,column,QTableWidgetItem(text))
+            for column,text in enumerate(values):self.table.setItem(index,column,QTableWidgetItem(text,ui=column==2))
         self.table.resizeColumnsToContents()
         if self.visible:self.table.selectRow(0)
         else:self.details.setPlainText('暂无已安装扩展工具。');self.show_selection()

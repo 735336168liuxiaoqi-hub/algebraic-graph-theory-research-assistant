@@ -4,8 +4,8 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject,QThread,Signal,Qt,QUrl,QItemSelectionModel
 from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import (QDialog,QVBoxLayout,QHBoxLayout,QPushButton,QLineEdit,QComboBox,QTableWidget,QTableWidgetItem,
-    QHeaderView,QAbstractItemView,QMessageBox,QFileDialog,QFormLayout,QCheckBox,QTreeWidget,QTreeWidgetItem,QDialogButtonBox,QApplication,QLabel)
+from PySide6.QtWidgets import QVBoxLayout,QHBoxLayout,QHeaderView,QAbstractItemView,QDialogButtonBox,QApplication
+from .widgets import QDialog,QPushButton,QLineEdit,QComboBox,QTableWidget,QMessageBox,QFileDialog,QFormLayout,QCheckBox,QTreeWidget,QTreeWidgetItem,QLabel,QTableWidgetItem
 from graph_research.assistant.result_catalog import ResultCatalog,resolve_bundle
 from graph_research.assistant.result_cleanup import ResultCleanup
 from graph_research.runtime.storage import read_json,write_json,exclusive_lock
@@ -139,7 +139,7 @@ class ResultsCenter(QDialog):
             values=[row['title'],row['project'],MODES.get(row['mode'],row['mode']),datetime.fromtimestamp(row['updated']).strftime('%m-%d %H:%M'),size_text(row['bytes']),
                     '已保存' if availability=='ready' else '文件不可用','是' if row['pinned'] else '']
             for j,value in enumerate(values):
-                item=QTableWidgetItem(value);item.setData(Qt.ItemDataRole.UserRole,row);item.setToolTip('成果编号：'+row['id']+'\n'+str(bundle.get('archive','')));self.table.setItem(i,j,item)
+                item=QTableWidgetItem(value,ui=j in (2,5,6));item.setData(Qt.ItemDataRole.UserRole,row);item.setToolTip('成果编号：'+row['id']+'\n'+str(bundle.get('archive','')));self.table.setItem(i,j,item)
             if (row['results_root'],row['id']) in selected:self.table.selectionModel().select(self.table.model().index(i,0),QItemSelectionModel.SelectionFlag.Select|QItemSelectionModel.SelectionFlag.Rows)
         self.selection_changed()
 
@@ -282,7 +282,7 @@ class ResultsCenter(QDialog):
         table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection);table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         for i,row in enumerate(rows):
             values=[row['source']['title'],CLEANUP_MODES[row['mode']],datetime.fromtimestamp(row['created']).strftime('%m-%d %H:%M'),size_text(row['bytes']),'待恢复操作' if row['state']=='moving' else '可恢复']
-            for j,value in enumerate(values):item=QTableWidgetItem(value);item.setData(Qt.ItemDataRole.UserRole,row);table.setItem(i,j,item)
+            for j,value in enumerate(values):item=QTableWidgetItem(value,ui=j in (1,4));item.setData(Qt.ItemDataRole.UserRole,row);table.setItem(i,j,item)
         table.horizontalHeader().setSectionResizeMode(0,QHeaderView.ResizeMode.Stretch);layout.addWidget(table,1)
         def selected():return [table.item(i.row(),0).data(Qt.ItemDataRole.UserRole) for i in table.selectionModel().selectedRows()]
         row=QHBoxLayout();close=QPushButton('关闭');close.clicked.connect(dialog.reject);row.addWidget(close);row.addStretch()

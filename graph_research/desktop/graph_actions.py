@@ -4,8 +4,8 @@ import json
 
 import jsonschema
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QDialog,QVBoxLayout,QHBoxLayout,QComboBox,QLabel,
-    QPushButton,QTabWidget,QWidget,QScrollArea,QMessageBox,QFileDialog)
+from PySide6.QtWidgets import QVBoxLayout,QHBoxLayout,QWidget,QScrollArea
+from .widgets import QDialog,QComboBox,QLabel,QPushButton,QTabWidget,QMessageBox,QFileDialog
 
 from graph_research.graph_input.document import GraphDocument,document
 from graph_research.graph_input.adapters import graph_targets,graph_patch,result_graph,validate_sources

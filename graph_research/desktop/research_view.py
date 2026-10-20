@@ -7,7 +7,8 @@ import re
 
 from PySide6.QtCore import QUrl,Qt
 from PySide6.QtGui import QImage,QTextDocument
-from PySide6.QtWidgets import QTextBrowser,QDialog,QVBoxLayout,QFormLayout,QHBoxLayout,QSpinBox,QLineEdit,QCheckBox,QPushButton,QMessageBox
+from PySide6.QtWidgets import QTextBrowser,QVBoxLayout,QHBoxLayout
+from .widgets import QDialog,QFormLayout,QSpinBox,QLineEdit,QCheckBox,QPushButton,QMessageBox
 
 
 def usage_text(usage):

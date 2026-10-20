@@ -2,7 +2,8 @@
 import math
 from PySide6.QtCore import Qt,QPointF,Signal,QTimer
 from PySide6.QtGui import QColor,QPainter,QPainterPath,QPen,QBrush,QPolygonF
-from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QGraphicsView,QGraphicsScene,QGraphicsPathItem,QGraphicsPolygonItem,QGraphicsSimpleTextItem,QPushButton,QComboBox,QLineEdit,QLabel
+from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QGraphicsView,QGraphicsScene,QGraphicsPathItem,QGraphicsPolygonItem,QGraphicsSimpleTextItem
+from .widgets import QPushButton,QComboBox,QLineEdit,QLabel
 from graph_research.graph_input.document import document,GraphDocument,GraphInputError,tokens,strict_json,weight_parts,display_label
 from graph_research.rendering.geometry import hyperedge_path,vertex_positions,COLORS
 from .layout import VertexItem

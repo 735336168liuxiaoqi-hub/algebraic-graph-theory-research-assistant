@@ -6,11 +6,12 @@ from threading import Event
 import time
 
 from PySide6.QtCore import Qt,QObject,QThread,Signal,QTimer,QEvent
-from PySide6.QtWidgets import (QMainWindow,QWidget,QFrame,QVBoxLayout,QHBoxLayout,QSplitter,
-    QPushButton,QPlainTextEdit,QListWidget,QListWidgetItem,QFileDialog,QMessageBox,QScrollArea,QDialog,QComboBox,QCheckBox)
+from PySide6.QtWidgets import QWidget,QFrame,QVBoxLayout,QHBoxLayout,QSplitter,QListWidget,QScrollArea
+from .widgets import QMainWindow,QPushButton,QPlainTextEdit,QListWidgetItem,QFileDialog,QMessageBox,QDialog,QComboBox,QCheckBox
 
 from graph_research.runtime.storage import read_json
 from graph_research.rendering.results import TITLES
+from .i18n import UiText,tr
 from .app import DesktopWindow,label
 from .model_service import SafeModel
 
@@ -105,7 +106,7 @@ class ChatWindow(DesktopWindow):
         self.scroll=QScrollArea();self.scroll.setWidgetResizable(True);self.messages=QWidget();self.transcript=QVBoxLayout(self.messages);self.transcript.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.scroll.setWidget(self.messages);chat_layout.addWidget(self.scroll,1)
         self.live_preview=QFrame();self.live_preview.setObjectName('panel');preview_layout=QVBoxLayout(self.live_preview)
-        preview_layout.addWidget(label('回答预览 · 尚未完成校验','muted'));self.preview_text=label('');self.preview_text.setMaximumHeight(150);preview_layout.addWidget(self.preview_text);chat_layout.addWidget(self.live_preview);self.live_preview.hide()
+        preview_layout.addWidget(label('回答预览 · 尚未完成校验','muted'));self.preview_text=label('');self.preview_text.setProperty('i18n_raw',True);self.preview_text.setMaximumHeight(150);preview_layout.addWidget(self.preview_text);chat_layout.addWidget(self.live_preview);self.live_preview.hide()
         self.approval=QFrame();self.approval.setObjectName('panel');approval_layout=QVBoxLayout(self.approval)
         approval_layout.addWidget(label('新增功能需要你的批准','sectionTitle'));approval_layout.addWidget(label('上方评估包含范围与预计消耗。批准仅适用于当前评估；修改需求会使旧审批失效。','muted'))
         details=QPushButton('查看完整范围、验收样例及预算');details.clicked.connect(self.show_assessment);approval_layout.addWidget(details)
@@ -198,7 +199,7 @@ class ChatWindow(DesktopWindow):
     def sync_model_choices(self):
         from .configuration import fill_efforts
         self.profile_choice.blockSignals(True);self.profile_choice.clear();self.profile_choice.addItem('选择配置',None)
-        for name in self.profiles:self.profile_choice.addItem(name,name)
+        for name in self.profiles:self.profile_choice.addRawItem(name,name)
         self.profile_choice.setCurrentIndex(max(0,self.profile_choice.findData(self.current_profile)));self.profile_choice.blockSignals(False)
         self.model_choice.blockSignals(True);self.model_choice.clear()
         self.model_choice.addItems(self.profiles.get(self.current_profile,{}).get('models',[]))
@@ -281,7 +282,7 @@ class ChatWindow(DesktopWindow):
         self.object_choice.addItem('不指定当前图' if objects['versions'] else '尚未绑定图对象',None)
         for record in objects['versions']:
             ref={k:record[k] for k in ('id','version')}
-            self.object_choice.addItem(record['id']+' · 第'+str(record['version'])+'版 · '+record['document']['name'],ref)
+            self.object_choice.addItem(UiText(record['id']+' · 第'+str(record['version'])+'版 · '+record['document']['name'],record['id']+' · v'+str(record['version'])+' · '+record['document']['name']),ref)
             if ref==objects['active']:self.object_choice.setCurrentIndex(self.object_choice.count()-1)
         self.object_choice.blockSignals(False)
         self.review_plan.blockSignals(True);self.review_plan.setChecked(self.workspace.session.review_plans);self.review_plan.blockSignals(False)
@@ -306,32 +307,33 @@ class ChatWindow(DesktopWindow):
             self.transcript.addWidget(label('例如：计算路径图 P₅ 的直径和邻接谱。','muted'))
         observations=self.view_state.get('observations',[])
         for turn in self.view_turns:
-            user=QFrame();user.setObjectName('metric');row=QVBoxLayout(user);row.addWidget(label('你 · 第'+str(turn['number'])+'轮','muted'));row.addWidget(label(turn['user_request']));self.transcript.addWidget(user)
+            user=QFrame();user.setObjectName('metric');row=QVBoxLayout(user);row.addWidget(label('你 · 第'+str(turn['number'])+'轮','muted'));row.addWidget(label(turn['user_request'],raw=True));self.transcript.addWidget(user)
             if turn.get('plan') and turn['plan']['status']!='awaiting_review':
                 from graph_research.assistant.planning import plan_text
-                plan_label=label('任务计划\n'+plan_text(turn['plan']));plan_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse);self.transcript.addWidget(plan_label)
+                plan_label=label(UiText('任务计划\n'+plan_text(turn['plan']),'Task plan\n'+plan_text(turn['plan'])));plan_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse);self.transcript.addWidget(plan_label)
             start=turn.get('observation_start',0);end=turn.get('observation_end',len(observations))
             for observation in observations[start:end]:
                 if 'tool' in observation:
                     title=TITLES.get(observation['tool'],observation['tool'])
                     button=QPushButton(('✓ ' if observation.get('ok') else '• ')+title+'  → 查看结果')
-                    button.setToolTip(json.dumps(observation.get('arguments',{}),ensure_ascii=False))
+                    button.setRawToolTip(json.dumps(observation.get('arguments',{}),ensure_ascii=False))
                     button.clicked.connect(lambda checked=False,o=copy.deepcopy(observation):self.show_observation(o));self.transcript.addWidget(button)
                 else:self.transcript.addWidget(label(('✓ ' if observation.get('ok') else '• ')+{'assess':'评估现有工具联动','extend':'实验扩展验证'}.get(observation.get('operation'),'工作流步骤'),'muted'))
             assistant=QFrame();assistant.setObjectName('panel');column=QVBoxLayout(assistant)
             column.addWidget(label('科研助手 · '+STATUSES.get(turn.get('status'),turn.get('status','')),'muted'))
             from .research_view import AnswerView
-            text=AnswerView(turn.get('answer') or '正在分析需求与选择工具……');column.addWidget(text)
+            text=AnswerView(turn.get('answer') or tr('正在分析需求与选择工具……'));column.addWidget(text)
             for claim in turn.get('claims',[]):
                 from graph_research.assistant.claims import claim_text
-                column.addWidget(label(claim_text(claim),'muted'))
+                column.addWidget(label(claim_text(claim),'muted',raw=True))
                 for source in claim.get('sources',[]):
                     index=source.get('observation')
                     if not source.get('verified_execution') or type(index) is not int or not 0<=index<len(observations):continue
                     button=QPushButton('查看依据 · 计算 '+str(index+1)+' · '+TITLES.get(source.get('tool'),source.get('tool','')))
                     refs='；'.join(ref['id']+' 第'+str(ref['version'])+'版' for ref in source.get('research_refs',[]))
                     if refs:button.setText(button.text()+' · '+refs)
-                    button.setToolTip('字段路径：'+json.dumps(source.get('path',[]),ensure_ascii=False)+'\n计算条件：'+json.dumps(source.get('scope',{}),ensure_ascii=False)+'\n这里只核验来源和字段值，不核验文字推论。')
+                    raw_path=json.dumps(source.get('path',[]),ensure_ascii=False);raw_scope=json.dumps(source.get('scope',{}),ensure_ascii=False)
+                    button.setToolTip(UiText('字段路径：'+raw_path+'\n计算条件：'+raw_scope+'\n这里只核验来源和字段值，不核验文字推论。','Field path: '+raw_path+'\nConditions: '+raw_scope+'\nOnly source and field values are checked, not textual deductions.'))
                     button.clicked.connect(lambda checked=False,o=copy.deepcopy(observations[index]):self.show_observation(o));column.addWidget(button)
             if turn.get('development_brief'):
                 button=QPushButton('保存独立开发说明');button.clicked.connect(lambda checked=False,b=copy.deepcopy(turn['development_brief']):self.save_development_brief(b));column.addWidget(button)
@@ -457,7 +459,7 @@ class ChatWindow(DesktopWindow):
             except (OSError,ValueError,KeyError):continue
         if not any(path==current for _,path,_ in entries):entries.append((time.time(),current,'新对话'))
         for _,path,title in sorted(entries,reverse=True)[:80]:
-            item=QListWidgetItem(str(title).replace('\n',' ')[:55]);item.setData(Qt.ItemDataRole.UserRole,str(path));self.sessions.addItem(item)
+            item=QListWidgetItem(str(title).replace('\n',' ')[:55],raw=True);item.setData(Qt.ItemDataRole.UserRole,str(path));self.sessions.addItem(item)
             if path==current:self.sessions.setCurrentItem(item)
 
     def choose_session(self,item):
