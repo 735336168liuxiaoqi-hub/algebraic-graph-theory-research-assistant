@@ -73,7 +73,36 @@ class QComboBox(WidgetMixin,W.QComboBox):
         return result
     def addItems(self,texts):
         for text in texts:self.addItem(text)
+    def _shift_items(self,index,delta,*,remove=False):
+        from .i18n import _bindings
+        entries=_bindings.get(self,{});moved={}
+        for key in list(entries):
+            if not isinstance(key,tuple) or key[0] not in ('item','item_tip'):continue
+            old=key[1]
+            if remove and old==index:entries.pop(key);continue
+            if old>=index:
+                setter,source,prefix=entries.pop(key);new=old+delta
+                moved[(key[0],new)]=(setter,source,(new,*prefix[1:]))
+        entries.update(moved)
+    def insertItem(self,index,*args,**kwargs):
+        index=max(0,min(index,self.count()));self._shift_items(index,1)
+        result=super().insertItem(index,*args,**kwargs)
+        if not self.property('i18n_raw'):
+            source=next((a for a in args if isinstance(a,str)),kwargs.get('text'))
+            if source is not None:bind(self,('item',index),W.QComboBox.setItemText,source,index)
+        return result
+    def removeItem(self,index):
+        if 0<=index<self.count():self._shift_items(index,-1,remove=True)
+        return super().removeItem(index)
     def addRawItem(self,*args,**kwargs):return W.QComboBox.addItem(self,*args,**kwargs)
+    def sourceItemText(self,index):
+        from .i18n import _bindings
+        source=_bindings.get(self,{}).get(('item',index))
+        return source[1] if source else W.QComboBox.itemText(self,index)
+    def sourceToolTip(self):
+        from .i18n import _bindings
+        source=_bindings.get(self,{}).get('tooltip')
+        return source[1] if source else W.QComboBox.toolTip(self)
     def setToolTip(self,value):
         from .i18n import _bindings
         source=_bindings.get(self,{}).get(('item_tip',self.currentIndex()))
@@ -237,6 +266,12 @@ class QFileDialog(W.QFileDialog):
 class QInputDialog(W.QInputDialog):
     @staticmethod
     def getText(parent,title,label,*args,**kwargs):return W.QInputDialog.getText(parent,tr(title),tr(label),*args,**kwargs)
+    @staticmethod
+    def getItem(parent,title,label,items,current=0,editable=True,*args,**kwargs):
+        displayed=[tr(item) for item in items]
+        selected,accepted=W.QInputDialog.getItem(parent,tr(title),tr(label),displayed,current,editable,*args,**kwargs)
+        if accepted and not editable and selected in displayed:return items[displayed.index(selected)],accepted
+        return selected,accepted
 
 
 class QColorDialog(W.QColorDialog):

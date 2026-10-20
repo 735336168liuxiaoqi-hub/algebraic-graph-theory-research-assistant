@@ -1,6 +1,6 @@
 # 代数图论科研助手
 
-**Algebraic Graph Theory Research Assistant** · 0.36.0rc5 · [MIT](LICENSE) · [English user guide](docs/QUICKSTART.md)
+**Algebraic Graph Theory Research Assistant** · 0.36.0rc6 · [MIT](LICENSE) · [English user guide](docs/QUICKSTART.md)
 
 面向图与超图科研的 Python 计算工具和桌面应用，支持谱计算、符号运算、交互绘图与论文图形导出。既可独立使用，也可作为主 agent 的 MCP 计算服务。无需 SageMath 或 WSL。
 
@@ -20,7 +20,7 @@
 
 ## 安装与启动
 
-在[发布页](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.36.0rc5)下载源码 ZIP，解压后在含 `pyproject.toml` 的目录打开 PowerShell。仓库私有时，需要获授权的 GitHub 账号。
+在[发布页](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.36.0rc6)下载源码 ZIP，解压后在含 `pyproject.toml` 的目录打开 PowerShell。仓库私有时，需要获授权的 GitHub 账号。
 
 完整桌面与受保护计算流程目前在 Windows 验证。使用 64 位 Python 3.11+，建议 3.13：
 

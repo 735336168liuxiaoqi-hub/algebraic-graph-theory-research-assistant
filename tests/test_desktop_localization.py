@@ -342,4 +342,175 @@ class BilingualDesktopTests(unittest.TestCase):
                 window.close();window.deleteLater();self.app.processEvents()
 
 
+@unittest.skipUnless(QT_AVAILABLE,'Optional PySide6 dependency unavailable')
+class DynamicGraphLocalizationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.app=QApplication.instance() or QApplication([]);cls.app.setQuitOnLastWindowClosed(False)
+
+    def setUp(self):
+        from graph_research.desktop.i18n import set_language
+        set_language('zh');self.addCleanup(set_language,'zh')
+
+    def test_empty_uniform_nonuniform_directed_and_singular_graph_counts(self):
+        from graph_research.graph_input.document import document
+        from graph_research.desktop.graph_text import graph_summary
+        from graph_research.desktop.i18n import set_language,tr
+        cases=[
+            (document([],[],graph_type='hypergraph'),('0 vertices','0 hyperedges','No hyperedges')),
+            (document([0],[],graph_type='hypergraph'),('1 vertex','0 hyperedges','No hyperedges')),
+            (document([0,1,2],[{'vertices':[0,1,2]}],graph_type='hypergraph'),('3 vertices','1 hyperedge','Uniform')),
+            (document([0,1,2],[{'vertices':[0,1]},{'vertices':[0,1,2]}],graph_type='hypergraph'),('2 hyperedges','Non-uniform')),
+            (document([0,1],[{'vertices':[0,1]}],directed=True),('Directed graph','1 arc')),
+            (document([0],[],name='完全图研究'),('完全图研究','1 vertex','0 edges'))]
+        for graph,expected in cases:
+            original=graph.to_dict();identity=graph.sha256
+            for code in ('en','zh','en'):
+                set_language(code);caption=tr(graph_summary(graph))
+                if code=='en':
+                    for part in expected:self.assertIn(part,caption)
+                    self.assertNotIn('点 /',caption);self.assertNotIn('无超边',caption)
+                else:self.assertIn('个顶点',caption)
+                self.assertEqual(graph.to_dict(),original);self.assertEqual(graph.sha256,identity)
+
+    def test_inserted_and_removed_preview_items_keep_indices_data_and_translations(self):
+        from graph_research.desktop.widgets import QComboBox
+        from graph_research.desktop.graph_text import preview_title
+        from graph_research.desktop.i18n import set_language
+        combo=QComboBox();combo.addItem('计算结果',{'id':7});combo.setItemData(0,'查看结构图',Qt.ItemDataRole.ToolTipRole)
+        combo.addRawItem('输入图.json','file');combo.insertItem(0,preview_title('输入图'),'input');combo.insertItem(1,preview_title('结果图'),'output')
+        try:
+            combo.setCurrentIndex(2);events=[];combo.currentIndexChanged.connect(events.append)
+            for code in ('en','zh','en'):
+                set_language(code)
+                self.assertEqual(combo.currentData(),{'id':7});self.assertEqual(combo.itemText(3),'输入图.json')
+                self.assertEqual(combo.itemText(0),'Structure preview · Input graph' if code=='en' else '结构预览 · 输入图')
+                self.assertEqual(combo.itemText(1),'Structure preview · Result graph' if code=='en' else '结构预览 · 结果图')
+            self.assertEqual(events,[])
+            combo.removeItem(0);self.assertEqual(combo.currentIndex(),1);events.clear()
+            for code in ('zh','en'):
+                set_language(code);self.assertEqual(combo.currentData(),{'id':7})
+                self.assertEqual(combo.itemData(0),'output');self.assertEqual(combo.itemText(2),'输入图.json')
+                self.assertEqual(combo.itemText(0),'Structure preview · Result graph' if code=='en' else '结构预览 · 结果图')
+                self.assertEqual(combo.itemData(1,Qt.ItemDataRole.ToolTipRole),'View structure' if code=='en' else '查看结构图')
+            self.assertEqual(events,[])
+        finally:combo.deleteLater();self.app.processEvents()
+
+    def test_real_result_file_selector_keeps_preview_and_attachment_labels(self):
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from graph_research.desktop.app import DesktopWindow
+        from graph_research.desktop.service import DesktopWorkspace
+        from graph_research.desktop.i18n import set_language
+        with tempfile.TemporaryDirectory() as directory:
+            workspace=DesktopWorkspace(Path(directory)/'work');window=DesktopWindow(workspace)
+            attachment=Path(directory)/'notes.txt';attachment.write_text('original data',encoding='utf-8')
+            observation={'tool':'graph_invariants','ok':True,'arguments':{'kind':'path','n':3},'result':{'order':3,'size':2}}
+            try:
+                with patch.object(workspace,'artifacts',return_value=[attachment]):window.show_observation(observation)
+                for code in ('en','zh','en'):
+                    set_language(code)
+                    self.assertEqual(window.file_selector.count(),2)
+                    self.assertEqual(window.file_selector.itemText(0),'Structure preview · Input graph' if code=='en' else '结构预览 · 输入图')
+                    self.assertEqual(window.file_selector.itemText(1),'notes.txt')
+                self.assertEqual(window.observation,observation)
+            finally:window.close();window.deleteLater();self.app.processEvents()
+
+    def test_schematic_empty_expansion_and_symbolic_conditions_switch_without_reexpanding(self):
+        from graph_research.desktop.schematic import SchematicDialog
+        from graph_research.desktop.i18n import set_language
+        from graph_research.schematics import template
+        dialog=SchematicDialog();expanded=[];dialog.graph_ready.connect(expanded.append)
+        try:
+            set_language('en');self.assertIn('must be an integer',dialog.status.text());self.assertNotIn('为整数',dialog.status.text())
+            dialog.parameters.setText('{"k":3}');dialog.expand_graph();self.assertEqual(len(expanded),1)
+            original=expanded[0].to_dict()
+            for code in ('en','zh','en'):
+                set_language(code)
+                if code=='en':
+                    for text in ('Expanded','Hypergraph','0 vertices','0 hyperedges','No hyperedges'):self.assertIn(text,dialog.status.text())
+                    self.assertNotRegex(dialog.status.text(),r'[\u4e00-\u9fff]')
+                else:self.assertIn('0个顶点 / 0条超边',dialog.status.text());self.assertIn('无超边',dialog.status.text())
+                self.assertEqual(len(expanded),1);self.assertEqual(expanded[0].to_dict(),original)
+            dialog.set_document(template('F'));self.assertIn('must be a positive integer',dialog.status.text())
+        finally:dialog.close();dialog.deleteLater();self.app.processEvents()
+
+    def test_color_buttons_fit_and_follow_selected_loaded_and_cancelled_colors(self):
+        from unittest.mock import patch
+        from PySide6.QtGui import QColor
+        from graph_research.desktop.schematic import SchematicDialog
+        from graph_research.desktop.i18n import set_language
+        from graph_research.schematics import template,to_svg
+        dialog=SchematicDialog(template('F'));dialog.resize(1180,850);dialog.show();self.app.processEvents()
+        try:
+            for code in ('en','zh','en'):
+                set_language(code);self.app.processEvents();self.app.processEvents()
+                for button in dialog.color_buttons.values():
+                    self.assertGreaterEqual(button.width(),button.fontMetrics().horizontalAdvance(button.text())+button.iconSize().width()+12)
+                    self.assertLessEqual(button.mapTo(dialog,button.rect().bottomRight()).x(),dialog.width())
+            structure=dialog.canvas.current_document().to_dict()
+            selected={'line_color':'#123abc','vertex_color':'#d04050','edge_fill':'#dceafa'}
+            for key,value in selected.items():
+                with patch('graph_research.desktop.schematic.QColorDialog.getColor',return_value=QColor(value)):dialog.color_buttons[key].click()
+                self.assertEqual(dialog.canvas.current_document().to_dict()['style'][key],value)
+                self.assertIn(value,dialog.color_buttons[key].toolTip())
+                self.assertEqual(dialog.color_buttons[key].icon().pixmap(18,18).toImage().pixelColor(8,8).name(),value)
+            rendered=to_svg(dialog.canvas.current_document())
+            for value in selected.values():self.assertIn(value,rendered)
+            for key in ('vertices','edges','paths','rank'):self.assertEqual(dialog.canvas.current_document().to_dict()[key],structure[key])
+            before=dialog.canvas.current_document().to_dict()
+            with patch('graph_research.desktop.schematic.QColorDialog.getColor',return_value=QColor()):dialog.color_buttons['line_color'].click()
+            self.assertEqual(dialog.canvas.current_document().to_dict(),before)
+            dialog.set_document(template('E'))
+            for key,button in dialog.color_buttons.items():self.assertIn(dialog.canvas.document.to_dict()['style'][key],button.toolTip())
+        finally:dialog.close();dialog.deleteLater();self.app.processEvents()
+
+    def test_graph_input_library_and_mapping_preserve_raw_names_and_labels(self):
+        import tempfile
+        from pathlib import Path
+        from graph_research.graph_input.document import document
+        from graph_research.graph_input.storage import GraphLibrary
+        from graph_research.desktop.graph_input import GraphInputDialog
+        from graph_research.desktop.graph_text import mapping_text
+        from graph_research.desktop.i18n import set_language
+        graph=document(['输入图','完全图','孤立点'],[{'vertices':['输入图','完全图']}],graph_type='hypergraph',name='完全图研究')
+        with tempfile.TemporaryDirectory() as folder:
+            library=GraphLibrary(Path(folder)/'graphs');identifier=library.save(graph);dialog=GraphInputDialog(library,graph)
+            try:
+                dialog.refresh_library();original=dialog.graph.to_dict()
+                source={'target':'graph','document':original,'vertex_mapping':[{'index':0,'label':'输入图'}]}
+                for code in ('en','zh','en'):
+                    set_language(code);caption=dialog.summary.text()
+                    self.assertIn('完全图研究',caption)
+                    if code=='en':self.assertIn('3 vertices / 1 hyperedge',caption);self.assertIn('3 vertices / 1 hyperedge',dialog.library_list.item(0).text())
+                    else:self.assertIn('3个顶点 / 1条超边',caption)
+                    self.assertEqual(dialog.library_list.item(0).data(Qt.ItemDataRole.UserRole),identifier)
+                    self.assertIn('0 → "输入图"',mapping_text([source]))
+                    self.assertEqual(dialog.graph.to_dict(),original)
+            finally:dialog.close();dialog.deleteLater();self.app.processEvents()
+
+    def test_bilingual_graph_picker_returns_original_identity_and_model_hints_do_not_accumulate(self):
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from graph_research.desktop.widgets import QInputDialog
+        from graph_research.desktop.i18n import set_language,UiText
+        from graph_research.desktop.configuration import ModelDialog
+        set_language('en');items=[UiText('左侧图','Left graph'),UiText('右侧图','Right graph')]
+        with patch('PySide6.QtWidgets.QInputDialog.getItem',side_effect=lambda p,t,l,values,*args,**kwargs:(values[1],True)):
+            selected,accepted=QInputDialog.getItem(None,'选择图对象','选择图对象',items,0,False)
+        self.assertTrue(accepted);self.assertIs(selected,items[1]);self.assertEqual(items.index(selected),1)
+        with tempfile.TemporaryDirectory() as folder:
+            dialog=ModelDialog(config_path=Path(folder)/'model.json')
+            try:
+                dialog.protocol.setCurrentIndex(dialog.protocol.findData('chat_completions'))
+                for code in ('en','zh','en'):
+                    set_language(code);self.assertNotIn('Responses',dialog.protocol.toolTip())
+                    self.assertIn('Chat Completions',dialog.protocol.toolTip())
+                    if code=='zh':self.assertIn('选择服务商支持的接口协议',dialog.protocol.toolTip())
+                    self.assertEqual(dialog.protocol.currentData(),'chat_completions')
+            finally:dialog.close();dialog.deleteLater();self.app.processEvents()
+
+
 if __name__=='__main__':unittest.main()

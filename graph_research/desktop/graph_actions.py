@@ -11,6 +11,7 @@ from graph_research.graph_input.document import GraphDocument,document
 from graph_research.graph_input.adapters import graph_targets,graph_patch,result_graph,validate_sources
 from graph_research.tools.input_guides import input_guide
 from .graph_canvas import GraphCanvas
+from .graph_text import graph_summary
 
 
 INTEGRATED={'hypergraph_plot','hypergraph_editor','hypergraph_tikz','graph_tikz','graph_layout','hypergraph_schematic'}
@@ -154,7 +155,7 @@ class GraphActionsDialog(QDialog):
         super().__init__(parent);self.registry=registry;self.graphs=list(graphs);self.request=None;self.option_fields={}
         self.setWindowTitle('图形、布局与 LaTeX');self.resize(1000,770)
         root=QVBoxLayout(self);self.choice=QComboBox()
-        for title,graph in self.graphs:self.choice.addItem(title+' · '+graph.summary())
+        for title,graph in self.graphs:self.choice.addItem(graph_summary(graph,role=title))
         root.addWidget(self.choice)
         self.tabs=QTabWidget();root.addWidget(self.tabs,1)
         preview=QWidget();layout=QVBoxLayout(preview)
@@ -187,7 +188,9 @@ class GraphActionsDialog(QDialog):
             definition=self.registry.describe(name);guide=input_guide(definition);guides={f['name']:f for f in guide['fields']}
             page=QWidget();box=QVBoxLayout(page);fields={}
             if key=='layout':
-                mapping=QLabel('以下顶点参数使用编号：'+ '，'.join(str(i)+' → '+json.dumps(v,ensure_ascii=False) for i,v in enumerate(graph.vertices)))
+                from .i18n import UiText
+                raw_mapping=', '.join(str(i)+' → '+json.dumps(v,ensure_ascii=False) for i,v in enumerate(graph.vertices))
+                mapping=QLabel(UiText('以下顶点参数使用编号：'+raw_mapping,'Use these vertex indices: '+raw_mapping))
                 mapping.setWordWrap(True);mapping.setTextFormat(Qt.TextFormat.PlainText);box.addWidget(mapping)
             from .app import ParameterField
             for parameter,schema in definition['parameters']['properties'].items():

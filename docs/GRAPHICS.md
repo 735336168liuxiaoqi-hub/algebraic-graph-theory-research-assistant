@@ -45,3 +45,9 @@ TeX 导出使用当前图与已保存坐标。自定义文本按接口规则处�
 ## 模型与程序调用
 
 图旁的手动导出直接本地执行，不需额外模型请求。API/MCP 通过 `graph_layout`、`graph_tikz`、`hypergraph_tikz` 等原工具名调用，图形与论文示意图的完整参数见[工具契约](model/TOOL_REFERENCE.md)。可复用 [布局到 TikZ 示例](../examples/library_entries/layout-to-tikz.mcp.json)。
+
+## 双语摘要与颜色控件
+
+图输入、图对象库、预览选择器和论文示意图展开结果使用结构化中英文摘要，区分顶点、普通边、有向边和超边；空超图显示“无超边 / No hyperedges”。“输入图 / Input graph”“结果图 / Result graph”“结构预览 / Structure preview”随界面切换，原始图名、标签和数据不重写，系统生成的“已展开”标记按语言显示。
+
+论文示意图的线宽和颜色位于独立样式行。三个颜色按钮分别为“线条颜色 / Line color”“顶点颜色 / Vertex color”“超边填充 / Hyperedge fill”，自适应标签宽度并显示色样，悬停查看当前色号。选择颜色后画布与色样同步，载入其他场景后同步显示其设置；取消选择不会修改图形。填充色控制中心超边的填充，不是画布背景。

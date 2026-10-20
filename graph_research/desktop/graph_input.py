@@ -9,7 +9,8 @@ from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QSplitter,QListWid
 from .widgets import QDialog,QFormLayout,QTabWidget,QLabel,QLineEdit,QPlainTextEdit,QComboBox,QCheckBox,QPushButton,QSpinBox,QListWidgetItem,QFileDialog,QMessageBox
 from graph_research.graph_input.document import GraphInputError,GraphDocument,document,parse_graph,graph_family,MAX_TEXT
 from .graph_canvas import GraphCanvas,choice_help
-from .i18n import tr
+from .i18n import tr,UiText
+from .graph_text import graph_summary
 
 FORMATS=[('快捷边表','edge_list'),('邻接矩阵','adjacency'),('关联矩阵','incidence'),('图对象JSON','json'),('普通图 graph6','graph6')]
 HINTS={
@@ -96,7 +97,7 @@ class GraphInputDialog(QDialog):
         try:
             self.graph=graph;self.name.setText(graph.name);self.graph_type.setCurrentIndex(self.graph_type.findData(graph.graph_type));self.directed.setChecked(graph.directed);self.weighted.setChecked(graph.weighted)
             self.directed.setEnabled(graph.graph_type=='graph');self.canvas.set_graph(graph,reset_undo=not remember)
-            self.summary.setText(graph.summary());self.valid=True;self.text.setExtraSelections([])
+            self.summary.setText(graph_summary(graph));self.valid=True;self.text.setExtraSelections([])
             if fill_text:
                 def token(v):
                     if isinstance(v,str) and (any(c.isspace() or c in ',|{}[]()"' for c in v) or v.lstrip('-').isdigit()):return json.dumps(v,ensure_ascii=False)
@@ -144,7 +145,7 @@ class GraphInputDialog(QDialog):
         self.graph_type.setCurrentIndex(self.graph_type.findData(graph.graph_type));self.directed.setChecked(graph.directed);self.weighted.setChecked(graph.weighted);self.directed.setEnabled(graph.graph_type=='graph')
         self._syncing=previous
         if self.tabs.currentIndex()!=0:self.valid=True
-        self.summary.setText(graph.summary());self._buttons()
+        self.summary.setText(graph_summary(graph));self._buttons()
         if self.valid:self._status('画布已更新；变更尚未保存。')
 
     def _canvas_error(self,message):
@@ -186,7 +187,12 @@ class GraphInputDialog(QDialog):
         self.library_list.clear()
         try:
             for entry in self.library.entries():
-                item=QListWidgetItem(('' if entry['valid'] else '⚠ ')+entry['summary'],raw=True);item.setData(Qt.ItemDataRole.UserRole,entry['id']);item.setToolTip(escape(entry['summary']));self.library_list.addItem(item)
+                if entry['valid']:
+                    graph=self.library.load(entry['id']);caption=graph_summary(graph,recipe=bool(graph.to_dict().get('recipe')))
+                    item=QListWidgetItem(caption);item.setToolTip(UiText(escape(str(caption)),escape(caption.english)))
+                else:
+                    item=QListWidgetItem('⚠ '+entry['summary'],raw=True);item.setToolTip(escape(entry['summary']))
+                item.setData(Qt.ItemDataRole.UserRole,entry['id']);self.library_list.addItem(item)
         except (ValueError,OSError) as error:self._status(str(error),True)
 
     def load_selected(self):

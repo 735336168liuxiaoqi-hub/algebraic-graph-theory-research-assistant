@@ -21,6 +21,7 @@ from graph_research.runtime.storage import staged_file,safe_path,read_json
 from .service import DesktopWorkspace
 from .localization import parameter_title,option_presentation
 from .i18n import listen
+from .graph_text import graph_summary,preview_title,mapping_text
 
 
 STYLE='''
@@ -379,14 +380,14 @@ class DesktopWindow(QMainWindow):
         self.graph_target.setVisible(len(targets)>1);self.apply_graph_button.setEnabled(bool(targets) and self.thread is None)
         try:self.input_graph=self.workspace.graph_library.current()
         except (ValueError,OSError) as error:self.statusBar().showMessage('当前图未读取：'+str(error));self.input_graph=None
-        self.graph_summary.setText(self.input_graph.summary() if self.input_graph else '');self._show_graph_mapping()
+        self.graph_summary.setText(graph_summary(self.input_graph) if self.input_graph else '');self._show_graph_mapping()
 
     def _show_graph_mapping(self):
         self.mapping_note.setVisible(bool(self.graph_bindings));self.mapping_toggle.setVisible(bool(self.graph_bindings))
         if not self.graph_bindings:self.mapping_view.hide();self.mapping_toggle.setChecked(False);return
         self.mapping_note.setText('已应用图输入；计算使用下方对照中的0起始编号。')
-        from graph_research.graph_input.adapters import mapping_summary
-        self.mapping_view.setPlainText(mapping_summary(list(self.graph_bindings.values())))
+        sources=copy.deepcopy(list(self.graph_bindings.values()))
+        self.mapping_view.setLocalizedRenderer(lambda:mapping_text(sources))
 
     def open_graph_input(self,graph=None):
         if self.thread is not None:return
@@ -396,7 +397,7 @@ class DesktopWindow(QMainWindow):
             if dialog.exec()!=dialog.DialogCode.Accepted:return
             if dialog.schematic_result is not None:
                 self._dispatch_graph_call(('hypergraph_schematic',{'diagram':dialog.schematic_result},[]));return
-            self.workspace.graph_library.set_current(dialog.graph);self.input_graph=dialog.graph;self.graph_summary.setText(dialog.graph.summary())
+            self.workspace.graph_library.set_current(dialog.graph);self.input_graph=dialog.graph;self.graph_summary.setText(graph_summary(dialog.graph))
             if dialog.use_recipe:
                 self.select_tool('graph_recipe');self.fill_arguments(dialog.graph.to_dict()['recipe']);self.graph_bindings={};self._show_graph_mapping()
                 self.statusBar().showMessage('已准备保存的构图配方；可修改参数后开始计算。');return
@@ -431,7 +432,7 @@ class DesktopWindow(QMainWindow):
             def prepared(value):
                 self._dispatch_graph_call(('hypergraph_schematic',{'diagram':value.to_dict(),'vertex_labels':dialog.canvas.vertex_labels.isChecked()},[]))
             def expanded(graph):
-                self.workspace.graph_library.set_current(graph);self.input_graph=graph;self.graph_summary.setText(graph.summary())
+                self.workspace.graph_library.set_current(graph);self.input_graph=graph;self.graph_summary.setText(graph_summary(graph))
             dialog.diagram_ready.connect(prepared);dialog.graph_ready.connect(expanded);dialog.exec();dialog.deleteLater()
         except (ValueError,OSError) as error:QMessageBox.warning(self,'示意图尚未应用',str(error))
 
@@ -454,7 +455,7 @@ class DesktopWindow(QMainWindow):
         binding={key:prepared[key] for key in ('target','patch','vertex_mapping')}
         if 'case_index' in prepared:binding['case_index']=prepared['case_index']
         binding['document']=graph.to_dict();key='case'+str(prepared['case_index']) if prepared['target']=='case' else prepared['target']
-        self.graph_bindings[key]=binding;self.input_graph=graph;self.graph_summary.setText(graph.summary());self._show_graph_mapping()
+        self.graph_bindings[key]=binding;self.input_graph=graph;self.graph_summary.setText(graph_summary(graph));self._show_graph_mapping()
         self.input_tabs.setCurrentIndex(0);self.statusBar().showMessage(prepared['notice'])
 
     def use_result_graph(self):
@@ -463,7 +464,9 @@ class DesktopWindow(QMainWindow):
             if len(graphs)==1:self.open_graph_input(graphs[0][1])
             elif graphs:
                 from .widgets import QInputDialog
-                titles=[str(i+1)+' · '+title+' · '+graph.summary() for i,(title,graph) in enumerate(graphs)]
+                from .i18n import UiText
+                captions=[graph_summary(graph,role=title) for title,graph in graphs]
+                titles=[UiText(str(i+1)+' · '+caption,str(i+1)+' · '+caption.english) for i,caption in enumerate(captions)]
                 selected,accepted=QInputDialog.getItem(self,'继续使用图','选择图对象',titles,0,False)
                 if accepted:self.open_graph_input(graphs[titles.index(selected)][1])
         except ValueError as error:QMessageBox.warning(self,'此结果不能继续构图',str(error))
@@ -640,8 +643,8 @@ class DesktopWindow(QMainWindow):
             self.overview_layout.addLayout(grid)
             if observation.get('graph_inputs'):
                 source=QPlainTextEdit();source.setReadOnly(True);source.setMaximumHeight(120)
-                from graph_research.graph_input.adapters import mapping_summary
-                source.setPlainText('输入图与顶点编号对照\n'+mapping_summary(observation['graph_inputs']));self.overview_layout.addWidget(source)
+                from .i18n import tr
+                source.setLocalizedRenderer(lambda:tr('输入图与顶点编号对照\n')+mapping_text(observation['graph_inputs']));self.overview_layout.addWidget(source)
             for key,value in data.items():
                 if isinstance(value,list):self._table_fields[key]=value
             from .result_text import result_text
@@ -655,7 +658,7 @@ class DesktopWindow(QMainWindow):
         if not self._files:self.image.original=None;self.image.setText('本次没有图形附件');self.file_text.hide()
         graphs=self._result_graphs()
         if graphs:
-            for i,(title,_) in enumerate(graphs):self.file_selector.insertItem(i,'结构预览 · '+title)
+            for i,(title,_) in enumerate(graphs):self.file_selector.insertItem(i,preview_title(title))
             self.file_selector.setCurrentIndex(0)
         self.file_selector.blockSignals(False)
         image_index=next((i+len(graphs) for i,path in enumerate(self._files) if path.suffix.lower() in ('.png','.svg','.jpg','.jpeg')),None)

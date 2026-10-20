@@ -7,6 +7,8 @@ from .widgets import QPushButton,QComboBox,QLineEdit,QLabel
 from graph_research.graph_input.document import document,GraphDocument,GraphInputError,tokens,strict_json,weight_parts,display_label
 from graph_research.rendering.geometry import hyperedge_path,vertex_positions,COLORS
 from .layout import VertexItem
+from .i18n import UiText
+from .graph_text import quantity
 
 
 def _positions(graph):
@@ -130,15 +132,18 @@ class GraphCanvas(QWidget):
         self.selected=[];self._delete_target=tag;self.redraw()
         if tag[0]=='vertex':
             count=sum(tag[1] in edge['vertices'] for edge in self.graph.edges)
-            text='将删除顶点 '+_caption(tag[1])+' 及 '+str(count)+' 条关联边。再次点击该顶点确认。'
-        else:text='将删除边 e'+str(tag[1])+'，保留其顶点。再次点击该边确认。'
-        self.selection_text.setText(text+' 点击空白或按 Esc 取消。')
+            chinese='将删除顶点 '+_caption(tag[1])+' 及 '+str(count)+' 条关联边。再次点击该顶点确认。'
+            english='Delete vertex '+_caption(tag[1])+' and '+quantity(count,'incident hyperedge' if self.graph.graph_type=='hypergraph' else 'incident edge')+'. Click this vertex again to confirm.'
+        else:
+            chinese='将删除边 e'+str(tag[1])+'，保留其顶点。再次点击该边确认。'
+            english='Delete '+('hyperedge' if self.graph.graph_type=='hypergraph' else 'edge')+' e'+str(tag[1])+', retaining its vertices. Click the edge again to confirm.'
+        self.selection_text.setText(UiText(chinese+' 点击空白或按 Esc 取消。',english+' Click empty space or press Esc to cancel.'))
 
     def toggle_vertex(self,label):
         if label in self.selected:self.selected.remove(label)
         else:self.selected.append(label)
         for value,item in zip(self.graph.vertices,self.vertices):item.setBrush(QBrush(QColor('#df8d25' if value in self.selected else '#173d3b')))
-        self.selection_text.setText('选中：'+', '.join(_caption(v) for v in self.selected))
+        labels=', '.join(_caption(v) for v in self.selected);self.selection_text.setText(UiText('选中：'+labels,'Selected: '+labels))
 
     def add_vertex(self,label=None,position=None):
         data=self.current_graph().to_dict();used=set(data['vertices'])
