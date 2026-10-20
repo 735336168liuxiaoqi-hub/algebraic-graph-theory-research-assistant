@@ -102,7 +102,7 @@ def main(source=None):
     out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
     report = ["# Sage包迁移清单", "", "逐函数记录见docs/provenance/migration_catalog.json；该历史记录不进入运行时工具包。", "",
-              "本表仅用于旧源码追溯，不作为功能完成率或开发待办。pending表示旧定义尚未逐项适配，不等于科研功能缺失；能力验收见FUNCTIONAL_COVERAGE.md。原生实现也不声称所有参数均与Sage等价。", "",
+              "本表仅用于旧源码追溯，不作为功能完成率或开发待办。pending表示旧定义尚未逐项适配，不等于科研功能缺失；能力验收见[功能说明](../FEATURES.md)。原生实现也不声称所有参数均与Sage等价。", "",
               "| 原文件 | 原生实现可用 | 待迁移 | 重复定义 |", "| --- | ---: | ---: | ---: |"]
     for file in files:
         values = [d for d in definitions if d["source_file"]==file["file"]]
@@ -110,7 +110,7 @@ def main(source=None):
                      ["native_implementation_available","pending","duplicate_source"])+" |")
     report += ["", "## 尚未迁移的定义", ""]
     report += [f"- {d['source_file']}:{d['line']} `{d['symbol']}`" for d in definitions if d["status"]=="pending"]
-    (ROOT/"MIGRATION_STATUS.md").write_text("\n".join(report)+"\n",encoding="utf-8")
+    (ROOT/"docs/provenance/MIGRATION.md").write_text("\n".join(report)+"\n",encoding="utf-8")
     print(json.dumps(result["counts"]))
 
 

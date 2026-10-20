@@ -1,11 +1,11 @@
 # 旧Sage接口追溯台账（v0.23）
 
-验收标准见[科研能力覆盖表](FUNCTIONAL_COVERAGE.md)：整体科研用途能够完成即可，不要求逐项迁移旧函数。以下仅保留源码追溯，不作为功能缺口数量或开发待办。
+验收标准见[科研能力覆盖表](../FEATURES.md)：整体科研用途能够完成即可，不要求逐项迁移旧函数。以下仅保留源码追溯，不作为功能缺口数量或开发待办。
 
 追溯统计：原有180条待适配定义；补齐/复用53条，并修正3条旧目录误判，现有130条旧定义尚未逐项适配。这不等于仍缺130项科研功能。
 定义记录包括类、方法及两份超图文件中的同用途定义，不等于独立算法数。GraphTheory1.sage的165条完整重复定义单独记录，不算剩余功能。
 
-本批仅复用现有NetworkX、SymPy、NumPy及可选Matplotlib，没有新增安装依赖。详细新接口、调用示例与限制见[替代功能说明](PACKAGE_REPLACEMENTS.md)。
+本批仅复用现有NetworkX、SymPy、NumPy及可选Matplotlib，没有新增安装依赖。详细新接口、调用示例与限制见[Python接口说明](../reference/PYTHON_API.md)。
 
 ## 尚未逐项兼容的旧接口（仅供追溯）
 
@@ -173,9 +173,9 @@
 | `bk_rop1`（63） | 交换矩阵的两个块行。 | block_matrix_analysis已提供显式块尺寸的提取、排列和分块乘积贡献；不要求旧Sage分块元数据对象。 |
 | `bk_rop2`（72） | 用标量或方阵左乘某一块行。 | block_matrix_analysis已提供显式块尺寸的提取、排列和分块乘积贡献；不要求旧Sage分块元数据对象。 |
 | `bk_rop3`（80） | 向某一块行加另一块行的矩阵倍数。 | block_matrix_analysis已提供显式块尺寸的提取、排列和分块乘积贡献；不要求旧Sage分块元数据对象。 |
-| `movelines`（114） | 平移二维直线，使它们经过指定位置。 | research_environment检测可选组件及TeX，接入边界见RESEARCH_WORKFLOWS.md；完整隐式绘图和移动直线仍不在本轮实现范围。 |
-| `plotequs`（121） | 画二维隐式方程组。 | research_environment检测可选组件及TeX，接入边界见RESEARCH_WORKFLOWS.md；完整隐式绘图和移动直线仍不在本轮实现范围。 |
-| `plot3dequs`（128） | 画三维隐式曲面组。 | research_environment检测可选组件及TeX，接入边界见RESEARCH_WORKFLOWS.md；完整隐式绘图和移动直线仍不在本轮实现范围。 |
+| `movelines`（114） | 平移二维直线，使它们经过指定位置。 | research_environment检测可选组件及TeX，接入边界见docs/FEATURES.md；完整隐式绘图和移动直线仍未实现。 |
+| `plotequs`（121） | 画二维隐式方程组。 | research_environment检测可选组件及TeX，接入边界见docs/FEATURES.md；完整隐式绘图和移动直线仍未实现。 |
+| `plot3dequs`（128） | 画三维隐式曲面组。 | research_environment检测可选组件及TeX，接入边界见docs/FEATURES.md；完整隐式绘图和移动直线仍未实现。 |
 | `mat_generlize`（256） | 用省略号替换矩阵指定行列，生成概括性排版。 | 现有SymPy基础运算可组合使用；旧演示排版接口尚未等价适配。 |
 | `Jordan_block`（359） | 用多项式伴随块与次对角连接构造块，不能直接当成普通Jordan块。 | block_matrix_analysis已提供多项式伴随块对角构造并验证特征多项式乘积；不误用Jordan分解，未复刻旧返回对象。 |
 | `Jordan_form`（364） | 按多项式因子列表拼接上述块；原实现只取第一个因子，需核对。 | block_matrix_analysis已提供多项式伴随块对角构造并验证特征多项式乘积；不误用Jordan分解，未复刻旧返回对象。 |
@@ -246,4 +246,4 @@
 
 源码提取现在跨过多行字符串中的TeX内容，并保留带字符串默认参数的真实函数；不执行旧Sage源码。原始11个文件未修改。
 
-替换前的完整180条基线保存在[JSON](docs/sage-pending-baseline-v0211.json)，本报告的机器可读结果见[审计JSON](docs/sage-replacement-review.json)。
+替换前的完整180条基线保存在[JSON](../sage-pending-baseline-v0211.json)，本报告的机器可读结果见[审计JSON](../sage-replacement-review.json)。

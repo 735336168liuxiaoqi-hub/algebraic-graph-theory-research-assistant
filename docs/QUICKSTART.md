@@ -39,7 +39,7 @@ Choose **本地工具**, select a tool, read its help/example, fill parameters a
 
 Use **图输入** for edge lists, matrices, JSON, graph families or mouse construction. Confirm graph type, direction and weights. Result-side drawing/layout/LaTeX actions use the selected input/result graph. Drag vertices, save graph JSON with coordinates and export images or TikZ. A preview alone is not a saved image.
 
-Non-uniform hypergraphs can be drawn; tensor computations enforce uniformity and their other documented conditions. See [tool inputs](OFFLINE_INPUTS.md) and [graph input](../GRAPH_INPUT.md).
+Non-uniform hypergraphs can be drawn; tensor computations enforce uniformity and their other documented conditions. See [tool inputs](OFFLINE_INPUTS.md) and [graph input](GRAPHICS.md).
 
 ## 2. API research chat
 
@@ -49,7 +49,7 @@ Saving settings is local. Fetching models contacts the service; connection testi
 
 Ask a question, insert a graph when needed and answer clarification questions in the same conversation. **先查看计划** lets you review a multi-step plan before execution. Existing tools can be composed; new tools require scoped assessment and real user approval, and are packaged separately.
 
-Check actual tool records, verification data and files. Model prose is not execution evidence. See [API setup](../API_SETUP.md), [model settings](../MODEL_SELECTION.md) and [API workflow](../API_WORKFLOWS.md).
+Check actual tool records, verification data and files. Model prose is not execution evidence. See [API setup](API.md), [model settings](API.md) and [API workflow](API.md).
 
 ## 3. MCP host delegation
 
@@ -63,10 +63,10 @@ Add the returned command/args to the host and reconnect. Default tools mode uses
 
 The host discovers contracts with research_catalog, submits research_submit, saves task_id, polls research_get and reads full fields/artifacts as needed. Same request_id requires the same input. User events must come from trusted host actions; the model cannot approve itself. Resume/reconnect preserve budgets.
 
-MCP adds discovery, protection and result-processing overhead; time/token savings over direct Python are not guaranteed. Start with a small synthetic graph. See [MCP integration](../MCP_INTEGRATION.md).
+MCP adds discovery, protection and result-processing overhead; time/token savings over direct Python are not guaranteed. Start with a small synthetic graph. See [MCP integration](MCP.md).
 
 ## Results and troubleshooting
 
-Use the [result center](../RESULTS_CENTER.md) to locate artifacts. Inspect calculation and export status separately; verify hashes when moving archives. Generating TeX requires no compiler, while TeX-to-PDF compilation is a separate environment/task.
+Use the [result center](RESULTS_AND_MEMORY.md) to locate artifacts. Inspect calculation and export status separately; verify hashes when moving archives. Generating TeX requires no compiler, while TeX-to-PDF compilation is a separate environment/task.
 
 Restart the desktop or reconnect MCP after upgrading. Run doctor, pip check and protect check in the actual chosen environment. Investigate/restore an integrity mismatch rather than automatically resealing it. Report small reproducible inputs, actual version/core fingerprint and redacted diagnostics to repository Issues.

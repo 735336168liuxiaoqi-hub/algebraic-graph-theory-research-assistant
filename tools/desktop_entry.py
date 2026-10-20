@@ -12,7 +12,7 @@ with safe_path(logs/'startup.log',root=logs).open('a',encoding='utf-8') as log:
     try:
         from graph_research.runtime.diagnostics import environment_report
         diagnostics=environment_report()
-        if not diagnostics['ok']:raise RuntimeError('运行环境不一致：'+'；'.join(diagnostics['issues'])+' 请参见 ENVIRONMENT.md。')
+        if not diagnostics['ok']:raise RuntimeError('运行环境不一致：'+'；'.join(diagnostics['issues'])+' 请参见 使用指南.md 或 docs/DEVELOPMENT.md。')
         from graph_research.cli import main
         sys.argv=['graph-research','desktop']
         raise SystemExit(main())

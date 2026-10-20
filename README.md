@@ -1,22 +1,26 @@
-# Algebraic Graph Theory Research Assistant
+# 代数图论科研助手
 
-**代数图论科研助手** — native Python tools for graph and hypergraph spectra, symbolic computation and research visualization.
+**Algebraic Graph Theory Research Assistant** · 0.36.0rc4 · [MIT](LICENSE) · [English quick start](docs/QUICKSTART.md)
 
-> **MIT licensed · v0.36.0rc4 pre-release.** Original-code publication permission and the MIT license selection were confirmed by the project owner on 2026-10-20. See [LICENSE](LICENSE), [attribution](NOTICE.md) and the [permission record](LICENSE-STATUS.md).
+面向图与超图科研的 Python 计算工具和桌面应用，支持谱计算、符号运算、交互绘图与论文图形导出。既可独立使用，也可作为主 agent 的 MCP 计算服务。无需 SageMath 或 WSL。
 
-The repository may be private during preparation; package downloads require an authorized GitHub account.
+## 能做什么
 
-## Download and start
-
-**Recommended: [download the source runtime ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc4/algebraic-graph-theory-research-assistant-0.36.0rc4-source-candidate.zip).** It contains the desktop launcher and application source. Windows and 64-bit Python 3.11+ are required for the validated complete application; Python 3.13 is recommended.
-
-| Download | Use |
+| 功能 | 当前支持 |
 | --- | --- |
-| [Source runtime ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc4/algebraic-graph-theory-research-assistant-0.36.0rc4-source-candidate.zip) | Extract, install dependencies and launch with the commands below |
-| [Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc4/graph_research_assistant-0.36.0rc4-py3-none-any.whl) | Install into an existing Python/Conda environment using pip |
-| [Release page and all assets](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.36.0rc4) | Expand Assets for packages, checksums and validation details |
+| 普通图 | 构图与结构变换、不变量、同构与对称性、商矩阵、数值谱、精确特征/匹配多项式、能量、带权及有向矩阵 |
+| 超图 | 构造与变换、结构分析、一致超图 α 谱半径与 Perron 向量、赋权关联矩阵、张量方程与小规模精确消元 |
+| 代数与组合 | 矩阵与分块运算、递推、整数线性方程、符号求和/级数、有限置换群、Cayley 图、车多项式 |
+| 图形 | 鼠标构图、拖动布局和坐标保存、图片/TikZ 导出、含不确定长度超路的论文示意图 |
+| 科研流程 | 批量任务、会话结果包、成果清理与恢复、用户偏好与经审阅经验、独立扩展工具库 |
 
-Extract the ZIP, open PowerShell **inside the folder containing pyproject.toml and start-desktop.cmd**, then run:
+目前有 **43 个内置计算工具**；桌面将部分绘图工具整合到对应图旁。详细定义、条件与规模限制见[功能说明](docs/FEATURES.md)，参数和可导入例子见[工具输入手册](docs/OFFLINE_INPUTS.md)。
+
+## 安装与启动
+
+在[发布页](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.36.0rc4)下载源码 ZIP，解压后在含 `pyproject.toml` 的目录打开 PowerShell。仓库私有时，需要获授权的 GitHub 账号。
+
+完整桌面与受保护计算流程目前在 Windows 验证。使用 64 位 Python 3.11+，建议 3.13：
 
 ```powershell
 python -m venv .venv
@@ -24,83 +28,31 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m graph_research desktop
 ```
 
-Choose **本地工具** in the desktop for offline tools without a model API. The first installation downloads dependencies. Later, double-click start-desktop.cmd or the source-tree .exe in the same folder. Keep the entire folder: the launcher uses the project's .venv.
+首次安装会下载依赖。以后可双击 `start-desktop.cmd` 或同目录的 `.exe` 启动器，需保留整个项目目录。使用已有 Conda/venv、wheel 安装或换电脑，请按[使用指南](使用指南.md)操作。
 
-See the [English quick start](docs/QUICKSTART.md) or [中文安装指南](使用指南.md) for wheel/Conda installation and the three modes. These packages use an existing Python installation; the .exe is a launcher.
+## 选择入口
 
-## Research capabilities
+| 方式 | 如何开始 | 模型配置 |
+| --- | --- | --- |
+| 本地工具 | 桌面选择“本地工具”，选函数、填参数、计算 | 无需 API |
+| API 科研对话 | 桌面选择“科研对话”，配置模型后自然语言提问 | 配置兼容模型服务 |
+| MCP 子 agent | 生成 MCP 配置，交给支持 STDIO 的主 agent 启动 | 固定工具任务无需本助手另配 API |
 
-| Area | Capabilities |
+![三种模式与成果流程](docs/diagrams/workflow-overview.svg)
+
+## 文档怎么读
+
+**第一次使用读前两项即可。**
+
+| 文档 | 内容 |
 | --- | --- |
-| Graphs | Construction, structure transformations, symmetry, quotient matrices, numerical spectra, exact characteristic and matching polynomials, energy and weighted/directed matrices |
-| Uniform hypergraphs | α-spectral radius, Perron vectors, weighted incidence matrices, tensor eigen-equations and bounded exact characteristic-polynomial elimination |
-| Symbolic research | Recurrences, integer linear systems, block matrices, finite permutation groups, Cayley graphs, symbolic sums/series and rook polynomials |
-| Visualization | Graph/hypergraph drawings, draggable layouts, saved coordinates, PNG/SVG/PDF, TikZ and symbolic paper diagrams |
-| Workflows | Batch computations, verified result bundles, optional API chat, governed extension development, user memory and MCP delegation |
+| [使用指南](使用指南.md) | 安装、三种模式、首个算例、结果保存与常见问题 |
+| [功能说明](docs/FEATURES.md) | 现有计算能力、入口与适用边界 |
+| [专题文档目录](docs/README.md) | 图形、API、MCP、批量、成果与记忆、扩展的详细操作 |
+| [工作流程图](docs/WORKFLOW.md) | 从研究输入到计算、审批与成果的流转 |
+| [贡献指南](CONTRIBUTING.md) | 开发检查、保护机制和提交流程 |
+| [当前版本与验证](docs/releases/CURRENT.md) | 发布范围、已完成的验收与限制 |
 
-The desktop and model interfaces share **43 built-in tools and 238 parameter descriptions**. The old-code lookup tool and Sage bridge are removed. Source migration records remain in [docs/provenance](docs/provenance/README.md), outside the runtime package.
+非一致超图可绘制结构图；超图张量谱工具遵循一致性等数学前提。精确消元和枚举均有规模限制，数值结果不能代替数学证明。完整 Windows 安装器、完整隐式三维绘图与自动 TeX 编译尚未提供；TikZ 源码导出已支持。
 
-Use [functional coverage](FUNCTIONAL_COVERAGE.md) and individual tool contracts for mathematical assumptions and size limits. Tensor computations concern uniform hypergraphs; general hypergraph structure drawings can be non-uniform.
-
-## Workflow
-
-Choose local tools for manual computation, API chat for natural-language research, or MCP for delegation from a host agent. All three use the same protected local computation core and preserve execution records and result artifacts.
-
-![Workflow overview](docs/diagrams/workflow-overview-en.svg)
-
-[Detailed workflow diagrams and usage paths (中文)](docs/WORKFLOW.md) cover API planning, asynchronous MCP tasks, user interaction and separate extension development. These diagrams describe the current implementation; performance improvements discussed after the A/B trial remain future work.
-
-## Run locally
-
-Python 3.11 or newer is required. The native desktop and protected computation workflows are currently validated on Windows. SageMath, WSL and a model API are not required for local tools.
-
-From an extracted source candidate, use a dedicated environment or your own activated Python environment:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install ".[all]"
-.\.venv\Scripts\python.exe -m graph_research desktop
-```
-
-For a Python library installation, use `python -m pip install .`. Optional extras are `visual`, `tools`, `desktop`, `assistant` and `mcp`; `all` installs all application dependencies. The repository's small `.exe` launcher uses an existing Python environment; this is not a bundled Windows installer.
-
-The desktop has local classified tools and optional API conversation modes. Every tool has Chinese parameter help and examples. Model settings are configured locally; do not commit API keys.
-
-- [English installation and three-mode quick start](docs/QUICKSTART.md)
-- [中文说明](README.zh-CN.md)
-- [Installation and three-mode user guide (Chinese)](使用指南.md)
-- [Environment selection](ENVIRONMENT.md)
-- [Desktop](DESKTOP_APP.md) and [tool inputs](docs/OFFLINE_INPUTS.md)
-- [Python capability entries](LIBRARY_ENTRIES.md)
-- [API setup](API_SETUP.md) and [model settings](MODEL_SELECTION.md)
-- [MCP integration](MCP_INTEGRATION.md): Codex, DeepSeek Harness and other compatible hosts can delegate calculations without a separate assistant API key.
-
-## Reproduce a computation
-
-```powershell
-.\.venv\Scripts\python.exe -m graph_research call graph_spectrum '{"kind":"path","n":5}'
-```
-
-Model-facing calls use documented tools, explicit data and bounded execution. Results contain reusable graph descriptions, coordinates and evidence. Batch steps pass values through bindings rather than executable expressions. Mathematical and runtime limits are described in the [tool reference](docs/model/TOOL_REFERENCE.md).
-
-## Development and verification
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt -r requirements-dev.txt
-.\.venv\Scripts\python.exe -m pip install --no-deps --no-build-isolation -e .
-.\.venv\Scripts\python.exe -X utf8 tools/checks.py --full --strict-lock
-```
-
-Core changes require maintainer review and a new integrity inventory. Do not regenerate the inventory to conceal corruption. [Protection and recovery](PROTECTION.md) cover the execution model.
-
-## Research and performance limits
-
-This is a pre-release for evaluation and research use. Uniform-hypergraph tensor tools enforce their documented assumptions and size limits; numerical output and tested extension examples are not general mathematical proofs. MCP delegation includes discovery, protected execution, result transport and artifact handling; lower latency or model-token use than direct Python is not guaranteed.
-
-The native desktop and protected execution are validated on Windows. A complete Windows installer, full implicit 3D plotting and automatic TeX compilation are outside this release. Generating TeX source does not require TeX; compiling it does.
-
-## Release and contribution
-
-The project repository is [algebraic-graph-theory-research-assistant](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant). The reviewed source is released under the [MIT License](LICENSE), with original attribution and migration records retained. Third-party dependencies keep their upstream licenses and are installed separately.
-
-Read the [v0.36.0rc4 release notes](RELEASE_0.36.0rc4.md), [workflow guide](docs/WORKFLOW.md) and [contribution guide](CONTRIBUTING.md). Issues should include the observed version, relevant core fingerprint, a small reproducible input and redacted diagnostics. Keep credentials, private research, local environments and personal state out of submissions.
+许可与来源见 [LICENSE](LICENSE)、[NOTICE](NOTICE.md) 和[授权记录](LICENSE-STATUS.md)。[源码迁移记录](docs/provenance/README.md)用于维护追溯，不是用户功能菜单。

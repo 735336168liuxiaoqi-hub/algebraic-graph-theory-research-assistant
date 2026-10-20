@@ -1,4 +1,4 @@
-# 批量工作流（v0.33）
+# 批量任务与工具联动
 
 主agent一次提交多组输入和步骤模板，科研助手按依赖执行，统一返回进度、逐步结果和可校验成果包。固定批量计算无需助手另配模型API。原tools、scan、agent入口保留。
 
@@ -66,6 +66,6 @@ summary.batch包括总步骤、完成数、各状态计数、案例行、依赖�
 
 成果包沿用现有256MiB总量等限制；超大输出仍可从保存的逐步记录按字段读取。若打包未完成，返回会明确标记partial并保留计算记录，不会报告不存在的完整ZIP。
 
-## 单工具批量导出（v0.35.1）
+## 单工具批量导出
 
-graph_batch_study在一次受保护调用内计算多案例，与execution.mode=batch的逐步编排不同。必须检查calculation_status、export_status和rows.errors；可恢复导出失败保留数值，files只登记已发布文件，summary.output_complete=false及export_failures会提示。未发布暂存文件不作为附件。路径及固定运行副本说明见[WINDOWS_IO_AND_RUNTIME.md](WINDOWS_IO_AND_RUNTIME.md)。
+graph_batch_study在一次受保护调用内计算多案例，与execution.mode=batch的逐步编排不同。必须检查calculation_status、export_status和rows.errors；可恢复导出失败保留数值，files只登记已发布文件，summary.output_complete=false及export_failures会提示。未发布暂存文件不作为附件。路径及固定运行副本说明见[DEVELOPMENT.md](DEVELOPMENT.md)。

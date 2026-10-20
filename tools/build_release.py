@@ -18,7 +18,7 @@ def main():
     stage.mkdir(parents=True)
     for name in ['pyproject.toml','README.md','NOTICE.md']:
         shutil.copy2(root/name,stage/name)
-    for path in [*(root.glob('LICENSE*')),root/'README.zh-CN.md']:
+    for path in root.glob('LICENSE*'):
         if path.is_file():shutil.copy2(path,stage/path.name)
     shutil.copytree(root/'graph_research',stage/'graph_research',ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
     from seal_release import seal

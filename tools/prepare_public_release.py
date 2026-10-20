@@ -10,15 +10,8 @@ import zipfile
 PROJECT_NAME='algebraic-graph-theory-research-assistant'
 ROOT_FILES={'.gitattributes','.gitignore','pyproject.toml','requirements.txt','requirements-lock.txt','requirements-dev.txt',
             'assistant.py','test_workflow.py','run-demo.ps1','check.cmd','start-assistant.cmd','start-desktop.cmd',
-            'start-offline.cmd','图论科研助手.exe'}
-ROOT_DOCS={'README.md','README.zh-CN.md','使用指南.md','DELIVERY_NOTES.md','GRAPH_OUTPUT_FIXES.md','MCP_INTERACTION_FIXES.md','NOTICE.md','LICENSE','LICENSE-STATUS.md','RELEASE_0.36.0rc1.md','RELEASE_0.36.0rc2.md','RELEASE_0.36.0rc3.md','RELEASE_0.36.0rc4.md','CONTRIBUTING.md',
-           'ENVIRONMENT.md','DESKTOP_APP.md','MCP_INTEGRATION.md','API_SETUP.md','MODEL_SELECTION.md','MODEL_TOOL_GUIDE.md',
-           'PROTECTION.md','PACKAGE_LAYOUT.md','PACKAGE_REPLACEMENTS.md','MIGRATION_STATUS.md','SAGE_REMAINING_REVIEW.md',
-           'FUNCTIONAL_COVERAGE.md','GRAPH_COMPUTATIONS.md','GRAPH_INPUT.md','HYPERGRAPH_PLOTTING.md','HYPERGRAPH_EDITOR.md',
-           'TIKZ_EXPORT.md','SCHEMATIC_DRAWING.md','SCHEMATIC_EDITING.md','LIBRARY_ENTRIES.md','RESEARCH_WORKFLOWS.md',
-           'RESEARCH_TOOLS.md','BATCH_WORKFLOWS.md','TOOL_LIBRARY.md','FEATURE_DEVELOPMENT.md','USER_MEMORY.md',
-           'EXPERIENCE_MEMORY.md','RESULT_BUNDLES.md','RESULT_DISPLAY.md','RESULTS_CENTER.md','SUBAGENT_INTERFACE.md',
-           'API_RELIABILITY.md','API_WORKFLOWS.md','NEWTON_NODA.md','WINDOWS_IO_AND_RUNTIME.md','OBSERVABILITY_AND_ACCEPTANCE.md'}
+            'start-offline.cmd','algebraic graph theory research assistant.exe'}
+ROOT_DOCS={'README.md','使用指南.md','CONTRIBUTING.md','NOTICE.md','LICENSE','LICENSE-STATUS.md'}
 FOLDERS=('graph_research','tests','tools','docs','examples','.github','.githooks')
 PRIVATE_COMPONENTS={'.git','.venv','__pycache__','outputs','tmp','dist','tool_packages','user_memory','legacy_sage'}
 EXTERNAL_TEMPLATES={'tasks.json','report-template.json','assistant-prompt.md','baseline-prompt.md'}

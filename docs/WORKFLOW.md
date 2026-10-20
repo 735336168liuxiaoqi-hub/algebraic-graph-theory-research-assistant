@@ -20,7 +20,7 @@
 
 普通图和一般超图均可画结构；张量谱及张量特征多项式按一致超图及对应工具的其他条件执行。论文符号示意图中的省略路不等于已确定顶点/边数量的数值计算图，需明确参数后展开。
 
-[总览PNG](diagrams/workflow-overview.png) · [Mermaid源码](diagrams/workflow-overview.mmd) · [本地工具与图输入](../GRAPH_INPUT.md)
+[总览PNG](diagrams/workflow-overview.png) · [Mermaid源码](diagrams/workflow-overview.mmd) · [本地工具与图输入](GRAPHICS.md)
 
 ## 2. API科研对话
 
@@ -34,7 +34,7 @@
 
 预算用尽、取消或失败时保留已有记录，导出状态另行显示；需要继续时按实际状态和用户操作恢复，不静默重试或重置预算。新增工具另走第4节的评估与审批。
 
-[API流程PNG](diagrams/workflow-api.png) · [Mermaid源码](diagrams/workflow-api.mmd) · [模型设置](../MODEL_SELECTION.md) · [API任务与对象绑定](../API_WORKFLOWS.md)
+[API流程PNG](diagrams/workflow-api.png) · [Mermaid源码](diagrams/workflow-api.mmd) · [模型设置](API.md) · [API任务与对象绑定](API.md)
 
 ## 3. MCP委派
 
@@ -59,9 +59,9 @@
 
 `budget.used`是整任务累计尝试量，`request_effect`说明本次请求是否启动新作业，`operation.usage`为相应作业增量；三者不能重复相加。普通tools任务默认执行到预算用尽，设置`fail_fast=true`可在固定步骤预算不足时预先拒绝；scan/batch按展开预算预检。
 
-**新工具开发使用独立的research_development流程，开发批准不通过research_resume。** 主agent先提交评估，用户在可信入口批准范围，再由模型提交实现；详见下一节与[通用MCP接入](../MCP_INTEGRATION.md)。
+**新工具开发使用独立的research_development流程，开发批准不通过research_resume。** 主agent先提交评估，用户在可信入口批准范围，再由模型提交实现；详见下一节与[通用MCP接入](MCP.md)。
 
-[MCP流程PNG](diagrams/workflow-mcp.png) · [Mermaid源码](diagrams/workflow-mcp.mmd) · [接入与结果字段说明](../MCP_INTEGRATION.md) · [批量工作流](../BATCH_WORKFLOWS.md)
+[MCP流程PNG](diagrams/workflow-mcp.png) · [Mermaid源码](diagrams/workflow-mcp.mmd) · [接入与结果字段说明](MCP.md) · [批量工作流](BATCH.md)
 
 ## 4. 新工具引入
 
@@ -75,7 +75,7 @@
 
 默认离线工具只调用已登记工具，不会自行生成新代码。MCP开发能力需要宿主显式启用；工具列表可发现不代表用户已批准开发。
 
-[扩展流程PNG](diagrams/workflow-extension.png) · [Mermaid源码](diagrams/workflow-extension.mmd) · [新功能开发机制](../FEATURE_DEVELOPMENT.md) · [持久工具库](../TOOL_LIBRARY.md)
+[扩展流程PNG](diagrams/workflow-extension.png) · [Mermaid源码](diagrams/workflow-extension.mmd) · [独立扩展与工具库](EXTENSIONS.md)
 
 ## 5. 记忆、证据与成果在流程中的位置
 
@@ -90,7 +90,7 @@
 
 总览图按“计算→查看→整理成果”的用户路径排列；实际记录可在计算过程中就已保存，自动导出也可早于用户打开结果页。导出失败与数学计算失败分别报告，不能因ZIP未生成而丢弃已保存数值，也不能把文件名存在当作文件内容已核验。
 
-详细操作见[成果中心](../RESULTS_CENTER.md)、[结果包](../RESULT_BUNDLES.md)、[用户记忆](../USER_MEMORY.md)和[经验记忆](../EXPERIENCE_MEMORY.md)。
+详细操作见[成果管理与用户记忆](RESULTS_AND_MEMORY.md)。
 
 ## 6. 图示与文档维护
 
