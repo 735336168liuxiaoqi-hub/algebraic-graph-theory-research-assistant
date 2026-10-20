@@ -22,7 +22,7 @@ def _route(row):
     if name.startswith('bk_rop'):return 'block_matrix_analysis已提供显式块尺寸的提取、排列和分块乘积贡献；不要求旧Sage分块元数据对象。'
     if name in ('subdivide','subdivide1','perm_block'):return '已有基础分块/商矩阵，block_matrix_analysis另提供统一精确入口；旧分块对象和个别归一化接口不逐项兼容。'
     if name in ('add_blossom','Merge_And_Append_Edge'):return 'NetworkX多重图可表达；当前主要谱入口要求简单图，须另定自环/重边约定后接入。'
-    if name in ('plotequs','plot3dequs','movelines'):return 'research_environment检测可选组件及TeX，接入边界见RESEARCH_WORKFLOWS.md；完整隐式绘图和移动直线仍不在本轮实现范围。'
+    if name in ('plotequs','plot3dequs','movelines'):return 'research_environment检测可选组件及TeX，接入边界见docs/FEATURES.md；完整隐式绘图和移动直线仍未实现。'
     if name in ('list2dtopanda','Table','htmlview','table_add'):return '现有原生数据表和结果包覆盖基本展示；旧Pandas Styler/Sage表格接口仍不同。'
     if name=='variable_name':return '对象可能有多个变量别名；现用显式名称，不承诺由对象唯一反查变量。'
     if file=='LinearAlgebra.sage':return '现有SymPy基础运算可组合使用；旧演示排版接口尚未等价适配。'
@@ -66,10 +66,10 @@ def build():
             'corrected_false_available_records':len(corrections),'remaining_pending':len(pending),
             'remaining':pending,'completed':completed}
     text=['# 旧Sage接口追溯台账（v0.23）','',
-          '验收标准见[科研能力覆盖表](FUNCTIONAL_COVERAGE.md)：整体科研用途能够完成即可，不要求逐项迁移旧函数。以下仅保留源码追溯，不作为功能缺口数量或开发待办。','',
+          '验收标准见[科研能力覆盖表](../FEATURES.md)：整体科研用途能够完成即可，不要求逐项迁移旧函数。以下仅保留源码追溯，不作为功能缺口数量或开发待办。','',
           f'追溯统计：原有{len(original)}条待适配定义；补齐/复用{len(completed)}条，并修正{len(corrections)}条旧目录误判，现有{len(pending)}条旧定义尚未逐项适配。这不等于仍缺{len(pending)}项科研功能。',
           '定义记录包括类、方法及两份超图文件中的同用途定义，不等于独立算法数。GraphTheory1.sage的165条完整重复定义单独记录，不算剩余功能。','',
-          '本批仅复用现有NetworkX、SymPy、NumPy及可选Matplotlib，没有新增安装依赖。详细新接口、调用示例与限制见[替代功能说明](PACKAGE_REPLACEMENTS.md)。','',
+          '本批仅复用现有NetworkX、SymPy、NumPy及可选Matplotlib，没有新增安装依赖。详细新接口、调用示例与限制见[Python接口说明](../reference/PYTHON_API.md)。','',
           '## 尚未逐项兼容的旧接口（仅供追溯）','']
     for file in catalog['source_files']:
         rows=[row for row in pending if row['source_file']==file['file']]
@@ -83,13 +83,13 @@ def build():
     text += ['','## 清单修正','',
              '缺失类不能因为None对象本身有__init__/__repr__就标为可用。MyIdentity.__init__、MyIdentity.__repr__及TCBSpline.__init__已恢复待迁移状态；所有可用记录现在逐个验证真实模块路径可调用。',
              '','源码提取现在跨过多行字符串中的TeX内容，并保留带字符串默认参数的真实函数；不执行旧Sage源码。原始11个文件未修改。',
-             '','替换前的完整180条基线保存在[JSON](docs/sage-pending-baseline-v0211.json)，本报告的机器可读结果见[审计JSON](docs/sage-replacement-review.json)。']
+             '','替换前的完整180条基线保存在[JSON](../sage-pending-baseline-v0211.json)，本报告的机器可读结果见[审计JSON](../sage-replacement-review.json)。']
     return result,'\n'.join(text)+'\n'
 
 
 def main():
     result,text=build()
-    (ROOT/'SAGE_REMAINING_REVIEW.md').write_text(text,encoding='utf-8')
+    (ROOT/'docs/provenance/SAGE_REVIEW.md').write_text(text,encoding='utf-8')
     (ROOT/'docs/sage-replacement-review.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({key:result[key] for key in ('baseline_pending','newly_available_records','corrected_false_available_records','remaining_pending')}))
 

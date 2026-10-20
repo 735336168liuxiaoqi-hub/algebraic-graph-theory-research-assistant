@@ -6,7 +6,7 @@ Include the package version/core fingerprint, OS/Python version, selected tool, 
 
 ## Prepare a change
 
-Use a dedicated environment and read [environment guidance](ENVIRONMENT.md), [workflow](docs/WORKFLOW.md), [tool contracts](docs/model/TOOL_REFERENCE.md) and [protection](PROTECTION.md). Preserve graph identities, mathematical semantics, task budgets, approvals and separate extension packages.
+Use a dedicated environment and read [environment guidance](docs/DEVELOPMENT.md), [workflow](docs/WORKFLOW.md), [tool contracts](docs/model/TOOL_REFERENCE.md) and [protection](docs/DEVELOPMENT.md). Preserve graph identities, mathematical semantics, task budgets, approvals and separate extension packages.
 
 Add a meaningful regression for changed behavior. Update contracts, parameter help and generated manuals together. Keep tests/gates.json synchronized with test modules.
 

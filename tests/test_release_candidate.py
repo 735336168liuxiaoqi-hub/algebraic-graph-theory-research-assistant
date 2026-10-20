@@ -1,10 +1,13 @@
 """The candidate removes reference tools while preserving provenance and rights gates."""
 import hashlib
 import json
+import posixpath
+import re
 from pathlib import Path
 import tempfile
 import unittest
 import zipfile
+from urllib.parse import unquote
 
 from graph_research.tools import ToolRegistry
 from graph_research.assistant.offline import grouped_tools
@@ -79,8 +82,8 @@ class ReleaseCandidateTests(unittest.TestCase):
     def test_clean_source_export_excludes_private_state_and_keeps_research_history(self):
         root=Path(__file__).resolve().parents[1];selection=selected_files(root)
         self.assertIn('docs/provenance/migration_catalog.json',selection)
-        self.assertIn('MIGRATION_STATUS.md',selection);self.assertIn('NOTICE.md',selection)
-        for name in ('使用指南.md','DELIVERY_NOTES.md','start-desktop.cmd','图论科研助手.exe','graph_research/desktop/graph_actions.py','LICENSE','RELEASE_0.36.0rc4.md','docs/QUICKSTART.md','docs/WORKFLOW.md','docs/diagrams/workflow-overview.svg'):
+        self.assertIn('docs/provenance/MIGRATION.md',selection);self.assertIn('NOTICE.md',selection)
+        for name in ('使用指南.md','docs/README.md','start-desktop.cmd','algebraic graph theory research assistant.exe','graph_research/desktop/graph_actions.py','LICENSE','docs/releases/CURRENT.md','docs/QUICKSTART.md','docs/WORKFLOW.md','docs/diagrams/workflow-overview.svg'):
             self.assertIn(name,selection)
         self.assertNotIn('tools/power_check_paired.py',selection)
         self.assertNotIn('examples/external_v0351/report.json',selection)
@@ -97,6 +100,21 @@ class ReleaseCandidateTests(unittest.TestCase):
             with zipfile.ZipFile(result['source_archive']) as archive:
                 names=archive.namelist();self.assertTrue(any(n.endswith('/NOTICE.md') for n in names))
                 self.assertFalse(any('/legacy_sage/' in n or '/.git/' in n or '/outputs/' in n for n in names))
+
+    def test_curated_documentation_links_survive_source_export(self):
+        root=Path(__file__).resolve().parents[1];selection=selected_files(root)
+        root_docs={name for name in selection if '/' not in name and name.endswith('.md')}
+        self.assertEqual(root_docs,{'README.md','使用指南.md','CONTRIBUTING.md','NOTICE.md','LICENSE-STATUS.md'})
+        for name,path in selection.items():
+            if not name.endswith('.md') or ('/' in name and not name.startswith('docs/')):continue
+            content=re.sub(r'```.*?```','',path.read_text(encoding='utf-8'),flags=re.S)
+            for target in re.findall(r'\[[^\]\n]+\]\(([^)\n]+)\)',content):
+                if re.match(r'^[a-z][a-z0-9+.-]*:',target,re.I) or target.startswith(('/', '#')):continue
+                target=unquote(target.split('#',1)[0])
+                resolved=posixpath.normpath(posixpath.join(posixpath.dirname(name),target))
+                with self.subTest(document=name,target=target):
+                    self.assertTrue(resolved in selection or any(n.startswith(resolved.rstrip('/')+'/') for n in selection),
+                                    'Document target missing from source export: '+resolved)
 
 
 if __name__=='__main__':unittest.main()

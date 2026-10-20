@@ -1003,7 +1003,7 @@
       "line": 114,
       "kind": "def",
       "meaning": "平移二维直线，使它们经过指定位置。",
-      "alternative_or_limit": "research_environment检测可选组件及TeX，接入边界见RESEARCH_WORKFLOWS.md；完整隐式绘图和移动直线仍不在本轮实现范围。"
+      "alternative_or_limit": "research_environment检测可选组件及TeX，接入边界见docs/FEATURES.md；完整隐式绘图和移动直线仍未实现。"
     },
     {
       "source_file": "LinearAlgebra.sage",
@@ -1011,7 +1011,7 @@
       "line": 121,
       "kind": "def",
       "meaning": "画二维隐式方程组。",
-      "alternative_or_limit": "research_environment检测可选组件及TeX，接入边界见RESEARCH_WORKFLOWS.md；完整隐式绘图和移动直线仍不在本轮实现范围。"
+      "alternative_or_limit": "research_environment检测可选组件及TeX，接入边界见docs/FEATURES.md；完整隐式绘图和移动直线仍未实现。"
     },
     {
       "source_file": "LinearAlgebra.sage",
@@ -1019,7 +1019,7 @@
       "line": 128,
       "kind": "def",
       "meaning": "画三维隐式曲面组。",
-      "alternative_or_limit": "research_environment检测可选组件及TeX，接入边界见RESEARCH_WORKFLOWS.md；完整隐式绘图和移动直线仍不在本轮实现范围。"
+      "alternative_or_limit": "research_environment检测可选组件及TeX，接入边界见docs/FEATURES.md；完整隐式绘图和移动直线仍未实现。"
     },
     {
       "source_file": "LinearAlgebra.sage",

@@ -32,7 +32,7 @@ def main():
     from tools.build_sage_review import build
     review,report=build()
     if json.loads((root/'docs/sage-replacement-review.json').read_text(encoding='utf-8'))!=review:mismatches.append('docs/sage-replacement-review.json')
-    if (root/'SAGE_REMAINING_REVIEW.md').read_text(encoding='utf-8')!=report:mismatches.append('SAGE_REMAINING_REVIEW.md')
+    if (root/'docs/provenance/SAGE_REVIEW.md').read_text(encoding='utf-8')!=report:mismatches.append('docs/provenance/SAGE_REVIEW.md')
     from graph_research.mcp.contracts import tool_definitions
     if json.loads((root/'docs/model/mcp-tools.json').read_text(encoding='utf-8'))!={'transport':'stdio','tools':tool_definitions()}:
         mismatches.append('docs/model/mcp-tools.json')
