@@ -20,11 +20,11 @@
 
 开发版新增[反例搜索与独立核验](docs/COUNTEREXAMPLE_SEARCH.md)：固定 n/m 连通简单图的邻接谱反例搜索，支持离线规则或显式启用的模型策略，最多128个顶点、1024条边。12点以内使用精确特征多项式核验，较大图使用可独立复算的精确有理数谱界；无法严格区分时保留未确认状态。
 
-本页对应开发源码 **0.37.0a2**，可下载[当前 main 分支源码](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip)，按下方源码安装步骤使用。下方 Release 下载页仍是上次已发布的 **0.36.0rc6**，不含新增反例搜索功能。
+当前预发布版本为 **0.37.0a2**。可从[Release发布页](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.37.0a2)下载源码ZIP、wheel、验收说明与校验值；也可下载[main分支源码](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip)。
 
 ## 安装与启动
 
-在[发布页](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.36.0rc6)下载源码 ZIP，解压后在含 `pyproject.toml` 的目录打开 PowerShell。仓库私有时，需要获授权的 GitHub 账号。
+在[发布页](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.37.0a2)下载源码 ZIP，解压后在含 `pyproject.toml` 的目录打开 PowerShell。仓库私有时，需要获授权的 GitHub 账号。
 
 完整桌面与受保护计算流程目前在 Windows 验证。使用 64 位 Python 3.11+，建议 3.13：
 
