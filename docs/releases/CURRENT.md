@@ -1,6 +1,6 @@
-# 当前开发源码：0.37.0a2
+# 当前预发布版本：0.37.0a2
 
-仓库保持私有。main分支提供开发源码0.37.0a2；最近已发布的Release附件仍为0.36.0rc6。使用新增功能请下载[main源码ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip)，按[中文指南](../../使用指南.md)或[English guide](../QUICKSTART.md)安装。
+仓库保持私有。0.37.0a2以开发预发布形式提供源码ZIP、wheel、SHA256清单、安装说明及验收记录，见[Release发布页](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.37.0a2)。按[中文指南](../../使用指南.md)或[English guide](../QUICKSTART.md)安装，首次安装仍需要Python及第三方依赖。
 
 ## 反例搜索与128点扩容（2026-10-22）
 
@@ -16,7 +16,7 @@
 
 核心清单覆盖208个文件，SHA256为`1db16a6910ff7dc896367b1b607039ed3a2026b09fbb93294b0905a65f7fe056`。原数学模块41个文件保持不变。详细边界、示例及证据格式见[反例搜索说明](../COUNTEREXAMPLE_SEARCH.md)。
 
-## 最近已发布：0.36.0rc6
+## 历史版本：0.36.0rc6
 
 代数图论科研助手，MIT。仓库保持私有，访问源码与附件需要获授权账号。
 

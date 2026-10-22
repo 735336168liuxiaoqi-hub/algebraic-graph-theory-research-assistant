@@ -86,7 +86,7 @@
 
 `planner="rules"` needs no model. `planner="model"` requires explicit host configuration and a positive model budget. The model can choose a bounded search strategy or stop; it cannot change graphs, budgets, approvals or verification outcomes. Screening is numerical. Up to 12 vertices, verification uses exact characteristic-polynomial root intervals; larger graphs use independently checked rational Rayleigh/Collatz bounds. A positive strict difference is required in both cases. The recent SHA256 cache holds up to 512 labelled graphs and can evict older entries.
 
-Outcomes distinguish a verified counterexample, no witness within the search budget, and an unverified candidate. No-witness results never prove optimality. Existing task IDs, replay handling, cancellation, trusted resume and result bundles are reused. The source development version is not yet a GitHub release; reconnecting an old installed runtime alone will not update its code.
+Outcomes distinguish a verified counterexample, no witness within the search budget, and an unverified candidate. No-witness results never prove optimality. Existing task IDs, replay handling, cancellation, trusted resume and result bundles are reused. Install the 0.37.0a2 prerelease or current source; reconnecting an old installed runtime alone will not update its code.
 
 
 ## 扩容后的严格核验

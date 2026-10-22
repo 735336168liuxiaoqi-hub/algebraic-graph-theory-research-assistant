@@ -1,6 +1,6 @@
 # Algebraic Graph Theory Research Assistant — User Guide
 
-Source development version **0.37.0a2**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
+Prerelease version **0.37.0a2**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
 
 This Python application provides graph and hypergraph computation, symbolic algebra, interactive drawing and research result management. Use the desktop manually, connect a model for research chat, or expose the same computation tools to a host agent through MCP. SageMath and WSL are not required.
 
@@ -40,16 +40,16 @@ Non-uniform hypergraphs can be drawn. Hypergraph tensor-spectrum tools enforce u
 
 ### Choose a package
 
-For the new **0.37.0a2 development source**, download the [current main branch ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) and follow the source installation steps below. Restart the desktop after upgrading; for MCP, update the actual launched runtime and reconnect. An older pinned runtime does not update with the source directory.
+For **0.37.0a2**, download one of the prerelease assets below and follow the matching installation steps. Restart the desktop after upgrading; for MCP, update the actual launched runtime and reconnect. An older pinned runtime does not update with the source directory.
 
-The release assets below remain **0.36.0rc6** and do not include the new counterexample-search tools.
+Both packages include the new counterexample-search tools. Source is also available as a [main branch ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip).
 
-Use the [v0.36.0rc6 release page](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.36.0rc6). While the repository is private, sign in with an authorized GitHub account.
+Use the [v0.37.0a2 prerelease page](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.37.0a2). While the repository is private, sign in with an authorized GitHub account.
 
 | Asset | Intended use |
 | --- | --- |
-| [Source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc6/algebraic-graph-theory-research-assistant-0.36.0rc6-source-candidate.zip) | Recommended for first-time desktop use; includes the source and launchers |
-| [Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.36.0rc6/graph_research_assistant-0.36.0rc6-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
+| [Source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.37.0a2/algebraic-graph-theory-research-assistant-0.37.0a2-source-candidate.zip) | Recommended for first-time desktop use; includes the source and launchers |
+| [Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.37.0a2/graph_research_assistant-0.37.0a2-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
 | `SHA256SUMS.txt` / `RELEASE_VALIDATION.json` | Checksums and validation evidence; these are not installers |
 
 Expand **Assets** at the bottom of the release page. Download one application package; you do not need both ZIP and wheel. The first installation downloads dependencies. A fully offline new computer needs separately prepared dependency wheels matching its Windows/Python version.
@@ -97,7 +97,7 @@ For editable development, use `python -m pip install -e ".[all]"`. Ordinary use 
 Download the wheel through your browser. From its directory, use the Python environment you selected:
 
 ```powershell
-python -m pip install ".\graph_research_assistant-0.36.0rc6-py3-none-any.whl[all]"
+python -m pip install ".\graph_research_assistant-0.37.0a2-py3-none-any.whl[all]"
 python -m graph_research desktop
 ```
 
@@ -286,6 +286,6 @@ This English guide covers installation and the user workflows. Detailed paramete
 A complete Windows installer, full implicit 3D plotting and automatic TeX compilation are not included. Numerical outputs and finite extension test cases do not establish general theorems. Source-migration records are maintenance references, not a list of missing research capabilities.
 
 
-## Counterexample search (development source)
+## Counterexample search
 
 See [bounded counterexample search and independent verification](COUNTEREXAMPLE_SEARCH.md#english-summary). It supports fixed-n/m connected simple graphs with 2..128 vertices and at most 1024 edges, rule-based search without API, and optional explicitly configured model strategy selection. The download links above refer to the last published rc6 release, which does not include this development feature.

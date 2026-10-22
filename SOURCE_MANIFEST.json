@@ -14,13 +14,13 @@
     "LICENSE": "7b0279c2bc2d4e1d80003b0b03a5dc627f1c285c01d66837cb240c4badbd1c4e",
     "LICENSE-STATUS.md": "e35095c0185d1534154e93737d2d23e440ae45d1ea3156d4a55b375f1d57b51c",
     "NOTICE.md": "1fc2b36f448d12a19cd21fd5f75747bb7e350e2a3efffda0c8140cde64cc08a7",
-    "README.md": "3f5b7298633723797992820b1627b3a8bc0457c65d40831b783d96ed9fe35aa5",
+    "README.md": "0aa7e4b92048d59c2d019334d1b49209e38b49337c40af7930d25fedb8f34010",
     "algebraic graph theory research assistant.exe": "5735afc34ec45d980e691631463263297fe543372fc75617d0b14ec44172d53e",
     "assistant.py": "330bf8860782d70a357ef1ef4fd637a4704b7d9a7f1b128eef5bfafa9e462b85",
     "check.cmd": "92422a873b517acb0063f882d3eae68c13157db4deb87b1a153e1616b00da6c2",
     "docs/API.md": "dda932964be10a9be8bee573f8c1051f6e706dd90c0cd91fa8a4b81872cf143d",
     "docs/BATCH.md": "63392a4fe1766a3797e47b2a28f9eaff97935aa8d32ce938c178371fbec913f8",
-    "docs/COUNTEREXAMPLE_SEARCH.md": "749aa1d17f4a7bbebc36ca7db6ca3490930768d1977c02f3d70011106875d3f2",
+    "docs/COUNTEREXAMPLE_SEARCH.md": "8e19a0facdf2a899e511c8c29492a2bdefff7670ea44b8193037b6a3ceea8460",
     "docs/DEVELOPMENT.md": "3e29f3b4fe5bb62c7178c04044bfd5b349a99ef25da390aab10d2edb3d941e1e",
     "docs/EXTENSIONS.md": "a7a6ad74dcc86e8c8a768400ff057e8756dfef47135c03bbbb0af5f6711f5f47",
     "docs/FEATURES.md": "595be91ff27783784bfbd760d7cfd391b0f758f92ab8f72ba8c40e0662f579d8",
@@ -28,7 +28,7 @@
     "docs/MCP.md": "1a05ea61cd6b9a63dadd30056262701a7e34278c19fa832fd55bd0d4d2a9ae08",
     "docs/NUMERICS.md": "f839cced6cf2c94bdbd139d2c025e0ca75a15711ddc73ddc5117528a38d5c0f0",
     "docs/OFFLINE_INPUTS.md": "d5a22b3366aabb22181612605fd501fa0fa1184351a9b2ffbbc4325adc188497",
-    "docs/QUICKSTART.md": "49f664d537a4d75e8ae2a202ed24423855cf46b733abc7fb3934de74a3679c3f",
+    "docs/QUICKSTART.md": "c4b482764886b362833d54c272efd40f981c4cf99b811c6047c40bea5e128e3a",
     "docs/README.md": "9d1aadbdcc6143874499c170aeeeaab2d361ce3130c63d68e183a1e273dc600e",
     "docs/RESULTS_AND_MEMORY.md": "c47c629de72ebdb521ade2e1935023df449386ccc3f2d0b54370e57f02579604",
     "docs/WORKFLOW.md": "32db397f54d51f23dbcde1993d4f168cee7012e4fe3748d35e9b2fe41a974664",
@@ -66,7 +66,7 @@
     "docs/provenance/rights-status.json": "923b05269f42a4280ddb37d1d9b98612714dc74dec3020209a1d6c1dcf3619cd",
     "docs/reference/PYTHON_API.md": "5a613ce43372d6f76a8a38a4dd00b87940cae17ea5c88237519b0e282979a1cc",
     "docs/reference/SUBAGENT.md": "d175b222d6f203774c41b89b492572df08cd334147e12179ffbb54e5be898fe6",
-    "docs/releases/CURRENT.md": "7ff5842ff24fab48d073390340d5ca9b4ab6203a931457ac7cac89ea9d73fc7c",
+    "docs/releases/CURRENT.md": "09f1d5e6941a2c57ee91ca3baf08581a147666cfbcc68f538dda193d8414807c",
     "docs/sage-pending-baseline-v0211.json": "ddf8d50229051dd18f49976132727f1fa505c30c0e679329a10760ecea03a290",
     "docs/sage-replacement-review.json": "a4d069986a0ee024649009ac547862727601ab98b825a8f335c779b629309d76",
     "examples/api_onboarding_demo.py": "0b11b7680b04f47f73d75f324c528c4c37eddd233f7c9a68c7fea89c088d10f0",
@@ -449,6 +449,6 @@
     "tools/verify_baseline.py": "d78da49715f5eeea8fbafcd56acf1d8b39730396a07c8abc4cb391baa977948a",
     "tools/verify_release.py": "518b3100ad0d0098a38fdcf57940d886f9cf8d972f8ce4788d18ff711d19b29a",
     "tools/verify_wheel.py": "b67463388b924dc1882bb220deef2122fbc0700288b073431db5708741732231",
-    "使用指南.md": "22df3d466de22a151168e64ae96b857c3d8d612e7a0b506f558a48a0e7d01391"
+    "使用指南.md": "ee0f6382b5a35eec7c466a0cbc27c5794008888ca1883c9305953740c1bba149"
   }
 }
