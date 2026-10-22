@@ -1,6 +1,6 @@
 # 代数图论科研助手
 
-**Algebraic Graph Theory Research Assistant** · 0.36.0rc6 · [MIT](LICENSE) · [English user guide](docs/QUICKSTART.md)
+**Algebraic Graph Theory Research Assistant** · 0.37.0a2 · [MIT](LICENSE) · [English user guide](docs/QUICKSTART.md)
 
 面向图与超图科研的 Python 计算工具和桌面应用，支持谱计算、符号运算、交互绘图与论文图形导出。既可独立使用，也可作为主 agent 的 MCP 计算服务。无需 SageMath 或 WSL。
 
@@ -16,7 +16,11 @@
 
 桌面右上方的 **语言 / Language** 菜单可切换 **简体中文 / English**，选择自动保存。切换保留参数草稿和运行中的计算；原始数据、图标签与模型回复保持原文。
 
-目前有 **43 个内置计算工具**；桌面将部分绘图工具整合到对应图旁。详细定义、条件与规模限制见[功能说明](docs/FEATURES.md)，参数和可导入例子见[工具输入手册](docs/OFFLINE_INPUTS.md)。
+目前有 **45 个内置计算工具**；桌面将部分绘图工具整合到对应图旁。详细定义、条件与规模限制见[功能说明](docs/FEATURES.md)，参数和可导入例子见[工具输入手册](docs/OFFLINE_INPUTS.md)。
+
+开发版新增[反例搜索与独立核验](docs/COUNTEREXAMPLE_SEARCH.md)：固定 n/m 连通简单图的邻接谱反例搜索，支持离线规则或显式启用的模型策略，最多128个顶点、1024条边。12点以内使用精确特征多项式核验，较大图使用可独立复算的精确有理数谱界；无法严格区分时保留未确认状态。
+
+本页对应开发源码 **0.37.0a2**，可下载[当前 main 分支源码](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip)，按下方源码安装步骤使用。下方 Release 下载页仍是上次已发布的 **0.36.0rc6**，不含新增反例搜索功能。
 
 ## 安装与启动
 

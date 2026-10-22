@@ -4,6 +4,7 @@ from html import escape
 from .i18n import register_translations
 
 TOOL_TITLES={
+    'graph_counterexample_round':'Counterexample search round','graph_counterexample_verify':'Independent counterexample verification',
     'generate_hypergraph':'Hypergraph construction','hypergraph_spectrum':'Hypergraph spectral radius',
     'graph_spectrum':'Graph numerical spectrum','graph_invariants':'Graph invariants',
     'graph_characteristic_polynomial':'Graph characteristic polynomial','matching_polynomial':'Matching generating polynomial',
@@ -24,6 +25,8 @@ TOOL_TITLES={
     'graph_layout':'Graph layout and coordinates'}
 
 SUMMARIES={
+    'graph_counterexample_round':'Screen bounded connected simple graphs with fixed vertex and edge counts. Floating estimates do not certify a counterexample; independently verify a promising candidate.',
+    'graph_counterexample_verify':'Verify strict adjacency-spectral improvement from raw edges: exact polynomial roots for up to 12 vertices, independently checked rational Rayleigh/Collatz bounds for larger graphs up to 128 vertices and 1024 edges.',
     'generate_hypergraph':'Construct uniform loose paths, stars, cycles and the listed pendant-path research families. Lengths count edges; choose a family before filling its arguments.',
     'hypergraph_spectrum':'Compute the α-spectral radius, positive Perron vector and optional weighted incidence matrix of a nonempty uniform positive-weight hypergraph. For α<1 the hypergraph must be connected; α=1 is the degree-diagonal endpoint.',
     'graph_spectrum':'Compute eigenvalues and spectral radius of a supported matrix of an undirected unweighted graph. Distance matrices require connectedness; choose the matrix definition explicitly.',

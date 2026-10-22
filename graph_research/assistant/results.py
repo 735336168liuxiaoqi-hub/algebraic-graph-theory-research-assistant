@@ -248,6 +248,11 @@ def export_session(session,output=None,*,turn=None,allow_incomplete=False,bundle
         from .research_objects import validate_objects
         data['research_objects']=validate_objects(session.research_objects)
         files['research-objects.json']=_json(data['research_objects'])
+    from .counterexample import summary as counterexample_summary
+    search=counterexample_summary(session.state)
+    if search is not None:
+        data['counterexample_search']=search
+        files['counterexample-summary.json']=_json(search)
     files['results.json']=_json(data)
     recipe={'format':'graph-research-reproduction-inputs','note':'Review tool availability, assumptions and versions before manually rerunning. No code is executed by this file.',
             'calculations':[{'id':c['id'],'turn':c['turn'],'tool':c['tool'],'arguments':c['arguments'],'evidence_status':c['evidence_status'],

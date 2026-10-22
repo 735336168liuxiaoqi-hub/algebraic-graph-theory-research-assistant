@@ -312,6 +312,8 @@ class ToolRegistry:
         definitions.extend(research_tool_definitions(object_schema,GRAPH_ARGS))
         from graph_research.tools.library_entries import library_entry_definitions
         definitions.extend(library_entry_definitions(object_schema,GRAPH_ARGS))
+        from graph_research.workflows.counterexamples import tool_definitions as counterexample_definitions
+        definitions.extend(counterexample_definitions(object_schema,GRAPH_ARGS))
         for name, description, function, schema in definitions:
             self.register(Tool(name, description, schema, function))
 

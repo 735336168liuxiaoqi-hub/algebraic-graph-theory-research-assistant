@@ -224,7 +224,8 @@ class MCPResearchRuntime:
 
     def submit(self,task,wait_seconds=0,detail="summary"):
         request=validate_task(task)
-        if request['execution']['mode']=='agent' and self.configuration.model_settings is None:
+        model_mode=request['execution']['mode']=='agent' or (request['execution']['mode']=='counterexample' and request['execution']['counterexample'].get('planner','rules')=='model')
+        if model_mode and self.configuration.model_settings is None:
             raise TaskProtocolError('agent_mode_disabled','此MCP服务只启用已有工具计算；自主模型规划需由宿主显式启用。')
         self.configuration.limits().resolve(request)
         with exclusive_lock(self.directory/'.dispatch.lock'):

@@ -1,6 +1,7 @@
 """Chinese UI vocabulary. Display strings never replace tool argument values."""
 
 PARAMETERS={
+    'reference':'参考图','candidate':'待核验候选图','strategy':'搜索策略','candidates':'本轮候选上限','incumbent':'当前最好可行图','seen':'已访问图记录','cursor':'枚举续算游标',
     'graph_document':'完整图与绘图样式',
     'total_steps':'路径总步数','right_steps':'向右步序号','bounds':'矩形边界',
     'fill':'填充矩形','row_labels':'行标签','column_labels':'列标签','fixed_vertices':'固定顶点',
@@ -28,6 +29,7 @@ PARAMETERS={
     'vertices':'顶点列表','weighted_incidence':'输出赋权关联矩阵','weights':'超边权重'}
 
 OPTIONS={
+    'enumerate':'分段枚举','edge_move':'谱向量引导换边','rewire':'随机换边','random':'随机重新构图',
     'grid_path':'逐步格路径','lattice_path':'按步序号生成格路径','rectangle':'矩形绘图','chessboard':'矩阵棋盘',
     'spectral':'谱布局','tree':'树形层次布局','transform':'旋转缩放和平移','align_horizontal':'水平对齐','align_vertical':'竖直对齐',
     'rook_polynomial':'棋盘车多项式','right':'右乘','left':'左乘','twosided':'双侧乘法',

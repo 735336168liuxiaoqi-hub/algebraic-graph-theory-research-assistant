@@ -38,8 +38,8 @@ class GraphContextTests(unittest.TestCase):
         from graph_research.assistant.offline import grouped_tools
         groups=grouped_tools(self.registry);before=copy.deepcopy(groups);shown=desktop_groups(groups)
         names={d['name'] for g in shown for d in g['tools']}
-        self.assertEqual(len(names),37);self.assertFalse(names & INTEGRATED);self.assertEqual(groups,before)
-        self.assertEqual(len(self.registry.tools),43);self.assertTrue(INTEGRATED<=self.registry.tools.keys())
+        self.assertEqual(len(names),39);self.assertFalse(names & INTEGRATED);self.assertEqual(groups,before)
+        self.assertEqual(len(self.registry.tools),45);self.assertTrue(INTEGRATED<=self.registry.tools.keys())
         self.assertIn('绘图、布局与LaTeX',[g['name'] for g in groups]);self.assertNotIn('绘图、布局与LaTeX',[g['name'] for g in shown])
 
     def test_numeric_simple_graph_recovery_defaults_and_isolated_vertices(self):

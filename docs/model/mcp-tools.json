@@ -76,7 +76,8 @@
                       "agent",
                       "tools",
                       "scan",
-                      "batch"
+                      "batch",
+                      "counterexample"
                     ]
                   },
                   "steps": {
@@ -487,6 +488,79 @@
                     },
                     "required": [
                       "steps"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "counterexample": {
+                    "type": "object",
+                    "properties": {
+                      "reference": {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "enum": [
+                              "path",
+                              "cycle",
+                              "complete",
+                              "star",
+                              "edges"
+                            ]
+                          },
+                          "n": {
+                            "type": "integer",
+                            "minimum": 2,
+                            "maximum": 128
+                          },
+                          "edges": {
+                            "type": "array",
+                            "maxItems": 1024,
+                            "items": {
+                              "type": "array",
+                              "minItems": 2,
+                              "maxItems": 2,
+                              "items": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 127
+                              }
+                            }
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "n"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "planner": {
+                        "enum": [
+                          "rules",
+                          "model"
+                        ]
+                      },
+                      "max_rounds": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 8
+                      },
+                      "candidates_per_round": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 24
+                      },
+                      "seed": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4294967295
+                      },
+                      "digits": {
+                        "type": "integer",
+                        "minimum": 6,
+                        "maximum": 24
+                      }
+                    },
+                    "required": [
+                      "reference"
                     ],
                     "additionalProperties": false
                   }

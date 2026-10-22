@@ -45,7 +45,9 @@
     "test_tikz",
     "test_user_memory",
     "test_observability",
-    "test_library_entries"
+    "test_library_entries",
+    "test_counterexamples",
+    "test_counterexample_capacity"
   ],
   "full": [
     "test_release_candidate",
@@ -92,7 +94,9 @@
     "test_tikz",
     "test_user_memory",
     "test_observability",
-    "test_library_entries"
+    "test_library_entries",
+    "test_counterexamples",
+    "test_counterexample_capacity"
   ],
   "root": [
     "test_workflow"

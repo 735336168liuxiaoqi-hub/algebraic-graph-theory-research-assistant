@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "request_id": "counterexample-path4-v1",
+  "objective": "反驳P4在四顶点三边连通简单图中邻接谱半径最大的猜想",
+  "execution": {
+    "mode": "counterexample",
+    "counterexample": {
+      "reference": {
+        "kind": "path",
+        "n": 4
+      },
+      "planner": "rules",
+      "max_rounds": 4,
+      "candidates_per_round": 12,
+      "seed": 42,
+      "digits": 12
+    }
+  },
+  "constraints": {
+    "max_tool_calls": 8,
+    "max_model_calls": 0,
+    "allow_extensions": false
+  }
+}

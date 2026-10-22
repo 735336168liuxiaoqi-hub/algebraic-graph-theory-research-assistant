@@ -57,11 +57,13 @@ SCAN_SCHEMA=obj({
     'method':{'enum':['auto','iteration','newton_noda']},'seed':{'type':'integer','minimum':0,'maximum':2**32-1},
     'warm_start':{'type':'boolean'},'continue_on_error':{'type':'boolean'},
 },['alphas'])
+from .counterexample import problem_schema as _counterexample_schema
+
 TASK_SCHEMA=obj({
     'version':{'const':1},'request_id':IDENTIFIER,'parent_task_id':IDENTIFIER,'objective':TEXT,
     'inputs':{'type':'object'},'definitions':{'type':'array','maxItems':32,'items':{'type':'string','minLength':1,'maxLength':2000}},
     'expected_outputs':{'type':'array','maxItems':32,'items':{'type':'string','minLength':1,'maxLength':256}},
-    'execution':obj({'mode':{'enum':['agent','tools','scan','batch']},'steps':{'type':'array','minItems':1,'maxItems':100,'items':STEP_SCHEMA},'scan':SCAN_SCHEMA,'batch':BATCH_SCHEMA},['mode']),
+    'execution':obj({'mode':{'enum':['agent','tools','scan','batch','counterexample']},'steps':{'type':'array','minItems':1,'maxItems':100,'items':STEP_SCHEMA},'scan':SCAN_SCHEMA,'batch':BATCH_SCHEMA,'counterexample':_counterexample_schema()},['mode']),
     'constraints':POLICY_SCHEMA,
 },['version','request_id','objective','execution'])
 
@@ -94,6 +96,14 @@ def validate_task(value):
         raise TaskProtocolError('invalid_task','任务输入不符合协议或超过256KiB；身份、密钥、路径和审批字段不能由任务JSON指定。') from None
     result=json.loads(encoded)
     execution=result['execution'];mode=execution['mode']
+    if mode=='counterexample':
+        if set(execution)!={'mode','counterexample'}:raise TaskProtocolError('invalid_counterexample','反例搜索只接受execution.counterexample，不混用固定步骤或其他模式。')
+        if result.get('definitions'):raise TaskProtocolError('unsupported_search_definitions','当前专用搜索只验证固定n/m、连通简单图及邻接谱目标；不接受definitions中的额外数学约束，请勿把返回反例用于更窄的图类。')
+        try:
+            from .counterexample import preflight
+            preflight(execution['counterexample'])
+        except (ValueError,KeyError,TypeError):raise TaskProtocolError('invalid_counterexample','仅支持2..128顶点、至多1024边、连通简单图、固定n/m的邻接谱半径最大化；不自动解释文字附加约束。') from None
+    elif 'counterexample' in execution:raise TaskProtocolError('invalid_counterexample','counterexample参数仅用于对应模式。')
     if mode=='batch':
         if 'steps' in execution or 'scan' in execution or 'batch' not in execution:raise TaskProtocolError('invalid_batch','batch模式只接受execution.batch。')
         from .batch_workflow import compile_batch

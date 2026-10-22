@@ -1,6 +1,6 @@
 # Algebraic Graph Theory Research Assistant — User Guide
 
-Version **0.36.0rc6**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
+Source development version **0.37.0a2**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
 
 This Python application provides graph and hypergraph computation, symbolic algebra, interactive drawing and research result management. Use the desktop manually, connect a model for research chat, or expose the same computation tools to a host agent through MCP. SageMath and WSL are not required.
 
@@ -22,7 +22,9 @@ User input, graph names/vertex labels, raw JSON, code, model replies and histori
 | Visualization | Mouse construction, draggable layouts, saved coordinates, PNG/SVG/PDF and TikZ export, paper schematics with hyperpaths of unspecified length |
 | Research workflows | Batch computations, session result bundles, result cleanup/recovery, user preferences, reviewed research experience and separate extension packages |
 
-There are **43 built-in computation tools**. The desktop groups some drawing/layout/export operations beside the relevant graph. All three modes share tool definitions and the protected computation core.
+There are **45 built-in computation tools**. The desktop groups some drawing/layout/export operations beside the relevant graph. All three modes share tool definitions and the protected computation core.
+
+Development source adds [counterexample search and independent verification](COUNTEREXAMPLE_SEARCH.md) for connected unweighted undirected simple graphs with fixed vertex/edge counts, up to **128 vertices and 1024 edges**. Rules-based search needs no model API. Verification uses exact characteristic polynomials up to 12 vertices and independently checked rational spectral bounds for larger graphs; unresolved comparisons remain unverified.
 
 | Mode | Start here | Assistant model API required? |
 | --- | --- | --- |
@@ -37,6 +39,10 @@ Non-uniform hypergraphs can be drawn. Hypergraph tensor-spectrum tools enforce u
 ## 2. Download and install
 
 ### Choose a package
+
+For the new **0.37.0a2 development source**, download the [current main branch ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) and follow the source installation steps below. Restart the desktop after upgrading; for MCP, update the actual launched runtime and reconnect. An older pinned runtime does not update with the source directory.
+
+The release assets below remain **0.36.0rc6** and do not include the new counterexample-search tools.
 
 Use the [v0.36.0rc6 release page](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.36.0rc6). While the repository is private, sign in with an authorized GitHub account.
 
@@ -191,7 +197,7 @@ The output contains STDIO transport, an absolute interpreter `command` and start
 
 The command accepts `--format codex` for TOML or `--format dsh` for a DeepSeek Harness plugin entry. Refresh/reconnect after saving. Usually the host starts the process; do not also start a second manual copy. Regenerate paths on each computer.
 
-The service exposes **13 scheduling/integration tools**. The 43 computation tools are discovered through the catalog rather than individually expanding the host's tool list.
+The service exposes **13 scheduling/integration tools**. The 45 computation tools are discovered through the catalog rather than individually expanding the host's tool list.
 
 ### First task
 
@@ -278,3 +284,8 @@ This English guide covers installation and the user workflows. Detailed paramete
 | [Provenance](provenance/README.md) / [Attribution](../NOTICE.md) | Migration records and author credits |
 
 A complete Windows installer, full implicit 3D plotting and automatic TeX compilation are not included. Numerical outputs and finite extension test cases do not establish general theorems. Source-migration records are maintenance references, not a list of missing research capabilities.
+
+
+## Counterexample search (development source)
+
+See [bounded counterexample search and independent verification](COUNTEREXAMPLE_SEARCH.md#english-summary). It supports fixed-n/m connected simple graphs with 2..128 vertices and at most 1024 edges, rule-based search without API, and optional explicitly configured model strategy selection. The download links above refer to the last published rc6 release, which does not include this development feature.

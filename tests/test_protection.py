@@ -152,7 +152,7 @@ class StorageProtectionTests(unittest.TestCase):
             (root/'legacy/tool.json').write_text(json.dumps({'name':'old','source':'def run(args): return 0'}),encoding='utf-8')
             store=ToolStore(root);registry=ToolRegistry();errors=store.load_into(registry)
             self.assertEqual({e['action'] for e in errors},{'quarantined','disabled_legacy'})
-            self.assertEqual(len(registry.tools),43)
+            self.assertEqual(len(registry.tools),45)
             self.assertEqual(registry.call('graph_invariants',{'kind':'path','n':3})['diameter'],2)
 
     def test_credentials_are_not_inherited_by_calculation_environment(self):

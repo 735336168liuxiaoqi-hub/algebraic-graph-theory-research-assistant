@@ -66,7 +66,7 @@ class _Service:
     def context(self,record):
         request=record['request']
         result={key:request.get(key) for key in ('request_id','parent_task_id','objective','inputs','definitions','expected_outputs')}
-        if request['execution']['mode']=='batch':result['execution']=copy.deepcopy(request['execution'])
+        if request['execution']['mode'] in ('batch','counterexample'):result['execution']=copy.deepcopy(request['execution'])
         return result
 
     def session(self,record):
@@ -182,6 +182,9 @@ class _Service:
         from .batch_workflow import summary as batch_summary
         batch=batch_summary(record['request'],state,record)
         if batch is not None:response['summary']['batch']=batch
+        from .counterexample import summary as counterexample_summary
+        search=counterexample_summary(state)
+        if search is not None:response['summary']['counterexample']=search
         jsonschema.validate(response,RESULT_SCHEMA)
         return self.resolve_artifacts(record,response)
 
@@ -216,6 +219,7 @@ class _Service:
         mapping={'batch_complete':'completed','batch_partial':'partial','batch_failed':'failed','recovery_required':'interrupted','manual_development_required':'blocked','awaiting_plan':'waiting_for_user','awaiting_clarification':'waiting_for_user','awaiting_approval':'waiting_for_approval','execution_error':'interrupted',
                  'cancelled':'cancelled','extension_rejected':'rejected','budget_exhausted':'budget_exhausted','blocked':'blocked','task_failed':'failed',
                  'approval_or_budget_required':'blocked','assessment_failed':'failed','extension_failed':'failed','awaiting_assessment':'blocked'}
+        mapping.update(counterexample_complete='completed',counterexample_unverified='partial')
         status=mapping.get(raw,'partial' if failed and successful else 'failed' if failed else 'completed' if successful or state.get('extension_installed') else 'analysis_only')
         if session.export_error and successful and status=='completed':status='partial'
         record['status']=status;record['phase']='finished' if status in TERMINAL else status;record['pending']=None
@@ -241,6 +245,8 @@ class _Service:
             if record['request']['execution']['mode']=='batch':
                 record['pending']['message']=('批量步骤 '+record['inflight_step']+' 可能已尝试但尚无可核验完成记录。选择继续将核验前序步骤，并重新执行未核验步骤；前次预算保留，重算另计一次尝试。请明确展示给用户。' if record.get('inflight_step') else
                     '批量任务已暂停。选择继续将复用已核验步骤并执行剩余步骤，前次预算保留；不会自动继续。')
+            if record['request']['execution']['mode']=='counterexample':
+                record['pending']['message']=('搜索步骤可能已开始但缺少核验回执。选择继续将重试未核验步骤，前次预算保留且重试另计；请先明确向用户展示。' if record.get('inflight_step') else '反例搜索已暂停；选择继续复用已核验步骤并在原预算内推进，不自动重算。')
         self.save(record)
         if 'experience_cursor' in record:
             from .experience_evidence import collect_task
@@ -288,7 +294,10 @@ class _Service:
                 if not session.state:
                     session.state={'question':record['request']['objective'],'conversation':[]};session._begin_turn(record['request']['objective'])
                 raise InterruptedError('Task cancelled before execution')
-            if record['request']['execution']['mode'] in ('tools','scan','batch'):self.run_steps(record,session)
+            if record['request']['execution']['mode']=='counterexample':
+                from .counterexample import run_search
+                run_search(record,session,self.save,self.model,explicit_continue=action=='continue')
+            elif record['request']['execution']['mode'] in ('tools','scan','batch'):self.run_steps(record,session)
             elif action=='start':session.ask(record['request']['objective'],self.model())
             elif action in ('answer','revise'):session.reply(payload['text'],self.model())
             elif action=='approve':session.approve(payload['assessment_id'],self.model())

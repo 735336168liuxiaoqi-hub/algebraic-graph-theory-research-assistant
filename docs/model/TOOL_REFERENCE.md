@@ -1,7 +1,7 @@
 # 工具功能说明（自动生成）
 
 由tool_docs.json、实际函数签名及JSON Schema合成；请修改来源后重新生成。
-这是43个已核对原生工具及已加载扩展的调用契约，不是Sage全部函数的等价性声明。
+这是45个已核对原生工具及已加载扩展的调用契约，不是Sage全部函数的等价性声明。
 
 ## 通用约定
 
@@ -1937,3 +1937,84 @@
 ```
 
 相关工具：`hypergraph_plot`, `graph_tikz`, `hypergraph_editor`。
+
+## graph_counterexample_round
+
+固定n/m连通简单图的有界反例搜索，仅数值筛选。 适用：独立反例搜索任务的一轮候选生成和数值评价 不适用：不处理任意自然语言猜想、带权/有向/超图；未找到反例不证明最优。
+
+状态：native_tested；副作用：none。
+
+**前提**：连通无向无权简单图，2..128顶点且至多1024边；只核对固定n/m及邻接谱目标。
+
+**返回**：返回数值候选、预算及游标；counterexample_verified固定为false，须另行独立核验。
+
+**限制**：搜索只为有限预算启发式或有标号枚举，未找到不证明最优。；12顶点以内采用精确多项式实根隔离；较大图用严格有理Rayleigh/Collatz谱界，未分离明确未核验。；执行仍受进程时间、CPU、内存和候选数量预算限制；不解释文字附加约束。
+
+| 参数 | 必填 | 省略时的Python默认值 | 含义 |
+| --- | --- | --- | --- |
+| `reference` | 是 | `—` | 参考图{kind,n,edges}；2..128顶点、至多1024边，连通无向无权简单图。固定其n/m，仅比较邻接谱半径。 |
+| `strategy` | 否 | `'edge_move'` | 搜索策略：enumerate为最多20000种有标号边组合的分段枚举；edge_move按Perron分量引导换边；rewire随机换边；random重新生成固定n/m图。 |
+| `candidates` | 否 | `12` | 本轮最多评价1..24个未命中近期缓存的可行候选；生成尝试另限max(64,16*candidates)。 |
+| `seed` | 否 | `42` | 随机种子0..2^32-1，固定输入与种子可复现生成顺序。 |
+| `incumbent` | 否 | `None` | 可选的当前最好可行图，与reference保持相同n/m；省略从参考图出发。 |
+| `seen` | 否 | `None` | 上轮返回的近期已访问图SHA256，最多512条、每条64位十六进制；超出缓存会淘汰旧项，可能重新访问，不是全局穷尽或非同构去重。 |
+| `cursor` | 否 | `0` | enumerate的有标号边组合游标0..20000，续算从上轮cursor取得，其他策略保持传入值。 |
+
+示例（已验证输入格式；计算结果以实际调用为准）：
+
+```json
+{
+  "action": "call",
+  "tool": "graph_counterexample_round",
+  "arguments": {
+    "reference": {
+      "kind": "path",
+      "n": 4
+    },
+    "strategy": "enumerate",
+    "candidates": 4,
+    "seen": []
+  }
+}
+```
+
+相关工具：`graph_spectrum`, `graph_counterexample_verify`。
+
+## graph_counterexample_verify
+
+从原始边表精确核验邻接谱半径严格改进。 适用：以独立严格谱界确认邻接谱半径反例 不适用：不处理任意自然语言猜想、带权/有向/超图；未找到反例不证明最优。
+
+状态：native_tested；副作用：none。
+
+**前提**：连通无向无权简单图，2..128顶点且至多1024边；只核对固定n/m及邻接谱目标。
+
+**返回**：counterexample_found/not_counterexample/candidate_unverified、约束和严格差区间。小图返回多项式实根证据；大图返回正向量及独立有理Rayleigh/Collatz证据，isolation_digits为null。
+
+**限制**：搜索只为有限预算启发式或有标号枚举，未找到不证明最优。；12顶点以内采用精确多项式实根隔离；较大图用严格有理Rayleigh/Collatz谱界，未分离明确未核验。；执行仍受进程时间、CPU、内存和候选数量预算限制；不解释文字附加约束。
+
+| 参数 | 必填 | 省略时的Python默认值 | 含义 |
+| --- | --- | --- | --- |
+| `reference` | 是 | `—` | 参考图{kind,n,edges}；2..128顶点、至多1024边，连通无向无权简单图。固定其n/m，仅比较邻接谱半径。 |
+| `candidate` | 是 | `—` | 候选图{kind,n,edges}；须与参考图有相同n/m且连通简单。不能加入未声明的权重或附加数学约束。 |
+| `digits` | 否 | `12` | 小图多项式根隔离初始位数6..24，最多48；超过12点改用有理谱界，不把digits当成大图数值误差保证。 |
+
+示例（已验证输入格式；计算结果以实际调用为准）：
+
+```json
+{
+  "action": "call",
+  "tool": "graph_counterexample_verify",
+  "arguments": {
+    "reference": {
+      "kind": "path",
+      "n": 4
+    },
+    "candidate": {
+      "kind": "star",
+      "n": 4
+    }
+  }
+}
+```
+
+相关工具：`graph_spectrum`, `graph_counterexample_round`。
