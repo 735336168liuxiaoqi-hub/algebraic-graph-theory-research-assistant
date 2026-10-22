@@ -26,7 +26,8 @@ class SubagentLimits:
 
     def resolve(self,task):
         constraints=task['constraints']
-        policy={'max_model_calls':constraints.get('max_model_calls',self.max_model_calls if task['execution']['mode']=='agent' else 0),
+        model_mode=task['execution']['mode']=='agent' or (task['execution']['mode']=='counterexample' and task['execution']['counterexample'].get('planner','rules')=='model')
+        policy={'max_model_calls':constraints.get('max_model_calls',self.max_model_calls if model_mode else 0),
                 'max_tool_calls':constraints.get('max_tool_calls',self.max_tool_calls),
                 'allow_extensions':constraints.get('allow_extensions',self.allow_extensions),
                 'allowed_tools':constraints.get('allowed_tools',list(self.allowed_tools) if self.allowed_tools is not None else None),
@@ -55,6 +56,11 @@ class SubagentLimits:
             required=len(execution_steps(task))
             if required>policy['max_tool_calls'] and constraints.get('fail_fast',False):
                 raise TaskProtocolError('tools_budget_insufficient',f"固定步骤需要{required}次工具尝试，超过预算{policy['max_tool_calls']}；fail_fast已启用，整体拒绝且未执行任何步骤。默认不启用fail_fast时保留跑满预算并保留前序结果的语义。")
+        if task['execution']['mode']=='counterexample':
+            required={'graph_counterexample_round','graph_counterexample_verify'}
+            if policy['max_tool_calls']<2:raise TaskProtocolError('search_budget_insufficient','反例搜索至少预留一轮搜索和一次独立核验，未开始计算。')
+            if policy['allowed_tools'] is not None and not required<=set(policy['allowed_tools']):raise TaskProtocolError('tool_not_permitted','反例搜索及独立核验工具必须同时在宿主白名单中。')
+            if model_mode and policy['max_model_calls']<1:raise TaskProtocolError('search_model_disabled','模型策略需要宿主显式提供模型预算；可选择rules离线运行。')
         return policy
 
     def accepts(self,policy):

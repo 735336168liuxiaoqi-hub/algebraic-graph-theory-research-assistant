@@ -1118,5 +1118,16 @@
   "；已生成独立具体超图。": "; an independent concrete hypergraph was generated.",
   "；恢复绘图时保留此项。": "; retain this setting when restoring the drawing.",
   "；样式保存到图JSON，图片和TikZ使用同一设置。": "; styles are saved in graph JSON and shared by images and TikZ.",
-  "；真实模型请求 ": "; real model requests: "
+  "；真实模型请求 ": "; real model requests: ",
+  "参考图": "Reference graph",
+  "待核验候选图": "Candidate graph",
+  "搜索策略": "Search strategy",
+  "本轮候选上限": "Candidates per round",
+  "当前最好可行图": "Incumbent graph",
+  "已访问图记录": "Visited labelled graphs",
+  "枚举续算游标": "Enumeration cursor",
+  "分段枚举": "Chunked enumeration",
+  "谱向量引导换边": "Perron-guided edge moves",
+  "随机换边": "Random edge rewiring",
+  "随机重新构图": "Random graph restarts"
 }

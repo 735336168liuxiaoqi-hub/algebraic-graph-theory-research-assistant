@@ -1,0 +1,9 @@
+{
+  "reference": {
+    "kind": "path",
+    "n": 4
+  },
+  "strategy": "enumerate",
+  "candidates": 4,
+  "seen": []
+}

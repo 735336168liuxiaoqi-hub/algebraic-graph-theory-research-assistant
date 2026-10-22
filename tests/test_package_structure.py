@@ -77,7 +77,7 @@ assert not any(n.startswith(('graph_research.assistant','graph_research.tools','
         self._isolated("""
 from graph_research.tools import ToolRegistry
 r=ToolRegistry()
-assert len(r.tools)==43
+assert len(r.tools)==45
 assert r.call('graph_invariants',{'kind':'path','n':3})['diameter']==2
 assert 'lookup_legacy' not in r.tools
 assert not any(n.startswith('graph_research.assistant') for n in sys.modules)

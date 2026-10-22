@@ -34,7 +34,7 @@ python -m graph_research mcp-config --root C:/Research/graph-state --user local-
 
 ## 主agent如何调用
 
-服务对外只提供少量调度工具，计算函数通过按需目录发现。现有43个内置工具不会同时展开全部Schema占用上下文。
+服务对外只提供少量调度工具，计算函数通过按需目录发现。当前开发版45个内置工具不会同时展开全部Schema占用上下文。
 
 | MCP工具 | 功能 |
 | --- | --- |
@@ -157,3 +157,6 @@ DSH等客户端对二进制资源的展示支持各不相同，通用路径和�
 ## 查询、扫描与契约缓存
 
 默认精简返回，full/inspect保留完整证据；提交可短暂等待，查询可等待终态；工具契约提供缓存指纹，相同schema_hash可复用已读取契约。scan模式一次提交固定图的α扫描，构图与每点分别计预算。11点加构图需要宿主显式配置至少12次尝试，默认10不会自动提高。成本日志只记本机已采集的工具RPC，不代替主模型usage。
+
+
+开发版专用任务 `execution.mode=counterexample` 的输入、预算及科研结论边界见[反例搜索](COUNTEREXAMPLE_SEARCH.md)。

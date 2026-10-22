@@ -35,6 +35,8 @@ def main():
         for needed in ['graphs/matrices.py','graphs/adapters.py','algebra/elementary.py','algebra/groups.py','hypergraphs/attachments.py','rendering/lattice.py','hypergraphs/model.py','tensors/elimination.py','rendering/tikz.py','tools/registry.py','assistant/agent.py','assistant/memory.py','assistant/session.py','assistant/model_config.py','assistant/onboarding.py','assistant/subagent.py','assistant/task_contract.py','assistant/task_control.py','assistant/host_events.py','assistant/subagent_cli.py','assistant/offline.py']:
             if 'graph_research/'+needed not in names:raise AssertionError(f'Missing implementation: {needed}')
         if 'graph_research/tools/input_guides.py' not in names:raise AssertionError('Missing offline input guides')
+        for needed in ('graph_research/assistant/counterexample.py','graph_research/workflows/counterexamples.py','graph_research/workflows/graph_spectral_certificate.py'):
+            if needed not in names:raise AssertionError('Missing counterexample component: '+needed)
         for needed in ('graph_research/rendering/layouts.py','graph_research/tools/library_entries.py'):
             if needed not in names:raise AssertionError('Missing Python capability adapter: '+needed)
         for needed in ('graph_research/rendering/results.py','graph_research/assets/result_report.html'):

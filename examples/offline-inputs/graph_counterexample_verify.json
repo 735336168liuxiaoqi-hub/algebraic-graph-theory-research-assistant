@@ -1,0 +1,10 @@
+{
+  "reference": {
+    "kind": "path",
+    "n": 4
+  },
+  "candidate": {
+    "kind": "star",
+    "n": 4
+  }
+}

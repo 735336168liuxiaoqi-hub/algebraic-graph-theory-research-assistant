@@ -29,3 +29,5 @@
 | [English user guide](QUICKSTART.md) | Capabilities, installation, three modes, graphics, results, memory, extensions and troubleshooting |
 
 当前功能和操作以首页、使用指南、工具契约为准。迁移台账不代表功能待办；生成的参数手册不手工重复维护。历史计划和过程记录不随当前源码分发。
+
+- [反例搜索与独立核验](COUNTEREXAMPLE_SEARCH.md)：专用子任务、规则/模型策略、严格核验与科研边界。
