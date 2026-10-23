@@ -1,5 +1,6 @@
 """LaTeX export geometry, label escaping and ordinary-graph support."""
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -33,7 +34,8 @@ class TikzTests(unittest.TestCase):
             if len(e)>2:
                 p=hyperedge_path([pos[v] for v in e]).vertices
                 expected.extend(p[j:j+3] for j in range(1,len(p)-1,3))
-        np.testing.assert_allclose(actual,expected,atol=1e-12)
+        # Export coordinates are now rounded; renderer geometry remains exact.
+        np.testing.assert_allclose(actual,expected,atol=5e-5,rtol=0)
         self.assertIn(r'(v2) -- (v3);',code)
         self.assertEqual(code.count(r'\fill[black]'),8)
         self.assertNotIn('hobby',code)
@@ -98,6 +100,145 @@ class TikzTests(unittest.TestCase):
         python=h.to_tikz(pos=pos,edge_labels=True)
         np.testing.assert_allclose(np.array(re.findall(PAIR,output['code']),dtype=float),np.array(re.findall(PAIR,python),dtype=float),atol=1e-12)
         self.assertEqual(output['escaped'],escape_latex(r'点_甲%&#${}^~\input{secret}'))
+
+
+class CoordinateFormattingTests(unittest.TestCase):
+    def test_short_decimal_pairs_negative_zero_and_round_trip_fallback(self):
+        from graph_research.rendering.tex_coordinates import TexCoordinates
+        coords=TexCoordinates()
+        self.assertEqual(coords.point([1.234567891234,-2e-12]),'(1.2346,0)')
+        self.assertEqual(coords.point([2.5,3]),'(2.5,3)')
+        self.assertEqual(coords.point([.03125,-.03125]),'(0.0312,-0.0312)')
+        for point in ([float('nan'),0],[float('inf'),0]):
+            with self.assertRaises(ValueError):coords.point(point)
+        close=TexCoordinates(vertices=[[0,0],[1e-30,0]])
+        self.assertIsNone(close.places)
+        self.assertNotEqual(close.point([0,0]),close.point([1e-30,0]))
+        self.assertNotIn('e',close.point([1e-30,0]))
+
+    def test_precision_increases_for_close_vertices_and_nonzero_segments(self):
+        from graph_research.rendering.tex_coordinates import TexCoordinates
+        coords=TexCoordinates(vertices=[[1,2],[1.000001,2]])
+        self.assertGreater(coords.places,4)
+        self.assertNotEqual(coords.point([1,2]),coords.point([1.000001,2]))
+        segment=[[0,0],[1e-7,0],[1e-7,0],[0,0]]
+        coords=TexCoordinates(vertices=[[0,0]],segments=[segment])
+        self.assertGreater(coords.places,4)
+        self.assertGreater(len({coords.point(p) for p in segment}),1)
+
+    def test_all_graph_export_routes_round_coordinates_but_keep_data_and_styles(self):
+        from graph_research.graph_input.document import document
+        from graph_research.rendering.presentation import document_to_tikz
+        from graph_research.rendering.tex_coordinates import for_paths
+        from graph_research.rendering.presentation import coordinates,geometry
+        graphs=[document([0,1,2],[{'vertices':[0,1],'weight':2},{'vertices':[1,0],'weight':3}],
+                         directed=True,weighted=True,positions=[[.123456789,0],[2,1.987654321],[4,-1]]),
+                document([0,1,2],[{'vertices':[0,1,2],'weight':2}],graph_type='hypergraph',weighted=True,
+                         positions=[[.123456789,0],[2,1.987654321],[4,-1]])]
+        for graph in graphs:
+            data=graph.to_dict();code=document_to_tikz(graph)
+            pairs=np.array(re.findall(PAIR,code),dtype=float)
+            self.assertTrue(np.isfinite(pairs).all())
+            self.assertTrue(all(len(v.split('.')[-1])<=4 for pair in re.findall(PAIR,code) for v in pair if '.' in v))
+            pos=coordinates(graph);fmt=for_paths(pos,geometry(graph,pos))
+            for i,v in enumerate(graph.vertices):self.assertIn(f'\\coordinate (v{i}) at '+fmt.point(pos[v])+';',code)
+            self.assertEqual(graph.to_dict(),data)
+        h=Hypergraph([[0,1,2]]);pos={0:(.123456789,0),1:(2,1.987654321),2:(4,-1)}
+        before={v:tuple(p) for v,p in pos.items()};h.to_tikz(pos=pos)
+        self.assertEqual(pos,before)
+
+    @unittest.skipUnless(shutil.which('node'),'Node is needed for browser export parity')
+    def test_browser_fixed_rounding_and_adaptive_coordinates_match_python(self):
+        from graph_research.rendering.tex_coordinates import TexCoordinates
+        source=(Path(__file__).resolve().parents[1]/'graph_research/assets/hypergraph_editor.html').read_text(encoding='utf-8')
+        functions=source[source.index('function texNumber(value)'):source.index('function texEscape(label)')]
+        geometry=source[source.index('function geometry(ids)'):source.index('function pathData(g)')]
+        samples=[.03125,-.03125,1.23456789,-2e-12,2.5,3.,.00005,.00015]
+        script='const samples='+json.dumps(samples)+';let positions=[[0,0],[.000001,0],[2,1]],edges=[[0,1],[1,2]];'+geometry+functions+";process.stdout.write(JSON.stringify({fixed:samples.map(v=>texFixed(v,4)),places:texCoordinates({normalize:false}).places,points:positions.map(texCoordinates({normalize:false}).point)}));"
+        result=json.loads(subprocess.run([shutil.which('node'),'-e',script],capture_output=True,text=True,check=True).stdout)
+        fmt=TexCoordinates(vertices=[[0,0],[.000001,0],[2,1]])
+        self.assertEqual(result['fixed'],[TexCoordinates().number(v) for v in samples])
+        self.assertEqual(result['places'],fmt.places)
+        self.assertEqual(result['points'],[fmt.point(p) for p in [[0,0],[.000001,0],[2,1]]])
+
+
+os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
+try:
+    from PySide6.QtWidgets import QApplication
+    from PySide6.QtCore import QPointF,Qt
+    from PySide6.QtTest import QTest
+    QT_AVAILABLE=True
+except ImportError:QT_AVAILABLE=False
+
+
+@unittest.skipUnless(QT_AVAILABLE,'Optional native desktop unavailable')
+class LiveCoordinateTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.app=QApplication.instance() or QApplication([])
+        cls.app.setQuitOnLastWindowClosed(False)
+
+    def test_all_native_editors_update_live_match_tex_and_leave_documents_untouched(self):
+        from graph_research.desktop.graph_canvas import GraphCanvas
+        from graph_research.desktop.schematic import SchematicCanvas
+        from graph_research.desktop.layout import LayoutDialog
+        from graph_research.graph_input.document import document
+        from graph_research.schematics import template,to_tikz
+        from graph_research.rendering.presentation import document_to_tikz
+        from graph_research.desktop.i18n import set_language
+        canvas=GraphCanvas();canvas.set_graph(document([0,1,2],[{'vertices':[0,1]},{'vertices':[1,0]}],directed=True,
+                            positions=[[.123456789,0],[2,1.987654321],[4,-1]]))
+        editors=[canvas,SchematicCanvas(template('F')),LayoutDialog({'edges':[[0,1,2]]})]
+        try:
+            for editor in editors:
+                with self.subTest(editor=type(editor).__name__):
+                    current=editor.current_graph if isinstance(editor,GraphCanvas) else editor.current_document
+                    def data():
+                        value=current();return value.to_dict() if hasattr(value,'to_dict') else value
+                    controls=editor.coordinate_controls
+                    items=list(editor.vertices.values()) if isinstance(editor.vertices,dict) else editor.vertices
+                    before=data();undo=len(getattr(editor,'undo_stack',[]))
+                    self.assertFalse(controls.enabled.isChecked())
+                    self.assertTrue(all(not v.coordinate_caption.isVisible() for v in items))
+                    controls.enabled.setChecked(True)
+                    raw=[v.coordinate_caption.text() for v in items]
+                    self.assertTrue(all(v.coordinate_caption.isVisible() for v in items))
+                    controls.system.setCurrentIndex(1)
+                    self.assertEqual(data(),before);self.assertEqual(len(getattr(editor,'undo_stack',[])),undo)
+                    if isinstance(editor,SchematicCanvas):code=to_tikz(current())
+                    elif isinstance(editor,GraphCanvas):code=document_to_tikz(current())
+                    else:code=editor.graph.to_tikz(pos=dict(zip(current()['vertices'],current()['positions'])))
+                    for item in items:self.assertIn(item.coordinate_caption.text(),code)
+                    if not isinstance(editor,SchematicCanvas):self.assertNotEqual(raw,[v.coordinate_caption.text() for v in items])
+                    old=items[0].coordinate_caption.text();items[0].setPos(items[0].pos()+QPointF(35,-21))
+                    self.assertNotEqual(items[0].coordinate_caption.text(),old)  # before mouse release
+                    controls.scope.setCurrentIndex(1);items[0].coordinate_focus()
+                    self.assertTrue(items[0].coordinate_caption.isVisible())
+                    self.assertTrue(all(not v.coordinate_caption.isVisible() for v in items[1:]))
+                    moved=data();set_language('en')
+                    self.assertEqual(controls.enabled.text(),'Show vertex coordinates')
+                    self.assertEqual(controls.system.currentData(),'tex');self.assertEqual(data(),moved)
+                    set_language('zh');self.assertEqual(controls.enabled.text(),'显示顶点坐标')
+                    controls.enabled.setChecked(False)
+                    self.assertTrue(all(not v.coordinate_caption.isVisible() for v in items));self.assertEqual(data(),moved)
+        finally:
+            set_language('zh')
+            for editor in editors:editor.close();editor.deleteLater()
+            self.app.processEvents()
+
+    def test_real_click_focuses_one_vertex_without_creating_an_undo_entry(self):
+        from graph_research.desktop.graph_canvas import GraphCanvas
+        from graph_research.graph_input.document import document
+        canvas=GraphCanvas();canvas.set_graph(document([0,1],[{'vertices':[0,1]}],positions=[[0,0],[2,1]]))
+        canvas.resize(850,650);canvas.show();self.app.processEvents()
+        try:
+            controls=canvas.coordinate_controls;controls.enabled.setChecked(True);controls.scope.setCurrentIndex(1)
+            before=canvas.current_graph().to_dict()
+            QTest.mouseClick(canvas.view.viewport(),Qt.MouseButton.LeftButton,pos=canvas.view.mapFromScene(canvas.vertices[1].pos()))
+            self.app.processEvents()
+            self.assertFalse(canvas.vertices[0].coordinate_caption.isVisible());self.assertTrue(canvas.vertices[1].coordinate_caption.isVisible())
+            self.assertEqual(canvas.current_graph().to_dict(),before);self.assertEqual(canvas.undo_stack,[])
+        finally:canvas.close();canvas.deleteLater();self.app.processEvents()
 
 
 if __name__=='__main__':

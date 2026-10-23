@@ -226,6 +226,7 @@ class GraphActionsDialog(QDialog):
         schema=style_schema()['properties'];definition={'name':'drawing_style','parameters':{'properties':schema}}
         page=QWidget();box=QVBoxLayout(page);self.style_fields={}
         for name,rule in schema.items():
+            if name=='graph_label':continue  # Dedicated live controls beside the preview.
             rule=copy.deepcopy(rule);rule['title']=titles[name];rule['description']=hints.get(name,titles[name]+'；样式保存到图JSON，图片和TikZ使用同一设置。')
             if name in DEFAULTS:rule['default']=DEFAULTS[name]
             if 'enum' in rule:
@@ -240,7 +241,9 @@ class GraphActionsDialog(QDialog):
 
     def styled_graph(self):
         style={k:f.read() for k,f in self.style_fields.items() if f.enabled.isChecked()}
-        return self.canvas.current_graph().with_updates(style=style)
+        graph=self.canvas.current_graph();label=graph.to_dict().get('style',{}).get('graph_label')
+        if label is not None:style['graph_label']=label
+        return graph.with_updates(style=style)
 
     def apply_style(self):
         try:self.canvas.set_graph(self.styled_graph())

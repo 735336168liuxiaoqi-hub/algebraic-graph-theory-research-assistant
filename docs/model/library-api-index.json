@@ -5166,6 +5166,13 @@
     "model_callable": false
   },
   {
+    "python_api": "graph_research.assistant.session.ResearchSession.set_research_mode",
+    "signature": "(self, enabled)",
+    "docstring": "Trusted standalone-session choice, fixed before the first request.",
+    "documentation_status": "has_docstring",
+    "model_callable": false
+  },
+  {
     "python_api": "graph_research.assistant.session.ResearchSession.set_workflow_budget",
     "signature": "(self, policy)",
     "docstring": "Explicit local user action; never a model tool or delegation approval.",
@@ -6178,6 +6185,13 @@
     "signature": "(self, enabled)",
     "docstring": "",
     "documentation_status": "needs_detail",
+    "model_callable": false
+  },
+  {
+    "python_api": "graph_research.assistant.evaluation.ResearchSession.set_research_mode",
+    "signature": "(self, enabled)",
+    "docstring": "Trusted standalone-session choice, fixed before the first request.",
+    "documentation_status": "has_docstring",
     "model_callable": false
   },
   {

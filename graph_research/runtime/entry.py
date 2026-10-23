@@ -44,7 +44,8 @@ def _main(timings,identifier):
                 from .probe import execute
             with measure('tool_function'):result=execute(request)
         else:
-            module={'tool':'graph_research.tools.worker','extension':'graph_research.tools.extension_worker','elimination':'graph_research.tools.elimination_worker'}[kind]
+            module={'tool':'graph_research.tools.worker','extension':'graph_research.tools.extension_worker','elimination':'graph_research.tools.elimination_worker',
+                    'experiment':'graph_research.experiments.worker'}[kind]
             from importlib import import_module
             with measure('worker.dispatch_import'):worker=import_module(module)
             buffer=io.StringIO()

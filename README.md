@@ -1,64 +1,76 @@
 # 代数图论科研助手
 
-**Algebraic Graph Theory Research Assistant** · 0.37.0a2 · [MIT](LICENSE) · [English user guide](docs/QUICKSTART.md)
+**Algebraic Graph Theory Research Assistant** · 开发源码 **0.38.0a1** · [MIT](LICENSE) · [English user guide](docs/QUICKSTART.md)
 
-面向图与超图科研的 Python 计算工具和桌面应用，支持谱计算、符号运算、交互绘图与论文图形导出。既可独立使用，也可作为主 agent 的 MCP 计算服务。无需 SageMath 或 WSL。
+面向图与超图科研的Python计算工具、桌面应用和MCP服务。支持谱与符号计算、鼠标绘图、论文图形导出，以及有限预算内的科研搜索。可以独立使用，也可以接入主agent。无需Java、SageMath或WSL；完整桌面和受保护执行目前在Windows验证。
 
-## 能做什么
+## 下载与安装
 
-| 功能 | 当前支持 |
+| 下载方式 | 版本与用途 |
 | --- | --- |
-| 普通图 | 构图与结构变换、不变量、同构与对称性、商矩阵、数值谱、精确特征/匹配多项式、能量、带权及有向矩阵 |
-| 超图 | 构造与变换、结构分析、一致超图 α 谱半径与 Perron 向量、赋权关联矩阵、张量方程与小规模精确消元 |
-| 代数与组合 | 矩阵与分块运算、递推、整数线性方程、符号求和/级数、有限置换群、Cayley 图、车多项式 |
-| 图形 | 鼠标构图、拖动布局和坐标保存、图片/TikZ 导出、含不确定长度超路的论文示意图 |
-| 科研流程 | 批量任务、会话结果包、成果清理与恢复、用户偏好与经审阅经验、独立扩展工具库 |
+| [main分支源码ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | 当前开发源码，包含下文的通用实验与搜索功能 |
+| [v0.37.0a2预发布附件](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.37.0a2) | 较早的源码运行包和wheel，不包含0.38.0a1新增实验流程 |
 
-桌面右上方的 **语言 / Language** 菜单可切换 **简体中文 / English**，选择自动保存。切换保留参数草稿和运行中的计算；原始数据、图标签与模型回复保持原文。
-
-目前有 **45 个内置计算工具**；桌面将部分绘图工具整合到对应图旁。详细定义、条件与规模限制见[功能说明](docs/FEATURES.md)，参数和可导入例子见[工具输入手册](docs/OFFLINE_INPUTS.md)。
-
-开发版新增[反例搜索与独立核验](docs/COUNTEREXAMPLE_SEARCH.md)：固定 n/m 连通简单图的邻接谱反例搜索，支持离线规则或显式启用的模型策略，最多128个顶点、1024条边。12点以内使用精确特征多项式核验，较大图使用可独立复算的精确有理数谱界；无法严格区分时保留未确认状态。
-
-当前预发布版本为 **0.37.0a2**。可从[Release发布页](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.37.0a2)下载源码ZIP、wheel、验收说明与校验值；也可下载[main分支源码](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip)。
-
-## 安装与启动
-
-在[发布页](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.37.0a2)下载源码 ZIP，解压后在含 `pyproject.toml` 的目录打开 PowerShell。仓库私有时，需要获授权的 GitHub 账号。
-
-完整桌面与受保护计算流程目前在 Windows 验证。使用 64 位 Python 3.11+，建议 3.13：
+仓库当前为私有，需要获授权的GitHub账号。解压完整源码ZIP，在包含`pyproject.toml`的目录打开PowerShell，使用64位Python 3.11+，建议3.13：
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install ".[all]"
+.\.venv\Scripts\python.exe -m pip install -e ".[all]"
+.\.venv\Scripts\python.exe -m graph_research doctor
+.\.venv\Scripts\python.exe -m graph_research protect check
 .\.venv\Scripts\python.exe -m graph_research desktop
 ```
 
-首次安装会下载依赖。以后可双击 `start-desktop.cmd` 或同目录的 `.exe` 启动器，需保留整个项目目录。使用已有 Conda/venv、wheel 安装或换电脑，请按[使用指南](使用指南.md)操作。
+首次安装需联网下载依赖。以后可双击`start-desktop.cmd`；同目录`.exe`也是使用Python环境的启动器，需要保留整个项目目录。已有Conda/venv、wheel安装、升级和换电脑见[使用指南](使用指南.md)。CEM另需可选PyTorch；`[all]`不强制安装它。
 
-## 选择入口
+## 选择使用方式
 
-| 方式 | 如何开始 | 模型配置 |
+| 入口 | 适合的任务 | 模型要求 |
 | --- | --- | --- |
-| 本地工具 | 桌面选择“本地工具”，选函数、填参数、计算 | 无需 API |
-| API 科研对话 | 桌面选择“科研对话”，配置模型后自然语言提问 | 配置兼容模型服务 |
-| MCP 子 agent | 生成 MCP 配置，交给支持 STDIO 的主 agent 启动 | 固定工具任务无需本助手另配 API |
+| 桌面本地工具 | 选择函数、填参数、查看结果、绘图和导出 | 无需API |
+| 桌面科研对话 | 自然语言澄清、组合工具、正式计划和反馈 | 配置兼容模型服务 |
+| MCP子agent | 主agent理解需求，本服务负责计算、核验和结果交付 | 固定工具和规则实验无需本助手另配API |
+
+桌面顶部“语言 / Language”可切换简体中文与English。三种入口共用**47个内置计算工具**；桌面将绘图、布局和LaTeX操作放在对应图旁。MCP对外提供13个调度／集成入口，按需发现计算契约。
 
 ![三种模式与成果流程](docs/diagrams/workflow-overview.svg)
 
-## 文档怎么读
+## 当前能力
 
-**第一次使用读前两项即可。**
+| 领域 | 支持内容 |
+| --- | --- |
+| 普通图 | 构造、结构变换、不变量、同构与对称性、商矩阵、数值／精确谱、多项式、能量、带权和有向矩阵 |
+| 超图 | 一般超图结构与距离、一致超图α谱及Perron向量、赋权关联矩阵、张量方程和有界精确消元 |
+| 代数与组合 | 矩阵及分块、递推、整数线性方程、符号求和／级数、有限置换群、Cayley图、车多项式 |
+| 图形 | 鼠标构图、拖动布局、保存坐标、PNG/SVG/PDF和TikZ、含不确定长度超路的论文示意图、整图标签和坐标显示 |
+| 科研管理 | 批量步骤、结果包、成果清理与恢复、用户偏好、经审阅经验、审批后的独立扩展工具包 |
+| 通用实验 | 有限候选评价、枚举／随机／局部搜索、可选CPU CEM、规则／模型调度、反馈微调、结构观察及明确假设的反驳 |
+
+### 如何开始一次研究
+
+普通计算直接使用已有工具；多案例／多步骤用[批量任务](docs/BATCH.md)。桌面“科研实验”开关使用[模型科研计划](docs/RESEARCH_PLANNING.md)。更复杂的有限搜索使用[通用实验工作流](docs/EXPERIMENTS.md)：
+
+| 操作 | 用途 |
+| --- | --- |
+| `prepare` | 明确数学问题、建议参数实例和能力缺口；只生成未批准草案 |
+| `execute` | 用户确认后评价明确提供的候选集合 |
+| `study` | 用户确认有限范围、方法及预算后，分段搜索、可选CEM、诊断及假设检验 |
+
+study可由规则提出初始参数实例，无需先给出所有数值；规则调度不需要API，内部模型调度可选。支持允许含环的一般／一致超图，超树是可选条件。当前study的超图指标为距离谱和超边数；已有张量工具另有一致性与核验要求。通用study目前通过CLI、Python和MCP使用，桌面专用表单尚未提供。
+
+所有结果都有适用范围：数值观察、候选模式、有限扫描及“未找到反例”不能代替一般性证明。规模、预算、审批和可恢复边界见具体契约。完整Windows安装器、完整隐式三维绘图及自动TeX编译尚未提供。
+
+## 文档导航
 
 | 文档 | 内容 |
 | --- | --- |
-| [使用指南](使用指南.md) | 安装、三种模式、首个算例、结果保存与常见问题 |
-| [功能说明](docs/FEATURES.md) | 现有计算能力、入口与适用边界 |
-| [专题文档目录](docs/README.md) | 图形、API、MCP、批量、成果与记忆、扩展的详细操作 |
-| [工作流程图](docs/WORKFLOW.md) | 从研究输入到计算、审批与成果的流转 |
-| [贡献指南](CONTRIBUTING.md) | 开发检查、保护机制和提交流程 |
-| [当前版本与验证](docs/releases/CURRENT.md) | 发布范围、已完成的验收与限制 |
+| [使用指南](使用指南.md) / [English guide](docs/QUICKSTART.md) | 安装、三种入口、首次计算、通用实验、升级及常见问题 |
+| [功能与边界](docs/FEATURES.md) | 计算能力、数学条件和规模限制 |
+| [通用实验](docs/EXPERIMENTS.md) | 搜索、CEM、规划、可信反馈、假设检验与可运行JSON例子 |
+| [MCP接入](docs/MCP.md) | 连接主agent、工具预算、后台任务和用户交互 |
+| [工作流程图](docs/WORKFLOW.md) | 三种入口、LangGraph计划与study闭环 |
+| [专题目录](docs/README.md) | 图形、API、成果、记忆、扩展和Python接口 |
+| [版本与验证](docs/releases/CURRENT.md) | 开发源码与历史Release的范围区别 |
+| [贡献指南](CONTRIBUTING.md) | 开发检查、核心保护和提交流程 |
 
-非一致超图可绘制结构图；超图张量谱工具遵循一致性等数学前提。精确消元和枚举均有规模限制，数值结果不能代替数学证明。完整 Windows 安装器、完整隐式三维绘图与自动 TeX 编译尚未提供；TikZ 源码导出已支持。
-
-许可与来源见 [LICENSE](LICENSE)、[NOTICE](NOTICE.md) 和[授权记录](LICENSE-STATUS.md)。[源码迁移记录](docs/provenance/README.md)用于维护追溯，不是用户功能菜单。
+许可及来源见[LICENSE](LICENSE)、[NOTICE](NOTICE.md)和[授权记录](LICENSE-STATUS.md)。[源码迁移记录](docs/provenance/README.md)用于维护追溯；研究数据、密钥、虚拟环境及本地过程记录不随源码分发。

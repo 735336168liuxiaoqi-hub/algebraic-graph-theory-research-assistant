@@ -13,6 +13,7 @@ import uuid
 import numpy as np
 
 from graph_research.rendering.geometry import COLORS, hyperedge_path, vertex_positions
+from graph_research.rendering.tex_coordinates import for_paths as _for_paths
 from graph_research.runtime.observability import timed
 
 
@@ -70,21 +71,8 @@ def hypergraph_to_tikz(h, *, pos=None, standalone=False, vertex_labels=True,
     positions = vertex_positions(h,stored if pos is None and stored else pos,seed=seed)
     paths = [hyperedge_path([positions[v] for v in e],tension=tension,continuity=continuity,bias=bias) for e in h.Edges]
     simple = all(len(edge)==2 for edge in h.Edges)
-    geometry = list(positions.values())+[p for path in paths for p in path.vertices]
-    offset,factor = np.zeros(2),1.
-    if normalize and geometry:
-        points = np.asarray(geometry)
-        low,high = points.min(axis=0),points.max(axis=0)
-        span = float((high-low).max())
-        offset = low/2+high/2
-        factor = size_cm/span if span else 1.
-        if not math.isfinite(factor):
-            raise ValueError("Coordinate span is too small for TikZ normalization")
-    def point(p):
-        q = (np.asarray(p)-offset)*factor
-        if not normalize and np.max(np.abs(q))>100:
-            raise ValueError("Literal coordinates exceed100cm; use normalize=True")
-        return f"({tex_number(q[0])},{tex_number(q[1])})"
+    coords = _for_paths(positions,paths,normalize=normalize,size_cm=size_cm)
+    point = coords.point
     index = {v:i for i,v in enumerate(h.Vertices)}
     palette = []
     for i,e in enumerate(h.Edges):
@@ -133,7 +121,7 @@ def hypergraph_to_tikz(h, *, pos=None, standalone=False, vertex_labels=True,
         if vertex_labels is not False:
             dx,dy,anchor = _label_offset(h,positions,v)
             label = escape_latex(labels.get(v,display_label(v)))
-            lines.append(r"\node[anchor="+anchor+r",inner sep=0pt,xshift="+tex_number(dx)+r"pt,yshift="+tex_number(dy)+"pt] at ("+name+") {"+label+"};")
+            lines.append(r"\node[anchor="+anchor+r",inner sep=0pt,xshift="+coords.number(dx)+r"pt,yshift="+coords.number(dy)+"pt] at ("+name+") {"+label+"};")
     lines.append(r"\end{tikzpicture}")
     fragment = "\n".join(lines)+"\n"
     if not standalone:

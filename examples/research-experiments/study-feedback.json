@@ -1,0 +1,8 @@
+{
+  "knobs": {
+    "exploration": 0.25,
+    "elite_fraction": 0.4,
+    "penalty_weight": 2
+  },
+  "note": "增加探索，正式目标不变。"
+}

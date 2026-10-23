@@ -1,0 +1,70 @@
+{
+  "operation": "submit",
+  "task": {
+    "version": 1,
+    "request_id": "experiment-clique-free-prepare-v1",
+    "objective": "准备研究K_r-free图的alpha谱极值规律，由助手提出初始有限实验范围。",
+    "execution": {
+      "mode": "experiment",
+      "experiment": {
+        "operation": "prepare",
+        "max_cases": 12,
+        "seed": 42,
+        "problem": {
+          "version": 1,
+          "question": "研究F(n,r,alpha)及候选极图结构随参数的变化；本次仅准备实验。",
+          "intent": "parameterized_extremum",
+          "object": {
+            "type": "simple_graph",
+            "order": {
+              "parameter": "n"
+            }
+          },
+          "parameters": {
+            "n": {
+              "kind": "integer",
+              "role": "explore",
+              "meaning": "order"
+            },
+            "r": {
+              "kind": "integer",
+              "role": "explore",
+              "meaning": "clique_order"
+            },
+            "alpha": {
+              "kind": "real",
+              "role": "explore",
+              "meaning": "alpha"
+            }
+          },
+          "constraints": {
+            "predicate": "clique_free",
+            "arguments": {
+              "r": {
+                "parameter": "r"
+              }
+            }
+          },
+          "objective": {
+            "metric": "alpha_spectral_radius",
+            "direction": "maximize",
+            "arguments": {
+              "alpha": {
+                "parameter": "alpha"
+              }
+            }
+          },
+          "assumptions": [
+            "参数采样范围不等于数学命题的完整范围。",
+            "不预先将K_r-free限制为完全多部图。"
+          ]
+        }
+      }
+    },
+    "constraints": {
+      "max_model_calls": 0,
+      "max_tool_calls": 0,
+      "allow_extensions": false
+    }
+  }
+}

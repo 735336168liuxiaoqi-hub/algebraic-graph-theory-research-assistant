@@ -224,7 +224,8 @@ class MCPResearchRuntime:
 
     def submit(self,task,wait_seconds=0,detail="summary"):
         request=validate_task(task)
-        model_mode=request['execution']['mode']=='agent' or (request['execution']['mode']=='counterexample' and request['execution']['counterexample'].get('planner','rules')=='model')
+        model_mode=request['execution']['mode'] in ('agent','research') or (request['execution']['mode']=='counterexample' and request['execution']['counterexample'].get('planner','rules')=='model')
+        model_mode=model_mode or request['execution']['mode']=='experiment' and request['execution']['experiment'].get('planner')=='model'
         if model_mode and self.configuration.model_settings is None:
             raise TaskProtocolError('agent_mode_disabled','此MCP服务只启用已有工具计算；自主模型规划需由宿主显式启用。')
         self.configuration.limits().resolve(request)
@@ -295,7 +296,11 @@ class MCPResearchRuntime:
             return {'service':service_info,**({'schema_hash':fingerprint,'unchanged':True} if known_hash==fingerprint else {'tool':definition,'schema_hash':fingerprint})}
         return {'tools':[{'name':d['name'],'description':d['description'],'status':d['status']} for d in registry.catalog() if permitted is None or d['name'] in permitted],
                 'capabilities':{'agent_mode':self.configuration.model_settings is not None,'allow_extensions':self.configuration.allow_extensions,'max_active_jobs':1,'transport':'stdio',
-                                'workflow_modes':['tools','scan','batch']+(['agent'] if self.configuration.model_settings is not None else []),
+                                'workflow_modes':['tools','scan','batch','counterexample','experiment']+(['agent','research'] if self.configuration.model_settings is not None else []),
+                                'experiment_preparation':{'phase':7,'operations':['prepare','execute','study'],'search_enabled':True,
+                                                          'search_operation':'experiment_search','learning_dependency':'optional_cpu_torch',
+                                                          'evaluation_operation':'experiment_evaluate','review':'trusted_host_continue',
+                                                          'contracts_resource':'graph-research://contracts','model_required':False},
                                 'memory':{'read_only':True,'scope':'configured_host_user','experience_review':'trusted_host_only'},
                                 'tool_library':{'persistent':True,'versions':True,'development_without_internal_api':self.configuration.allow_development,'approval':'trusted_host_only'},
                                 'batch':{'max_expanded_steps':100,'max_cases':64,'failure_policies':['stop','continue_independent'],'execution':'protected_step_processes'}},

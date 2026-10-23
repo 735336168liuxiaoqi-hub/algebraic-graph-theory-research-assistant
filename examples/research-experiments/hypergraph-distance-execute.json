@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "request_id": "experiment-hypergraph-distance-execute-v1",
+  "objective": "比较允许含环的一致超图的距离谱；不限制为超树。",
+  "execution": {
+    "mode": "experiment",
+    "experiment": {
+      "operation": "execute",
+      "problem": {
+        "version": 1,
+        "question": "比较允许含环的一致超图的距离谱；不限制为超树。",
+        "intent": "parameterized_extremum",
+        "object": {
+          "type": "uniform_hypergraph",
+          "order": {
+            "parameter": "n"
+          },
+          "uniformity": {
+            "parameter": "k"
+          }
+        },
+        "parameters": {
+          "n": {
+            "kind": "integer",
+            "role": "fixed",
+            "meaning": "order",
+            "value": 6
+          },
+          "k": {
+            "kind": "integer",
+            "role": "fixed",
+            "meaning": "uniformity",
+            "value": 3
+          },
+          "m": {
+            "kind": "integer",
+            "role": "fixed",
+            "meaning": "size",
+            "value": 3
+          }
+        },
+        "constraints": {
+          "all": [
+            {
+              "predicate": "connected"
+            },
+            {
+              "predicate": "edge_count",
+              "arguments": {
+                "value": {
+                  "parameter": "m"
+                }
+              }
+            }
+          ]
+        },
+        "objective": {
+          "metric": "distance_spectral_radius",
+          "direction": "maximize"
+        },
+        "assumptions": [
+          "允许关联图有环，不使用超树的N=1+(k-1)m关系。",
+          "距离是超图路径经过的超边数；不是张量谱。"
+        ]
+      },
+      "cases": [
+        {
+          "id": "cyclic_hypergraphs",
+          "parameters": {
+            "n": 6,
+            "k": 3,
+            "m": 3
+          },
+          "candidates": [
+            {
+              "n": 6,
+              "edges": [
+                [
+                  0,
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  3,
+                  4
+                ],
+                [
+                  0,
+                  4,
+                  5
+                ]
+              ]
+            },
+            {
+              "n": 6,
+              "edges": [
+                [
+                  0,
+                  1,
+                  2
+                ],
+                [
+                  0,
+                  3,
+                  4
+                ],
+                [
+                  0,
+                  4,
+                  5
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "chunk_size": 2,
+      "segment_chunks": 1,
+      "budget": {
+        "max_evaluations": 8,
+        "wall_seconds": 120,
+        "cpu_seconds": 120,
+        "memory_mb": 512
+      }
+    }
+  },
+  "constraints": {
+    "max_model_calls": 0,
+    "max_tool_calls": 4,
+    "allow_extensions": false
+  }
+}

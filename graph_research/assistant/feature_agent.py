@@ -87,6 +87,10 @@ class AgentState(TypedDict,total=False):
     delegated_task:dict
     research_objects:dict
     plan:dict
+    research_identity:dict
+    research_plan_count:int
+    research_plan_history:list
+    research_observation_start:int
     tool_steps:int
     inspection:dict
     decision_id:str
@@ -142,7 +146,9 @@ def build_agent(model,registry=None,store=None,max_steps=10,changes=None,*,memor
             if approved_budget:
                 try:changes.consume_model_call(approved_budget)
                 except RuntimeError as error:raise TaskControlError('approved_budget_exhausted',str(error),'approval_or_budget_required') from None
-        messages=[{'role':'system','content':SYSTEM},{'role':'user','content':json.dumps(context,ensure_ascii=False)}]
+        from . import research_protocol as research
+        if research.enabled(state):context['research_progress']=research.summary(state)
+        messages=[{'role':'system','content':SYSTEM+(research.SYSTEM if research.enabled(state) else '')},{'role':'user','content':json.dumps(context,ensure_ascii=False)}]
         if governance is not None:decision=governance.model_call(workflow_task_id,model,messages,before_start=before_model)
         else:before_model();decision=model.complete(messages)
         if len(json.dumps(decision,allow_nan=False))>200000:raise ValueError('Model decision exceeds the supported size')
@@ -151,6 +157,10 @@ def build_agent(model,registry=None,store=None,max_steps=10,changes=None,*,memor
         return {'decision':decision,'decision_id':uuid.uuid4().hex,'steps':state.get('steps',0)+1,'decisions':state.get('decisions',[])+[decision]}
 
     def execute(state):
+        from . import research_protocol as research
+        if research.enabled(state):
+            try:research.require_planned_call(state)
+            except ValueError as error:raise TaskControlError('research_plan_required',str(error)) from None
         d=state['decision'];observation={'tool':d.get('tool'),'arguments':d.get('arguments',{})}
         from .research_objects import empty_objects
         objects=state.get('research_objects',empty_objects());used=state.get('tool_steps',0)
@@ -220,15 +230,17 @@ def build_agent(model,registry=None,store=None,max_steps=10,changes=None,*,memor
         from .planning import new_plan,plan_text
         from .research_objects import empty_objects
         try:
-            plan=new_plan(state['decision'].get('plan'),registry,state.get('research_objects',empty_objects()),execution_control,review_plans)
+            from . import research_protocol as research
+            plan=new_plan(state['decision'].get('plan'),registry,state.get('research_objects',empty_objects()),execution_control,review_plans or (research.enabled(state) and research.options(state).get('require_review',False)))
+            research_update=research.bind_plan(state,plan,execution_control) if research.enabled(state) else {}
             remaining=max_steps-state.get('tool_steps',0)
             if governance is not None:
                 usage=governance.summary(workflow_task_id);remaining=usage['policy']['max_tool_calls']-usage['tool_calls']
             if len(plan['steps'])>remaining:raise ValueError('计划步骤超过本轮剩余工具调用次数。')
             waiting=plan['status']=='awaiting_review'
-            return {'plan':plan,'status':'awaiting_plan' if waiting else 'running','answer':'计划已准备，请查看步骤后开始执行，或回复修改需求。' if waiting else '计划已准备，正在执行已有工具。'}
+            return {**research_update,'plan':plan,'status':'awaiting_plan' if waiting else 'running','answer':'计划已准备，请查看步骤后开始执行，或回复修改需求。' if waiting else '计划已准备，正在执行已有工具。'}
         except Exception as error:
-            return {'plan':{},'observations':state.get('observations',[])+[{'operation':'plan','ok':False,'error':str(error)}]}
+            return {'plan':state.get('plan',{}) if research.enabled(state) else {},'observations':state.get('observations',[])+[{'operation':'plan','ok':False,'error':str(error)}]}
 
     def inspect(state):
         from .model_context import inspect_data
@@ -303,6 +315,10 @@ def build_agent(model,registry=None,store=None,max_steps=10,changes=None,*,memor
         status=state.get('status')
         if status not in ('budget_exhausted','approval_or_budget_required'):
             status='tool_results_available' if successful else 'extension_ready' if state.get('extension_installed') else 'model_analysis_only'
+        from . import research_protocol as research
+        if research.enabled(state) and status not in ('budget_exhausted','approval_or_budget_required'):
+            result=research.summary({**state,'status':status})
+            status='research_complete' if result['outcome']=='completed' else 'research_partial'
         return {'answer':str(state['decision'].get('answer','未生成回答')),'claims':state['decision'].get('claims',[]),'status':status}
 
     graph=StateGraph(AgentState)

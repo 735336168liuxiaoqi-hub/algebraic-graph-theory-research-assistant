@@ -25,6 +25,10 @@ class VertexItem(QGraphicsEllipseItem):
         self.caption=QGraphicsSimpleTextItem(str(label),self);self.caption.setPos(8,-19)
         self.caption.setBrush(QBrush(QColor('#233c47')))
 
+    def mousePressEvent(self,event):
+        if event.button()==Qt.MouseButton.LeftButton and getattr(self,'coordinate_focus',None):self.coordinate_focus()
+        super().mousePressEvent(event)
+
     def itemChange(self,change,value):
         result=super().itemChange(change,value)
         if change==QGraphicsItem.GraphicsItemChange.ItemPositionHasChanged:self.changed()
@@ -45,6 +49,10 @@ class LayoutDialog(QDialog):
             pos={record['vertex']:record['xy'] for record in positions}
             if len(pos)!=len(positions):raise ValueError('顶点坐标不能重复')
         self.document=layout_document(self.graph,pos,seed=arguments.get('seed',42),layout=arguments.get('layout','spring'))
+        label=arguments.get('graph_document',{}).get('style',{}).get('graph_label')
+        if label is not None:
+            from graph_research.graph_input.figure_label import validate
+            self.document['style']={'graph_label':validate(label)}
         self.initial_document=copy.deepcopy(self.document)
         self._updating=False;self.vertices=[];self.paths=[]
         root=QVBoxLayout(self);heading=QLabel('拖动顶点调整布局');heading.setObjectName('sectionTitle');root.addWidget(heading)
@@ -55,10 +63,15 @@ class LayoutDialog(QDialog):
         row=QHBoxLayout();root.addLayout(row)
         for title,action in [('适应窗口',self.fit),('恢复初始布局',self.reset),('导入坐标',self.import_positions),('保存坐标',self.save_positions),('用于TikZ导出',self.use_positions)]:
             button=QPushButton(title);button.clicked.connect(action);row.addWidget(button)
+        from .coordinate_labels import CoordinateControls
+        self.coordinate_controls=CoordinateControls(self);self.coordinate_controls.changed.connect(self.redraw);root.addWidget(self.coordinate_controls)
+        from .figure_label import FigureLabelControls
+        self.figure_label_controls=FigureLabelControls(self);self.figure_label_controls.applied.connect(self._set_figure_label);root.addWidget(self.figure_label_controls)
         self.build_scene();self.fit()
 
     def build_scene(self):
-        self._updating=True;self.vertices=[];self.paths=[];self.scene.clear()
+        self._updating=True;self.vertices=[];self.paths=[];self.figure_label_controls.reset_item();self.scene.clear()
+        self.figure_label_controls.load(self.document.get('style',{}).get('graph_label'))
         for i,_ in enumerate(self.graph.Edges):
             item=self.scene.addPath(QPainterPath(),QPen(QColor('black' if self.simple else COLORS[i%len(COLORS)]),2))
             item.setZValue(1);self.paths.append(item)
@@ -70,8 +83,10 @@ class LayoutDialog(QDialog):
     def redraw(self):
         if self._updating:return
         coordinates={label:[item.pos().x()/110,-item.pos().y()/110] for label,item in zip(self.document['vertices'],self.vertices)}
+        curves=[]
         for edge,item in zip(self.graph.Edges,self.paths):
             curve=hyperedge_path([coordinates[v] for v in edge]);path=QPainterPath()
+            curves.append(curve)
             vertices=curve.vertices.copy();vertices[:,0]*=110;vertices[:,1]*=-110
             # Matplotlib path codes are shared with the original exported curves.
             index=0
@@ -85,6 +100,20 @@ class LayoutDialog(QDialog):
                 elif code==79:path.closeSubpath();index+=1
                 else:index+=1
             item.setPath(path)
+        from graph_research.rendering.tex_coordinates import for_paths
+        items=dict(zip(self.document['vertices'],self.vertices))
+        self.coordinate_controls.update_items(items,coordinates,lambda:for_paths(coordinates,curves))
+        points=list(coordinates.values())+[p for curve in curves for p in curve.vertices]
+        self.figure_label_controls.sync(self.scene,self.document.get('style',{}).get('graph_label'),points,scale=110)
+
+    def _set_figure_label(self,value):
+        try:
+            from graph_research.graph_input.figure_label import validate
+            if value is None:self.document.get('style',{}).pop('graph_label',None)
+            else:self.document.setdefault('style',{})['graph_label']=validate(value)
+            self.figure_label_controls.load(self.document.get('style',{}).get('graph_label'));self.redraw()
+        except ValueError as error:
+            QMessageBox.warning(self,'标签未应用',str(error));self.redraw()
 
     def current_document(self):
         data={**self.document,'positions':[[v.pos().x()/110,-v.pos().y()/110] for v in self.vertices]}
@@ -116,7 +145,14 @@ class LayoutDialog(QDialog):
     def use_positions(self):
         try:
             data=self.current_document();labels=data['vertices']
-            self.positions_ready.emit({'vertices':labels,'edges':[[labels[i] for i in edge] for edge in data['edges']],
-                                       'positions':[{'vertex':v,'xy':xy} for v,xy in zip(labels,data['positions'])]})
+            arguments={'vertices':labels,'edges':[[labels[i] for i in edge] for edge in data['edges']],
+                       'positions':[{'vertex':v,'xy':xy} for v,xy in zip(labels,data['positions'])]}
+            if data.get('style',{}).get('graph_label'):
+                from graph_research.graph_input.document import document
+                graph=document(labels,[{'vertices':members,'weight':float(w)} for members,w in zip(arguments['edges'],self.graph.weights)],
+                               graph_type='graph' if self.simple else 'hypergraph',weighted=any(w!=1 for w in self.graph.weights),
+                               positions=data['positions'],style=data['style'])
+                arguments['graph_document']=graph.to_dict()
+            self.positions_ready.emit(arguments)
             self.accept()
         except Exception as exc:QMessageBox.warning(self,'布局尚不可导出',str(exc))

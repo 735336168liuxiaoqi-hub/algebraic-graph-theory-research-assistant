@@ -1,0 +1,107 @@
+{
+  "operation": "submit",
+  "task": {
+    "version": 1,
+    "request_id": "hypergraph-distance-study-v1",
+    "objective": "在有限预算内探索候选结构，保留反驳证据及证明缺口。",
+    "execution": {
+      "mode": "experiment",
+      "experiment": {
+        "operation": "study",
+        "problem": {
+          "version": 1,
+          "question": "比较允许含环的一致超图的距离谱；不限制为超树。",
+          "intent": "parameterized_extremum",
+          "object": {
+            "type": "uniform_hypergraph",
+            "order": {
+              "parameter": "n"
+            },
+            "uniformity": {
+              "parameter": "k"
+            }
+          },
+          "parameters": {
+            "n": {
+              "kind": "integer",
+              "role": "fixed",
+              "meaning": "order",
+              "value": 6
+            },
+            "k": {
+              "kind": "integer",
+              "role": "fixed",
+              "meaning": "uniformity",
+              "value": 3
+            },
+            "m": {
+              "kind": "integer",
+              "role": "fixed",
+              "meaning": "size",
+              "value": 3
+            }
+          },
+          "constraints": {
+            "all": [
+              {
+                "predicate": "connected"
+              },
+              {
+                "predicate": "edge_count",
+                "arguments": {
+                  "value": {
+                    "parameter": "m"
+                  }
+                }
+              }
+            ]
+          },
+          "objective": {
+            "metric": "distance_spectral_radius",
+            "direction": "maximize"
+          },
+          "assumptions": [
+            "允许关联图有环，不使用超树的N=1+(k-1)m关系。",
+            "距离是超图路径经过的超边数；不是张量谱。"
+          ]
+        },
+        "methods": [
+          "random",
+          "local"
+        ],
+        "seeds": [
+          11,
+          22
+        ],
+        "rounds": 1,
+        "batch_size": 4,
+        "case_limit": 2,
+        "segment_rounds": 4,
+        "planner": "rules",
+        "adaptive": true,
+        "max_edges": 8,
+        "budget": {
+          "max_evaluations": 128,
+          "wall_seconds": 240,
+          "cpu_seconds": 180,
+          "memory_mb": 1024
+        },
+        "cases": [
+          {
+            "id": "cyclic_hypergraphs",
+            "parameters": {
+              "n": 6,
+              "k": 3,
+              "m": 3
+            }
+          }
+        ]
+      }
+    },
+    "constraints": {
+      "max_tool_calls": 10,
+      "max_model_calls": 0,
+      "allow_extensions": false
+    }
+  }
+}

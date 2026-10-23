@@ -1,0 +1,35 @@
+{
+  "operation": "submit",
+  "task": {
+    "version": 1,
+    "request_id": "research-atlas6-v1",
+    "objective": "完整统计6阶连通简单图的邻接单谱性、全一输入可控性及Wronskian顶点，并独立复核样例",
+    "execution": {
+      "mode": "research",
+      "research": {
+        "require_review": false,
+        "max_plans": 3,
+        "verification": "independent",
+        "scope": {
+          "source": "atlas",
+          "orders": [
+            6
+          ],
+          "matrix": "A",
+          "filters": {
+            "connected": true
+          }
+        }
+      }
+    },
+    "constraints": {
+      "max_model_calls": 6,
+      "max_tool_calls": 8,
+      "allow_extensions": false,
+      "allowed_tools": [
+        "graph_property_scan",
+        "graph_property_verify"
+      ]
+    }
+  }
+}

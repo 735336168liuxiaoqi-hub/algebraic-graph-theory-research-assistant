@@ -26,7 +26,8 @@ class SubagentLimits:
 
     def resolve(self,task):
         constraints=task['constraints']
-        model_mode=task['execution']['mode']=='agent' or (task['execution']['mode']=='counterexample' and task['execution']['counterexample'].get('planner','rules')=='model')
+        model_mode=task['execution']['mode'] in ('agent','research') or (task['execution']['mode']=='counterexample' and task['execution']['counterexample'].get('planner','rules')=='model')
+        model_mode=model_mode or task['execution']['mode']=='experiment' and task['execution']['experiment'].get('planner')=='model'
         policy={'max_model_calls':constraints.get('max_model_calls',self.max_model_calls if model_mode else 0),
                 'max_tool_calls':constraints.get('max_tool_calls',self.max_tool_calls),
                 'allow_extensions':constraints.get('allow_extensions',self.allow_extensions),
@@ -41,6 +42,24 @@ class SubagentLimits:
             if value>policy['tool_limits'][key]:raise TaskProtocolError('host_limit_exceeded','请求不能提高宿主的单次计算限额。')
             policy['tool_limits'][key]=value
         TaskLimits(**policy['tool_limits'])
+        if task['execution']['mode']=='experiment' and task['execution']['experiment']['operation']=='study':
+            from graph_research.experiments.search_contract import compile_study,OPERATION
+            study=compile_study(task['execution']['experiment'])
+            if study['planned_rounds']>policy['max_tool_calls']:raise TaskProtocolError('study_budget_insufficient','搜索轮数超过宿主工具预算，未执行。')
+            if study['spec']['planner']=='model' and policy['max_model_calls']<1:raise TaskProtocolError('study_model_disabled','模型规划需要宿主启用模型预算；可选择rules。')
+            if study['spec']['budget']['memory_mb']>policy['tool_limits']['memory_mb']:raise TaskProtocolError('host_limit_exceeded','研究内存超过宿主上限。')
+            if policy['allowed_tools'] is not None and OPERATION not in policy['allowed_tools']:raise TaskProtocolError('tool_not_permitted','宿主白名单未包含experiment_search内部搜索操作。')
+            if 'cem' in study['spec']['methods']:
+                from importlib.util import find_spec
+                if find_spec('torch') is None:raise TaskProtocolError('study_dependency_missing','cem需要可选PyTorch环境；尚未执行或扣除搜索尝试。请按search依赖说明安装，或选择random/local/enumerate。')
+        if task['execution']['mode']=='experiment' and task['execution']['experiment']['operation']=='execute':
+            from graph_research.experiments.execution_contract import compile_execution,INTERNAL_OPERATION
+            compiled=compile_execution(task['execution']['experiment'])
+            if len(compiled['jobs'])>policy['max_tool_calls']:raise TaskProtocolError('experiment_budget_insufficient','明确候选集合所需分段超过工具尝试预算。')
+            if compiled['spec']['budget']['memory_mb']>policy['tool_limits']['memory_mb']:raise TaskProtocolError('host_limit_exceeded','实验内存不能超过宿主限额。')
+            if policy['allowed_tools'] is not None and INTERNAL_OPERATION not in policy['allowed_tools']:raise TaskProtocolError('tool_not_permitted','宿主白名单未包含experiment_evaluate内部评价操作。')
+        if task['execution']['mode']=='research' and policy['max_model_calls']<1:
+            raise TaskProtocolError('research_model_disabled','科研自主规划需要宿主显式启用模型；无需模型可直接组合性质遍历和核验工具。')
         if task['execution']['mode']=='batch':
             from .batch_workflow import compile_batch
             steps=compile_batch(task)['steps']

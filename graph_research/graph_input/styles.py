@@ -14,9 +14,11 @@ GRAPH_DOCUMENT_SCHEMA={'type':'object','maxProperties':11,
 
 
 def style_schema():
+    from .figure_label import schema
     color={'type':'string','pattern':'^#[0-9a-fA-F]{6}$'}
     pair={'type':'array','minItems':2,'maxItems':2,'items':{'type':'number','minimum':-200,'maximum':200}}
     return {'type':'object','additionalProperties':False,'properties':{
+        'graph_label':schema(),
         'vertex_color':color,'edge_color':color,
         'font_size':{'type':'number','minimum':6,'maximum':36},
         'font_family':{'enum':['sans','serif','monospace']},
@@ -42,7 +44,11 @@ def validate_style(style,vertices,edges):
     if unknown:raise FieldValidationError(['style'],{'type':'object'},'绘图样式含未知字段；请查看style契约。')
     for key,value in style.items():
         def fail(message):raise FieldValidationError(['style',key],rules[key],message)
-        if key in ('vertex_color','edge_color'):
+        if key=='graph_label':
+            from .figure_label import validate
+            try:validate(value)
+            except ValueError as error:fail(str(error))
+        elif key in ('vertex_color','edge_color'):
             if not isinstance(value,str) or not re.fullmatch(r'#[0-9a-fA-F]{6}',value):fail('颜色使用#RRGGBB格式。')
         elif key in ('font_family','line_style'):
             if value not in style_schema()['properties'][key]['enum']:fail('未知字体类别或线型。')

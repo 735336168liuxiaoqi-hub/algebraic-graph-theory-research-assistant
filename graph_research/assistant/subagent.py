@@ -66,7 +66,7 @@ class _Service:
     def context(self,record):
         request=record['request']
         result={key:request.get(key) for key in ('request_id','parent_task_id','objective','inputs','definitions','expected_outputs')}
-        if request['execution']['mode'] in ('batch','counterexample'):result['execution']=copy.deepcopy(request['execution'])
+        if request['execution']['mode'] in ('batch','counterexample','research','experiment'):result['execution']=copy.deepcopy(request['execution'])
         return result
 
     def session(self,record):
@@ -185,6 +185,18 @@ class _Service:
         from .counterexample import summary as counterexample_summary
         search=counterexample_summary(state)
         if search is not None:response['summary']['counterexample']=search
+        from .research_protocol import summary as research_summary
+        from types import SimpleNamespace
+        research=research_summary(state,session or SimpleNamespace(directory=self.task_dir(record['task_id'])/'session'))
+        if research is not None:response['summary']['research']=research
+        if state.get('experiment_preparation') is not None:
+            response['summary']['experiment']=copy.deepcopy(state['experiment_preparation'])
+            response['summary'].update(preparation_complete=True,execution_complete=False,
+                                       output_complete=bool(bundle) and not export_error)
+        if state.get('experiment_execution') is not None:
+            experiment=copy.deepcopy(state['experiment_execution']);response['summary']['experiment']=experiment
+            response['summary']['execution_complete']=experiment.get('study_complete',experiment['collection_complete'])
+            response['budget']['experiment']=experiment['budget']
         jsonschema.validate(response,RESULT_SCHEMA)
         return self.resolve_artifacts(record,response)
 
@@ -220,8 +232,11 @@ class _Service:
                  'cancelled':'cancelled','extension_rejected':'rejected','budget_exhausted':'budget_exhausted','blocked':'blocked','task_failed':'failed',
                  'approval_or_budget_required':'blocked','assessment_failed':'failed','extension_failed':'failed','awaiting_assessment':'blocked'}
         mapping.update(counterexample_complete='completed',counterexample_unverified='partial')
+        mapping.update(research_complete='completed',research_partial='partial')
+        mapping.update(experiment_complete='completed',awaiting_experiment_review='waiting_for_user',awaiting_experiment_continue='waiting_for_user')
         status=mapping.get(raw,'partial' if failed and successful else 'failed' if failed else 'completed' if successful or state.get('extension_installed') else 'analysis_only')
         if session.export_error and successful and status=='completed':status='partial'
+        if raw=='experiment_complete' and failed:status='partial'
         record['status']=status;record['phase']='finished' if status in TERMINAL else status;record['pending']=None
         control_error=state.get('control_error')
         if control_error:record['error']={**control_error,'retryable':False}
@@ -234,6 +249,14 @@ class _Service:
             record['pending']={'kind':'clarification','interaction_id':uuid.uuid4().hex,
                                'questions':[{'question_id':f'q{i+1}','text':q} for i,q in enumerate(questions)],
                                'host_actions':['answer'],'message':'请宿主将问题展示给用户；不要将主agent自行推测当作用户回复。'}
+            if raw=='awaiting_plan':record['pending']['plan']=copy.deepcopy(state['plan'])
+            if raw in ('awaiting_experiment_review','awaiting_experiment_continue'):
+                record['pending']={'kind':'experiment_review' if raw=='awaiting_experiment_review' else 'experiment_continue',
+                    'interaction_id':uuid.uuid4().hex,'host_actions':['continue'],
+                    'plan':copy.deepcopy(state.get('experiment_review',{})),'message':state['answer'],
+                    'requires_trusted_user_event':True}
+                if raw=='awaiting_experiment_continue' and record['request']['execution']['experiment']['operation']=='study':
+                    record['pending']['host_actions'].append('study_feedback')
         elif status=='waiting_for_approval':
             assessment=state['assessment']
             record['pending']={'kind':'approval','interaction_id':uuid.uuid4().hex,'assessment_id':assessment['id'],
@@ -247,6 +270,8 @@ class _Service:
                     '批量任务已暂停。选择继续将复用已核验步骤并执行剩余步骤，前次预算保留；不会自动继续。')
             if record['request']['execution']['mode']=='counterexample':
                 record['pending']['message']=('搜索步骤可能已开始但缺少核验回执。选择继续将重试未核验步骤，前次预算保留且重试另计；请先明确向用户展示。' if record.get('inflight_step') else '反例搜索已暂停；选择继续复用已核验步骤并在原预算内推进，不自动重算。')
+            if record['request']['execution']['mode']=='experiment':
+                record['pending']['message']=('实验有未核验尝试。继续将复用已核验分段；无宿主固定回执的尝试保留候选及时间预留，重试另计预算。请明确展示给用户。' if record.get('inflight_step') else '实验已暂停；继续复用已核验结果，在原累计预算内推进。未确认过范围预算的任务仍须先审阅。')
         self.save(record)
         if 'experience_cursor' in record:
             from .experience_evidence import collect_task
@@ -294,12 +319,25 @@ class _Service:
                 if not session.state:
                     session.state={'question':record['request']['objective'],'conversation':[]};session._begin_turn(record['request']['objective'])
                 raise InterruptedError('Task cancelled before execution')
-            if record['request']['execution']['mode']=='counterexample':
+            if record['request']['execution']['mode']=='experiment':
+                if record['request']['execution']['experiment']['operation']=='prepare':
+                    from .experiment import run_preparation
+                    run_preparation(record,session)
+                elif record['request']['execution']['experiment']['operation']=='study':
+                    from .experiment_study import run_study
+                    run_study(record,session,self.save,self.model,action=action,payload=payload)
+                else:
+                    from .experiment_execution import run_execution
+                    run_execution(record,session,self.save,action=action)
+            elif record['request']['execution']['mode']=='counterexample':
                 from .counterexample import run_search
                 run_search(record,session,self.save,self.model,explicit_continue=action=='continue')
             elif record['request']['execution']['mode'] in ('tools','scan','batch'):self.run_steps(record,session)
             elif action=='start':session.ask(record['request']['objective'],self.model())
-            elif action in ('answer','revise'):session.reply(payload['text'],self.model())
+            elif action in ('answer','revise'):
+                if record['request']['execution']['mode']=='research' and session.state.get('status')=='awaiting_plan' and payload['text'].strip().lower() in ('yes','确认','同意','执行','按计划执行'):
+                    plan=session.state['plan'];session.accept_plan(plan['id'],plan['scope_sha256'],self.model())
+                else:session.reply(payload['text'],self.model())
             elif action=='approve':session.approve(payload['assessment_id'],self.model())
             elif action=='reject':session.reject(payload['assessment_id'],payload.get('reason','用户拒绝本次开发'))
             elif action=='continue':
@@ -567,6 +605,15 @@ class SubagentUserPortal:
 
     def continue_task(self,task_id,interaction_id,expected_revision,*,event_id=None):
         return self._issue(task_id,interaction_id,expected_revision,'continue',{},event_id)
+
+    def study_feedback(self,task_id,interaction_id,expected_revision,value,*,event_id=None):
+        from graph_research.experiments.search_contract import compile_study
+        from graph_research.experiments.controller import feedback
+        record=self._service.read(check_id(task_id))
+        if record['request']['execution']['mode']!='experiment' or record['request']['execution']['experiment']['operation']!='study':raise TaskProtocolError('not_study','当前任务不是通用研究流程。')
+        try:clean=feedback(value,compile_study(record['request']['execution']['experiment']))
+        except (ValueError,TypeError,jsonschema.ValidationError):raise TaskProtocolError('invalid_study_feedback','反馈只能调整授权区间内的引导、已有实例优先级或明确假设。') from None
+        return self._issue(task_id,interaction_id,expected_revision,'study_feedback',clean,event_id)
 
 
 def create_subagent(directory,*,user_id,model_factory=None,limits=None,tool_directory=None,memory_directory=None,pricing=None,event_ttl=3600,results_directory=None):

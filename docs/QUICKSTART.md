@@ -1,8 +1,10 @@
 # Algebraic Graph Theory Research Assistant — User Guide
 
-Prerelease version **0.37.0a2**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
+Development source **0.38.0a1**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
 
 This Python application provides graph and hypergraph computation, symbolic algebra, interactive drawing and research result management. Use the desktop manually, connect a model for research chat, or expose the same computation tools to a host agent through MCP. SageMath and WSL are not required.
+
+The experiment workflow supports reviewed finite studies, replaceable traditional searches, optional CPU CEM, bounded scheduling, feedback and hypothesis checks. Rules need no model API; model scheduling is optional. Protected execution, independent metric verification and persistent budgets remain in force. See [Research experiments](EXPERIMENTS.md#english) for examples and limits; the dedicated desktop study UI is a later stage.
 
 The desktop supports **Simplified Chinese and English**. Open **语言 / Language** at the top and select **English** or **简体中文**. This guide retains Chinese labels alongside English meanings so it also works when the interface is in Chinese.
 
@@ -22,7 +24,7 @@ User input, graph names/vertex labels, raw JSON, code, model replies and histori
 | Visualization | Mouse construction, draggable layouts, saved coordinates, PNG/SVG/PDF and TikZ export, paper schematics with hyperpaths of unspecified length |
 | Research workflows | Batch computations, session result bundles, result cleanup/recovery, user preferences, reviewed research experience and separate extension packages |
 
-There are **45 built-in computation tools**. The desktop groups some drawing/layout/export operations beside the relevant graph. All three modes share tool definitions and the protected computation core.
+There are **47 built-in computation tools**. The desktop groups some drawing/layout/export operations beside the relevant graph. All three modes share tool definitions and the protected computation core.
 
 Development source adds [counterexample search and independent verification](COUNTEREXAMPLE_SEARCH.md) for connected unweighted undirected simple graphs with fixed vertex/edge counts, up to **128 vertices and 1024 edges**. Rules-based search needs no model API. Verification uses exact characteristic polynomials up to 12 vertices and independently checked rational spectral bounds for larger graphs; unresolved comparisons remain unverified.
 
@@ -36,11 +38,13 @@ Development source adds [counterexample search and independent verification](COU
 
 Non-uniform hypergraphs can be drawn. Hypergraph tensor-spectrum tools enforce uniformity and their other mathematical conditions. Exact elimination, enumeration and numerical calculations have tool-specific limits; an unresolved or unconverged result is not a proof or a counterexample.
 
+The current main branch includes [model research planning](RESEARCH_PLANNING.md) and [general experiments](EXPERIMENTS.md). The desktop Research experiment switch uses the model planning workflow. The separate prepare/execute/study workflow is available through CLI, Python and MCP; its dedicated desktop form is not yet implemented. The 0.37.0a2 assets below remain an older prerelease.
+
 ## 2. Download and install
 
 ### Choose a package
 
-For **0.37.0a2**, download one of the prerelease assets below and follow the matching installation steps. Restart the desktop after upgrading; for MCP, update the actual launched runtime and reconnect. An older pinned runtime does not update with the source directory.
+For the current **0.38.0a1 development features**, download the [main branch source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip). The **0.37.0a2** assets below are an older, separately validated prerelease and do not contain the new general experiment workflow. No new Release attachment is implied by a main-branch update.
 
 Both packages include the new counterexample-search tools. Source is also available as a [main branch ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip).
 
@@ -48,8 +52,9 @@ Use the [v0.37.0a2 prerelease page](https://github.com/735336168liuxiaoqi-hub/al
 
 | Asset | Intended use |
 | --- | --- |
-| [Source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.37.0a2/algebraic-graph-theory-research-assistant-0.37.0a2-source-candidate.zip) | Recommended for first-time desktop use; includes the source and launchers |
-| [Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.37.0a2/graph_research_assistant-0.37.0a2-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
+| [Current main source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | Current development features, including prepare/execute/study; extract and install using the source instructions |
+| [0.37.0a2 source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.37.0a2/algebraic-graph-theory-research-assistant-0.37.0a2-source-candidate.zip) | Recommended for first-time desktop use; includes the source and launchers |
+| [0.37.0a2 Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.37.0a2/graph_research_assistant-0.37.0a2-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
 | `SHA256SUMS.txt` / `RELEASE_VALIDATION.json` | Checksums and validation evidence; these are not installers |
 
 Expand **Assets** at the bottom of the release page. Download one application package; you do not need both ZIP and wheel. The first installation downloads dependencies. A fully offline new computer needs separately prepared dependency wheels matching its Windows/Python version.
@@ -72,7 +77,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m graph_research desktop
 ```
 
-If only the Windows `py` launcher is available, use `py -3.13 -m venv .venv` for the first command. No activation or PowerShell execution-policy change is needed. `[all]` installs desktop, plotting, API-chat and MCP dependencies. The checks should report the intended environment, no dependency conflicts and integrity `ok: true`; they do not request a model.
+If only the Windows `py` launcher is available, use `py -3.13 -m venv .venv` for the first command. No activation or PowerShell execution-policy change is needed. `[all]` installs desktop, plotting, API-chat and MCP dependencies, **excluding optional PyTorch**. Enumeration, random and local search do not need torch. For CEM, use the [CPU dependency instructions](EXPERIMENTS.md#可运行样例) for this same interpreter, then install `".[all,search]"`. The checks should report the intended environment, no dependency conflicts and integrity `ok: true`; they do not request a model.
 
 On later runs, double-click **`start-desktop.cmd`** or **`algebraic graph theory research assistant.exe`** in the same directory. The `.exe` is a launcher using the project's `.venv` and source, not an installer containing Python. Keep the whole directory. Recreate the environment after moving it or transferring it to another computer.
 
@@ -134,6 +139,14 @@ For a four-vertex graph with edges `[[0,1],[1,2]]`, specify `n=4` to retain isol
 - Use **LaTeX设置** → **导出LaTeX** for TikZ. Weighted/directed output retains original weights and arrows within its supported contracts.
 
 Ordinary graphs have automatic layouts and coordinate transformations; hypergraphs support spring/circular layouts and manual dragging. Spectral coordinates can overlap or be non-unique; inspect warnings and adjust the layout rather than treating it as an isomorphism certificate.
+
+Enable **Show vertex coordinates / 显示顶点坐标** below the drawing canvas to see positions update while dragging. Choose **Original coordinates / 原始坐标** or **TeX export coordinates / TeX 导出坐标**, and all or selected vertices. Original positions are logical coordinates, not screen pixels; their displayed numbers are shortened while saved values retain full precision. TeX positions match the export's translation, scaling and decimal formatting. For ordinary structure drawings, the default export is centered and uniformly scaled to a longest span of 10 cm; paper schematics use their existing cm coordinates. These editor overlays are excluded from images, TeX labels and saved JSON. The offline HTML layout editor has the same display choices.
+
+TeX coordinates and label offsets now use at most four decimal places by default, stripping trailing zeros and negative zero. Precision increases automatically if rounding would merge distinct vertices or collapse a whole nonzero path segment, falling back to full precision if necessary. This affects TeX source only; saved coordinates, calculations and PNG/SVG/PDF image exports retain their existing behavior.
+
+To name the whole drawing, use **Figure label / 图标签** below the graph-input, structure-preview, native layout or paper-schematic canvas. Enter `G_1`, `H_k`, `G_{n+1}` or `(a)`, choose **Below graph / 图下方** or **Above graph / 图上方** and a font size, then click **Apply label / 应用标签**. Simple subscript notation and Unicode subscripts/superscripts are displayed as such; input is never executed as TeX. Drag the label in move mode to adjust its position. Clear the text and apply to remove it. Use Fit to window if the label is outside the current view.
+
+The label is saved separately in `style.graph_label` and restored with layout JSON. Graph PNG/SVG/PDF and TikZ exports, and paper-schematic SVG/TeX exports include it. It does not change the file name, vertex identities, edges or numeric calculations, and does not affect the TeX normalization of the graph. Existing drawings without a figure label retain their output.
 
 Generating TeX needs no compiler. Compiling it to PDF requires a separate TeX environment; automatic complete TeX compilation is not included. See [graphics — Chinese](GRAPHICS.md) for detailed options and limits.
 
@@ -197,7 +210,7 @@ The output contains STDIO transport, an absolute interpreter `command` and start
 
 The command accepts `--format codex` for TOML or `--format dsh` for a DeepSeek Harness plugin entry. Refresh/reconnect after saving. Usually the host starts the process; do not also start a second manual copy. Regenerate paths on each computer.
 
-The service exposes **13 scheduling/integration tools**. The 45 computation tools are discovered through the catalog rather than individually expanding the host's tool list.
+The service exposes **13 scheduling/integration tools**. The 47 computation tools are discovered through the catalog rather than individually expanding the host's tool list.
 
 ### First task
 
@@ -223,6 +236,42 @@ Fixed tool tasks need no separate assistant API: the host interprets the request
 Enable `--allow-development` explicitly for host-requested new tools. Real-user approval through the trusted interface remains necessary; a model cannot approve itself. `--allow-agent` separately enables internal model planning and requires the assistant's model configuration; it is unnecessary for fixed tool tasks.
 
 See [MCP](MCP.md), [batch workflows](BATCH.md) and [host protocol](reference/SUBAGENT.md), currently in Chinese, for schemas, user events and recovery. MCP discovery, protection and result handling add overhead; lower time/token use than direct Python is not guaranteed.
+
+### Reviewed studies: evaluate or search
+
+| Operation | Purpose | Model API |
+| --- | --- | --- |
+| prepare | Propose finite cases and report ambiguities/capability gaps; no calculation | Not needed |
+| execute | Evaluate explicitly supplied graph/hypergraph candidates after user review | Not needed |
+| study | Generate and search candidates, diagnose, optionally train CEM and test formal hypotheses | Rules need none; internal model scheduling is optional |
+
+General and uniform hypergraphs may contain cycles; hypertrees are optional constraints. Current hypergraph study objectives are distance spectral radius and edge count. Existing tensor tools have separate uniformity and verification requirements.
+
+Start a model-free example from the main source directory:
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 -m graph_research subagent --root D:/Research/study-state --user researcher --input examples/research-experiments/clique-free-study-request.json
+```
+
+The first response is waiting_for_user and performs zero search calls. Review the proposed cases, methods, seeds, rounds and cumulative budget. After a real user decides to continue, substitute the returned IDs and revision:
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 -m graph_research subagent-user --root D:/Research/study-state --user researcher --task TASK_ID --interaction INTERACTION_ID --revision REVISION --action continue
+```
+
+Copy `host_user_event.event_id` into resume.json:
+
+```json
+{"operation":"resume","task_id":"TASK_ID","event_id":"EVENT_ID"}
+```
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 -m graph_research subagent --root D:/Research/study-state --user researcher --input resume.json
+```
+
+At segment pauses, the trusted user may continue or provide study-feedback within the approved guidance intervals. Only the trusted host issues events; the parent passes the event ID. Repeating submit or adding approved=true cannot authorize execution. For MCP, submit the corresponding `clique-free-study.json` task body; `*-request.json` files are CLI dispatch envelopes.
+
+Other examples cover cyclic hypergraphs, hypertrees and optional CPU CEM. Scheduling/refinement stays inside the reviewed finite grid; expanding the mathematical scope or budget requires a new review. Bundles preserve raw objectives separately from training guidance, verified instances, checkpoints, structural observations, hypothesis witnesses and proof gaps. CEM is not presumed faster or better than traditional searches. See [general experiments](EXPERIMENTS.md) for settings, feedback and limits.
 
 ## 6. Results, memory, extensions and migration
 
@@ -250,6 +299,12 @@ See [results/memory](RESULTS_AND_MEMORY.md) and [extension library](EXTENSIONS.m
 
 Reinstall Python/dependencies and regenerate model/MCP paths. Do not copy the old `.venv` instead. Transfer required result bundles, graph documents, memory and extension libraries separately; source packages contain neither personal research data nor credentials.
 
+### Upgrade an existing installation
+
+Export important results and stop active tasks, then download or pull the intended source. Reinstall with that environment's interpreter, run doctor, pip check and protect check, and restart the desktop. Updating an older Release wheel does not install features that exist only on main. For MCP, update the actual launched checkout or pinned runtime, reconnect and refresh contracts; changing a development directory alone does not change a sealed runtime copy.
+
+Historical completed results remain readable. Experiment checkpoints bind the mathematical definition and core version; cross-version continuation is not guaranteed. Do not edit hashes to force compatibility. CEM also requires a compatible PyTorch runtime.
+
 ## 7. Troubleshooting
 
 | Symptom | What to check |
@@ -263,6 +318,8 @@ Reinstall Python/dependencies and regenerate model/MCP paths. Do not copy the ol
 | API authentication/model/effort error | Check URL, protocol, model ID, key and service-supported parameters; use Service default if appropriate |
 | Missing MCP tools/timeout | Check absolute command path, dependencies and STDIO settings, then reconnect; a manual STDIO process waiting for input is normal |
 | Missing Chinese glyphs in figures | Install a suitable font on the target computer and restart; fonts are not downloaded automatically |
+| Missing torch for study | Traditional methods remain usable; install the optional dependency in the actual interpreter for CEM, then restart/reconnect |
+| Study waiting for review/feedback | Use the current interaction/revision and a trusted user event; repeated submit does not authorize execution |
 
 After upgrades, restart desktop/reconnect MCP and refresh contracts. Report version/core fingerprint, a small reproducible input and redacted diagnostics to [Issues](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/issues).
 
@@ -276,6 +333,7 @@ This English guide covers installation and the user workflows. Detailed paramete
 | [Inputs](OFFLINE_INPUTS.md) / [Tool contracts](model/TOOL_REFERENCE.md) | Formats, examples, outputs and effects |
 | [Graphics](GRAPHICS.md) | Graph input, layout, TikZ and paper schematics |
 | [API](API.md) / [MCP](MCP.md) / [Batch](BATCH.md) | Service setup, host integration and multi-case tasks |
+| [General experiments](EXPERIMENTS.md) | Reviewed prepare/execute/study, search backends, CPU CEM, feedback and hypothesis checks |
 | [Results and memory](RESULTS_AND_MEMORY.md) / [Extensions](EXTENSIONS.md) | Saved research, cleanup, preferences and governed development |
 | [Numerical methods](NUMERICS.md) | High-α algorithms, diagnostics and exact tensor elimination |
 | [Python interfaces](reference/PYTHON_API.md) | Library use outside desktop forms |

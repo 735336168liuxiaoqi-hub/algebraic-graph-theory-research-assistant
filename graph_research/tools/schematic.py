@@ -33,6 +33,7 @@ def hypergraph_schematic(diagram,operation='export',parameters=None,vertex_label
 
 
 def definition(object_schema):
+    from graph_research.graph_input.figure_label import schema as figure_label_schema
     label={'type':['integer','string']};xy={'type':'array','minItems':2,'maxItems':2,'items':{'type':'number','minimum':-100,'maximum':100}}
     vertex=object_schema({'id':label,'xy':xy},['id','xy'])
     edge=object_schema({'vertices':{'type':'array','minItems':2,'maxItems':128,'items':label,'uniqueItems':True},'shape':{'enum':['ellipse','circle']},'vertex_ellipsis':{'type':'boolean'}},['vertices'])
@@ -42,6 +43,6 @@ def definition(object_schema):
     spec=object_schema({'format':{'const':'graph-research-schematic'},'version':{'const':1},'name':{'type':'string','minLength':1,'maxLength':80},
         'rank':{'anyOf':[{'type':'integer','minimum':2,'maximum':128},{'const':'k'}]},'vertices':{'type':'array','maxItems':128,'items':vertex},
         'edges':{'type':'array','maxItems':128,'items':edge},'paths':{'type':'array','maxItems':64,'items':path},'source_graph':{'type':'object'},
-        'style':object_schema({**{k:{'type':'string','pattern':'^#[0-9a-fA-F]{6}$'} for k in ('line_color','vertex_color','edge_fill')},'line_width':{'type':'number','minimum':.003,'maximum':.08},'vertex_radius':{'type':'number','minimum':.008,'maximum':.12}})},['vertices'])
+        'style':object_schema({**{k:{'type':'string','pattern':'^#[0-9a-fA-F]{6}$'} for k in ('line_color','vertex_color','edge_fill')},'line_width':{'type':'number','minimum':.003,'maximum':.08},'vertex_radius':{'type':'number','minimum':.008,'maximum':.12},'graph_label':figure_label_schema()})},['vertices'])
     return ('hypergraph_schematic','鼠标论文示意图：符号超路、花括号、TeX/SVG与明确整数展开。',hypergraph_schematic,
             object_schema({'diagram':spec,'operation':{'enum':['export','expand']},'parameters':{'type':'object','maxProperties':64,'additionalProperties':{'type':'integer','minimum':-1000000,'maximum':1000000}},'vertex_labels':{'type':'boolean'}},['diagram']))

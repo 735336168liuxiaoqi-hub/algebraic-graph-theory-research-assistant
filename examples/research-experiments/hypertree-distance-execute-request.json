@@ -1,0 +1,150 @@
+{
+  "operation": "submit",
+  "task": {
+    "version": 1,
+    "request_id": "experiment-hypertree-distance-execute-v1",
+    "objective": "评价明确候选集合，比较可行候选；不声称全类极值。",
+    "execution": {
+      "mode": "experiment",
+      "experiment": {
+        "operation": "execute",
+        "problem": {
+          "version": 1,
+          "question": "评价明确候选集合，比较可行候选；不声称全类极值。",
+          "intent": "parameterized_extremum",
+          "object": {
+            "type": "uniform_hypertree",
+            "uniformity": {
+              "parameter": "k"
+            }
+          },
+          "parameters": {
+            "k": {
+              "kind": "integer",
+              "role": "explore",
+              "meaning": "uniformity"
+            },
+            "m": {
+              "kind": "integer",
+              "role": "explore",
+              "meaning": "size"
+            },
+            "Delta": {
+              "kind": "integer",
+              "role": "explore",
+              "meaning": "max_degree",
+              "minimum": 3
+            },
+            "q": {
+              "kind": "integer",
+              "role": "explore",
+              "meaning": "max_degree_vertices"
+            }
+          },
+          "constraints": {
+            "all": [
+              {
+                "predicate": "edge_count",
+                "arguments": {
+                  "value": {
+                    "parameter": "m"
+                  }
+                }
+              },
+              {
+                "predicate": "max_degree",
+                "arguments": {
+                  "value": {
+                    "parameter": "Delta"
+                  }
+                }
+              },
+              {
+                "predicate": "max_degree_vertex_count",
+                "arguments": {
+                  "value": {
+                    "parameter": "q"
+                  }
+                }
+              }
+            ]
+          },
+          "objective": {
+            "metric": "distance_spectral_radius",
+            "direction": "maximize"
+          },
+          "assumptions": [
+            "q是达到最大超图度的顶点数；总顶点数N=1+(k-1)m。",
+            "距离按超图路径经过的超边数计算；不使用邻接张量谱。"
+          ]
+        },
+        "cases": [
+          {
+            "id": "star_and_path",
+            "parameters": {
+              "k": 3,
+              "m": 3,
+              "Delta": 3,
+              "q": 1
+            },
+            "candidates": [
+              {
+                "n": 7,
+                "edges": [
+                  [
+                    0,
+                    1,
+                    2
+                  ],
+                  [
+                    0,
+                    3,
+                    4
+                  ],
+                  [
+                    0,
+                    5,
+                    6
+                  ]
+                ]
+              },
+              {
+                "n": 7,
+                "edges": [
+                  [
+                    0,
+                    1,
+                    2
+                  ],
+                  [
+                    2,
+                    3,
+                    4
+                  ],
+                  [
+                    4,
+                    5,
+                    6
+                  ]
+                ]
+              }
+            ]
+          }
+        ],
+        "chunk_size": 2,
+        "segment_chunks": 1,
+        "budget": {
+          "max_evaluations": 8,
+          "wall_seconds": 120,
+          "cpu_seconds": 120,
+          "memory_mb": 512
+        }
+      }
+    },
+    "constraints": {
+      "max_model_calls": 0,
+      "max_tool_calls": 4,
+      "allow_extensions": false
+    }
+  }
+}

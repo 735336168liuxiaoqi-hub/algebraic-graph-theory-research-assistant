@@ -103,6 +103,14 @@ class ResearchSession:
         self.state.update(answer='',current_request=text,turn_observation_start=start)
         self.state['workflow_task_id']=task_id or uuid.uuid4().hex
         self.turns[-1]['workflow_task_id']=self.state['workflow_task_id']
+        if self.task_context.get('execution',{}).get('mode')=='research':
+            if continue_task and self.state.get('plan'):
+                import copy
+                previous=copy.deepcopy(self.state['plan']);previous['status']='superseded'
+                self.state.setdefault('research_plan_history',[]).append(previous)
+            elif not continue_task:
+                for key in ('research_identity','research_plan_count','research_plan_history'):self.state.pop(key,None)
+                self.state['research_observation_start']=start
         self.state.pop('plan',None);self.state.pop('inspection',None);self.state['tool_steps']=0
         self.state.pop('claims',None);self.state.pop('audited_claims',None)
         self.state.pop('decision',None);self.state.pop('decision_id',None)
@@ -117,6 +125,9 @@ class ResearchSession:
             if self.state.get('plan'):
                 import copy
                 self.turns[-1]['plan']=copy.deepcopy(self.state['plan'])
+            from .research_protocol import summary as research_summary
+            research=research_summary(self.state,self)
+            if research is not None:self.turns[-1]['research']=research
             if self.state.get('workflow_task_id'):self.turns[-1]['workflow_usage']=self.workflow.summary(self.state['workflow_task_id'])
             if self.state.get('audited_claims'):self.turns[-1]['claims']=self.state['audited_claims']
             if self.state.get('development_brief'):self.turns[-1]['development_brief']=self.state['development_brief']
@@ -250,6 +261,15 @@ class ResearchSession:
         self.review_plans=enabled;self._save()
 
     @_session_action
+    def set_research_mode(self,enabled):
+        """Trusted standalone-session choice, fixed before the first request."""
+        if type(enabled) is not bool or self.execution_control is not None or self.state:
+            raise ValueError('请在新的独立对话开始前选择科研实验模式；委派任务由宿主固定模式。')
+        if enabled:self.task_context['execution']={'mode':'research','research':{}}
+        else:self.task_context.pop('execution',None)
+        self._save()
+
+    @_session_action
     def set_workflow_budget(self,policy):
         """Explicit local user action; never a model tool or delegation approval."""
         if self.execution_control is not None:raise ValueError('委派任务的预算由宿主接口配置。')
@@ -296,6 +316,8 @@ class ResearchSession:
         self.turns[-1]['attempts']+=1
         self.state['turn_observation_start']=self.turns[-1]['observation_start']
         self.state['delegated_task']=self.task_context
+        from . import research_protocol as research
+        if research.enabled(self.state):self.state['research_identity']=research.guard(self.state)
         self.state.update(steps=0,status='running')
         self.state['research_objects']=self.research_objects
         if self.state.get('assessment_id'):
@@ -331,6 +353,14 @@ class ResearchSession:
                 if cancellation.is_set() or (self.directory/'.cancel').exists():raise InterruptedError('用户取消了本次任务')
         except (InterruptedError,KeyboardInterrupt):
             self.state.update(status='cancelled',answer='本轮已取消；已保存的结果保留，未完成计算不作为有效结果。')
+            if research.enabled(self.state):
+                key=self.state.get('decision_id')
+                operation=self.workflow.data['tasks'].get(self.state.get('workflow_task_id'),{}).get('tool_calls',{}).get(key,{})
+                if operation.get('status')=='interrupted':
+                    receipt=self.directory/'tasks'/('task_'+operation['operation_id'])/'execution.json'
+                    try:complete=read_json(receipt)[0].get('status')=='complete'
+                    except (OSError,ValueError):complete=False
+                    if not complete:self.state.update(status='recovery_required',uncertain_call_key=key,answer='已取消。当前步骤没有完成回执；确认重试时保留原尝试预算。')
             self._save()
         except Exception as exc:
             from .task_control import TaskControlError
@@ -366,6 +396,9 @@ class ResearchSession:
         if not self.state:raise ValueError('No session to reply to')
         if not isinstance(text,str) or not text.strip():raise ValueError('A reply is required')
         continuing=self.state.get('status') in ('awaiting_clarification','awaiting_plan','awaiting_approval','execution_error','cancelled','budget_exhausted','recovery_required')
+        from .research_protocol import enabled as research_mode
+        if research_mode(self.state) and self.state.get('plan',{}).get('status')=='awaiting_review':
+            self.state['plan']['status']='superseded'
         self.state['conversation']=self.state.get('conversation',[])+[
             {'role':'assistant','content':self.state.get('answer','')},{'role':'user','content':text}]
         # A changed requirement is not consent to the previous assessment.

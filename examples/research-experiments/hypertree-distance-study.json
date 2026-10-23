@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "request_id": "hypertree-distance-study-v1",
+  "objective": "在有限预算内探索候选结构，保留反驳证据及证明缺口。",
+  "execution": {
+    "mode": "experiment",
+    "experiment": {
+      "operation": "study",
+      "problem": {
+        "version": 1,
+        "question": "评价明确候选集合，比较可行候选；不声称全类极值。",
+        "intent": "parameterized_extremum",
+        "object": {
+          "type": "uniform_hypertree",
+          "uniformity": {
+            "parameter": "k"
+          }
+        },
+        "parameters": {
+          "k": {
+            "kind": "integer",
+            "role": "explore",
+            "meaning": "uniformity"
+          },
+          "m": {
+            "kind": "integer",
+            "role": "explore",
+            "meaning": "size"
+          },
+          "Delta": {
+            "kind": "integer",
+            "role": "explore",
+            "meaning": "max_degree",
+            "minimum": 3
+          },
+          "q": {
+            "kind": "integer",
+            "role": "explore",
+            "meaning": "max_degree_vertices"
+          }
+        },
+        "constraints": {
+          "all": [
+            {
+              "predicate": "edge_count",
+              "arguments": {
+                "value": {
+                  "parameter": "m"
+                }
+              }
+            },
+            {
+              "predicate": "max_degree",
+              "arguments": {
+                "value": {
+                  "parameter": "Delta"
+                }
+              }
+            },
+            {
+              "predicate": "max_degree_vertex_count",
+              "arguments": {
+                "value": {
+                  "parameter": "q"
+                }
+              }
+            }
+          ]
+        },
+        "objective": {
+          "metric": "distance_spectral_radius",
+          "direction": "maximize"
+        },
+        "assumptions": [
+          "q是达到最大超图度的顶点数；总顶点数N=1+(k-1)m。",
+          "距离按超图路径经过的超边数计算；不使用邻接张量谱。"
+        ]
+      },
+      "methods": [
+        "random",
+        "local"
+      ],
+      "seeds": [
+        11,
+        22
+      ],
+      "rounds": 1,
+      "batch_size": 4,
+      "case_limit": 2,
+      "segment_rounds": 4,
+      "planner": "rules",
+      "adaptive": true,
+      "max_edges": 8,
+      "budget": {
+        "max_evaluations": 128,
+        "wall_seconds": 240,
+        "cpu_seconds": 180,
+        "memory_mb": 1024
+      },
+      "cases": [
+        {
+          "id": "star_and_path",
+          "parameters": {
+            "k": 3,
+            "m": 3,
+            "Delta": 3,
+            "q": 1
+          }
+        }
+      ]
+    }
+  },
+  "constraints": {
+    "max_tool_calls": 10,
+    "max_model_calls": 0,
+    "allow_extensions": false
+  }
+}

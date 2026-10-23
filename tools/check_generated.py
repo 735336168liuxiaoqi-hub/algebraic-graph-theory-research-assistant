@@ -39,6 +39,9 @@ def main():
     from graph_research.assistant.task_contract import contracts
     if json.loads((root/'docs/model/subagent-contracts.json').read_text(encoding='utf-8'))!=contracts():
         mismatches.append('docs/model/subagent-contracts.json')
+    from graph_research.experiments import experiment_contracts
+    if json.loads((root/'docs/model/experiment-contracts.json').read_text(encoding='utf-8'))!=experiment_contracts():
+        mismatches.append('docs/model/experiment-contracts.json')
     if mismatches:raise SystemExit('Generated files differ; refresh the manuals and input guides:\n'+'\n'.join(mismatches))
     print('Generated tool contracts, manuals and examples agree:',len(definitions),'tools')
 

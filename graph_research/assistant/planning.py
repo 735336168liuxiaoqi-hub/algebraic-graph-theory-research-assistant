@@ -16,7 +16,9 @@ STEP=obj({'id':IDENTIFIER,'description':{'type':'string','minLength':1,'maxLengt
           'bindings':{'type':'object','maxProperties':32,'additionalProperties':BINDING},
           'graph_refs':{'type':'object','minProperties':1,'maxProperties':12,'additionalProperties':{'oneOf':[REF,STEP_REF]}},
           'independent_graph':{'type':'boolean'}},['id','description','tool','arguments'])
-PLAN=obj({'title':{'type':'string','minLength':1,'maxLength':300},
+from .research_protocol import plan_schema
+
+PLAN=obj({'title':{'type':'string','minLength':1,'maxLength':300},'research':plan_schema(obj),
           'steps':{'type':'array','minItems':1,'maxItems':10,'items':STEP},'pause':{'type':'boolean'}},['title','steps'])
 
 
@@ -84,10 +86,15 @@ def resolve_step(plan,observations):
     return decision
 
 
-def plan_text(plan):
+def plan_text(plan,language='zh'):
     if not plan:return ''
-    names={'waiting':'待执行','running':'执行中','completed':'已完成','failed':'失败'}
+    english=language=='en'
+    names={'waiting':'Waiting','running':'Running','completed':'Completed','failed':'Failed'} if english else {'waiting':'待执行','running':'执行中','completed':'已完成','failed':'失败'}
     lines=[plan['title']]
+    if plan.get('spec',{}).get('research'):
+        info=plan['spec']['research']
+        lines.extend([('Research question: ' if english else '研究问题：')+info['question'],('Scope: ' if english else '研究范围：')+canonical(info['scope']),('Verification: ' if english else '核验方式：')+info['validation']])
+        if plan.get('estimate'):lines.append(('Tool attempts: ' if english else '计算预算：')+str(plan['estimate']['tool_attempts'])+('; time is a resource upper bound.' if english else '次工具尝试；时间字段为资源限额上界。'))
     indexes={step['id']:i for i,step in enumerate(plan['steps'],1)}
     for index,step in enumerate(plan['steps'],1):
         lines.append(str(index)+'. '+step['description']+' · '+names.get(step['status'],step['status']))

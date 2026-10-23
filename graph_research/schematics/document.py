@@ -83,8 +83,11 @@ def _validate(data):
     if drawn>1024:raise ValueError('绘制边段总数最多1024。')
     defaults={'line_color':'#161616','vertex_color':'#c03036','edge_fill':'#eeeeee','line_width':.018,'vertex_radius':.030}
     style=data.get('style',{})
-    if not isinstance(style,dict) or set(style)-set(defaults):raise ValueError('示意图样式包含未知字段。')
+    if not isinstance(style,dict) or set(style)-set(defaults)-{'graph_label'}:raise ValueError('示意图样式包含未知字段。')
     style={**defaults,**style}
+    if 'graph_label' in style:
+        from graph_research.graph_input.figure_label import validate
+        style['graph_label']=validate(style['graph_label'])
     for key in ('line_color','vertex_color','edge_fill'):
         if not isinstance(style[key],str) or not re.fullmatch(r'#[0-9a-fA-F]{6}',style[key]):raise ValueError('颜色使用#RRGGBB。')
         style[key]=style[key].lower()
@@ -127,7 +130,8 @@ def from_graph(graph):
         xy=[[(p[i]-(low[i]+high[i])/2)*6/span for i in (0,1)] for p in xy]
     return SchematicDocument({'name':graph.name,'rank':len(graph.edges[0]['vertices']) if graph.size else 'k',
                               'vertices':[{'id':v,'xy':p} for v,p in zip(graph.vertices,xy)],
-                              'edges':[{'vertices':e['vertices']} for e in graph.edges], 'source_graph':data})
+                              'edges':[{'vertices':e['vertices']} for e in graph.edges], 'source_graph':data,
+                              **({'style':{'graph_label':data['style']['graph_label']}} if data.get('style',{}).get('graph_label') else {})})
 
 
 def template(kind='E'):
@@ -221,4 +225,6 @@ def expand(scene,parameters=None):
         for j in range(1,m):chain.append(new([a[i]+(b[i]-a[i])*j/m for i in (0,1)]))
         chain.append(p['end'])
         for u,v in zip(chain,chain[1:]):add([u,v])
-    return document(ids,edges,graph_type='hypergraph',name=data['name'][:72]+'（已展开）',positions=positions)
+    label=data['style'].get('graph_label')
+    return document(ids,edges,graph_type='hypergraph',name=data['name'][:72]+'（已展开）',positions=positions,
+                    **({'style':{'graph_label':label}} if label else {}))

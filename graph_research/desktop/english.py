@@ -4,6 +4,7 @@ from html import escape
 from .i18n import register_translations
 
 TOOL_TITLES={
+    'graph_property_scan':'Graph-family property experiment','graph_property_verify':'Independent graph-property verification',
     'graph_counterexample_round':'Counterexample search round','graph_counterexample_verify':'Independent counterexample verification',
     'generate_hypergraph':'Hypergraph construction','hypergraph_spectrum':'Hypergraph spectral radius',
     'graph_spectrum':'Graph numerical spectrum','graph_invariants':'Graph invariants',
@@ -25,6 +26,8 @@ TOOL_TITLES={
     'graph_layout':'Graph layout and coordinates'}
 
 SUMMARIES={
+    'graph_property_scan':'Scan bounded non-isomorphic atlas graphs, trees or a supplied collection. Exactly compute simple spectrum, all-ones controllability and Wronskian vertices, preserving pagination scope and evidence.',
+    'graph_property_verify':'Independently reconstruct exact rational matrix, polynomial GCDs and Krylov rank from raw graph data using Fraction arithmetic; compare the complete stored certificate.',
     'graph_counterexample_round':'Screen bounded connected simple graphs with fixed vertex and edge counts. Floating estimates do not certify a counterexample; independently verify a promising candidate.',
     'graph_counterexample_verify':'Verify strict adjacency-spectral improvement from raw edges: exact polynomial roots for up to 12 vertices, independently checked rational Rayleigh/Collatz bounds for larger graphs up to 128 vertices and 1024 edges.',
     'generate_hypergraph':'Construct uniform loose paths, stars, cycles and the listed pendant-path research families. Lengths count edges; choose a family before filling its arguments.',

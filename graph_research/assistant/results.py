@@ -26,8 +26,12 @@ MAX_BYTES=256*1024*1024
 MAX_FILE_BYTES=64*1024*1024
 MAX_FILES=4096
 PENDING={'batch_partial','batch_failed','running','recovery_required','manual_development_required','awaiting_plan','awaiting_approval','awaiting_assessment','awaiting_clarification','execution_error','cancelled',
-         'assessment_failed','extension_failed','budget_exhausted','approval_or_budget_required','extension_rejected'}
+         'assessment_failed','extension_failed','budget_exhausted','approval_or_budget_required','extension_rejected','research_partial',
+         'awaiting_experiment_review','awaiting_experiment_continue'}
 LABELS={'batch_complete':'批量工作流已完成','batch_partial':'批量工作流部分成功','batch_failed':'批量工作流失败','recorded':'计算记录已保存','partial':'部分结果或尚未完成','analysis_only':'只有分析记录，没有计算结果',
+        'awaiting_experiment_review':'等待确认实验范围和预算','awaiting_experiment_continue':'实验分段已保存，等待继续','experiment_complete':'明确候选集合已评价',
+        'experiment_prepared':'实验计划草案已准备，尚未执行',
+        'research_complete':'科研实验流程已完成','research_partial':'科研实验保留部分结果',
         'tool_execution_failed':'工具计算失败','task_failed':'任务失败','blocked':'执行被阻止',
         'tool_results_available':'已有工具计算结果','model_analysis_only':'本轮仅有模型分析','extension_ready':'扩展已准备',
         'awaiting_plan':'等待查看任务计划','awaiting_approval':'等待开发确认','awaiting_assessment':'等待需求评估','awaiting_clarification':'等待补充需求',
@@ -113,7 +117,8 @@ def _execution(session,item,identifier,allow_incomplete,warnings):
         if directory!=task_root.resolve()/task_id:raise ValueError('Execution directory does not match its task ID')
         raw=_checked(safe_path(directory/'execution.json',root=task_root),meta['receipt_sha256'],1024*1024)
         receipt=json.loads(raw)
-        if receipt.get('status')!='complete' or receipt.get('kind')!='tool':raise ValueError('Calculation has no completed tool execution receipt')
+        allowed=receipt.get('kind')=='tool' or (receipt.get('kind')=='experiment' and item.get('tool') in ('experiment_evaluate','experiment_search'))
+        if receipt.get('status')!='complete' or not allowed:raise ValueError('Calculation has no completed tool execution receipt')
         request=json.loads(_checked(safe_path(directory/'request.json',root=task_root),receipt['request_sha256'],256*1024))
         result=json.loads(_checked(safe_path(directory/'result.json',root=task_root),receipt['result_sha256'],4*1024*1024))
         if request.get('name')!=item['tool'] or _canonical(request.get('arguments'))!=_canonical(item.get('arguments')) or result.get('ok') is not True or _canonical(result.get('result'))!=_canonical(item.get('result')):
@@ -215,7 +220,7 @@ def export_session(session,output=None,*,turn=None,allow_incomplete=False,bundle
     turns=[{key:t.get(key,'') for key in ('number','id','user_request','answer','status','started_at','updated_at','attempts','origin')} for t in selected]
     for copied,original in zip(turns,selected):
         if original.get('plan'):copied['plan']=copy.deepcopy(original['plan'])
-        for key in ('claims','workflow_usage','workflow_task_id','development_brief'):
+        for key in ('claims','workflow_usage','workflow_task_id','development_brief','research'):
             if key in original:copied[key]=copy.deepcopy(original[key])
         if original.get('origin')=='legacy_unsegmented':copied['legacy_conversation']=original.get('legacy_conversation',session.state.get('conversation',[]))
     turns=_rewrite(turns,mapping)
@@ -253,10 +258,39 @@ def export_session(session,output=None,*,turn=None,allow_incomplete=False,bundle
     if search is not None:
         data['counterexample_search']=search
         files['counterexample-summary.json']=_json(search)
+    preparation=session.state.get('experiment_preparation')
+    if preparation is not None:
+        data['experiment_preparation']=copy.deepcopy(preparation)
+        files['experiment-preparation.json']=_json(preparation)
+        files['experiment-problem.json']=_json(preparation['problem'])
+        files['experiment-plan.json']=_json(preparation['plan'])
+    if session.state.get('experiment_execution') is not None:
+        experiment=session.state['experiment_execution'];data['experiment_execution']=copy.deepcopy(experiment)
+        files['experiment-results.json']=_json(experiment)
+        files['experiment-input.json']=_json(context['execution']['experiment'])
+        files['experiment-ledger.json']=_json({'budget':experiment['budget'],'attempts':experiment['attempts']})
+        if experiment.get('operation')=='study':
+            files['study-plan-and-decisions.json']=_json({'decisions':experiment['decisions'],'feedback':experiment['feedback']})
+            files['study-interpretation.json']=_json(experiment['interpretation'])
+    from .research_protocol import summary as research_summary
+    research=research_summary(session.state,session)
+    if research is not None:
+        data['research']=research
+        files['research-summary.json']=_json(research)
+        files['research-plans.json']=_json({'history':session.state.get('research_plan_history',[]),'current':session.state.get('plan')})
+        table=io.StringIO(newline='');writer=csv.writer(table)
+        columns=['visited','eligible','selected','simple_spectrum','controllable','has_wronskian_vertex','controllable_with_wronskian']
+        writer.writerow(['source_id','order','coverage_complete',*columns])
+        for family in research['families']:
+            for n,counts in (family['counts_by_order'] or {}).items():writer.writerow([family['source_id'],n,family['coverage_complete'],*[counts.get(k,0) for k in columns]])
+        files['research-counts.csv']=table.getvalue().encode('utf-8-sig')
     files['results.json']=_json(data)
     recipe={'format':'graph-research-reproduction-inputs','note':'Review tool availability, assumptions and versions before manually rerunning. No code is executed by this file.',
             'calculations':[{'id':c['id'],'turn':c['turn'],'tool':c['tool'],'arguments':c['arguments'],'evidence_status':c['evidence_status'],
                              'execution':c.get('execution')} for c in calculations if c['status']=='success']}
+    if session.state.get('experiment_execution') is not None:
+        recipe['experiment_input']='experiment-input.json'
+        recipe['experiment_note']='experiment_evaluate/experiment_search are internal protected operations, not public ToolRegistry tools. Resubmit experiment-input.json inside an experiment task and obtain fresh trusted user review; do not replay internal chunks as tools.'
     files['reproduce.json']=_json(recipe)
     for call in calculations:
         prefix='calls/'+call['id']+'/'

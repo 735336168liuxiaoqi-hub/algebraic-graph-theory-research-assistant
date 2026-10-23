@@ -103,7 +103,7 @@ def _run_worker(kind,request,*,directory,limits,cancel,cancel_file,include_recei
     Windows OS restrictions are mandatory. Other platforms fail closed rather
     than claiming the same protection without an implemented backend.
     """
-    if kind not in ('tool','extension','elimination','probe'):raise ValueError('Unsupported worker kind')
+    if kind not in ('tool','extension','elimination','probe','experiment'):raise ValueError('Unsupported worker kind')
     with measure('host.integrity_before'):core=assert_integrity()
     started_at=datetime.now(timezone.utc).isoformat()
     wall_started=time.monotonic()

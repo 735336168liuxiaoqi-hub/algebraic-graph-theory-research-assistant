@@ -4,11 +4,29 @@ import json
 from pathlib import Path
 from graph_research.rendering.tikz import escape_latex,tex_number
 from graph_research.runtime.storage import atomic_text
+from graph_research.rendering.tex_coordinates import TexCoordinates as _TexCoordinates
 from .document import SchematicDocument
 from .geometry import primitives,bounds
 
 
 def _number(v):return tex_number(round(float(v),7))
+
+
+def _tex_coordinates(scene,items=None):
+    """Identity transform for paper coordinates; SVG retains its own formatter."""
+    if items is None:items=primitives(scene,False)
+    vertices=[v['xy'] for v in scene.to_dict()['vertices']];points=list(vertices);segments=[]
+    for item in items:
+        if item['kind']=='path':
+            previous=None
+            for command in item['commands']:
+                pairs=[command[i:i+2] for i in range(1,len(command),2)];points.extend(pairs)
+                if command[0] in ('L','C') and previous is not None:segments.append([previous,*pairs])
+                if pairs:previous=pairs[-1]
+        else:
+            points.append(item['xy'])
+            if item['kind']=='circle':vertices.append(item['xy'])
+    return _TexCoordinates(points,vertices=vertices,segments=segments)
 
 
 def to_tikz(scene,*,standalone=False,vertex_labels=False):
@@ -19,7 +37,7 @@ def to_tikz(scene,*,standalone=False,vertex_labels=False):
     No user-provided TeX commands, input macros or tkz-euclide are evaluated.
     """
     if not isinstance(scene,SchematicDocument):scene=SchematicDocument(scene)
-    items=primitives(scene,vertex_labels);style=scene.to_dict()['style'];lines=['% Paper schematic only; use explicit integer expansion for numerical tools.',
+    items=primitives(scene,vertex_labels);coords=_tex_coordinates(scene,items);style=scene.to_dict()['style'];lines=['% Paper schematic only; use explicit integer expansion for numerical tools.',
         '% Edge-interior dots omit vertices; route-middle dots omit edges.',
         r'\begin{tikzpicture}[x=1cm,y=1cm,line cap=round,line join=round,font=\small]']
     for key,name in [('line_color','grsline'),('vertex_color','grsvertex'),('edge_fill','grsfill')]:lines.append(r'\definecolor{'+name+'}{HTML}{'+style[key][1:].upper()+'}')
@@ -27,16 +45,20 @@ def to_tikz(scene,*,standalone=False,vertex_labels=False):
         if item['kind']=='path':
             commands=[]
             for c in item['commands']:
-                points=['('+_number(c[i])+','+_number(c[i+1])+')' for i in range(1,len(c),2)]
+                points=[coords.point(c[i:i+2]) for i in range(1,len(c),2)]
                 commands.append(points[0] if c[0]=='M' else '-- '+points[0] if c[0]=='L' else '.. controls '+points[0]+' and '+points[1]+' .. '+points[2] if c[0]=='C' else '-- cycle')
             if item['stroke']=='none':lines.append(r'\path[draw=none,fill=grsfill] '+' '.join(commands)+';')
             else:lines.append(r'\draw[grsline,line width='+_number(item['width'])+'cm] '+' '.join(commands)+';')
         elif item['kind']=='circle':
-            xy='('+','.join(_number(t) for t in item['xy'])+')';r=_number(item['r'])
+            xy=coords.point(item['xy']);r=_number(item['r'])
             lines.append((r'\shade[ball color=grsvertex] ' if item['role'] in ('anchor','junction') else r'\fill[grsline] ')+xy+' circle[radius='+r+'cm];')
         else:
             text=item.get('tex',escape_latex(item['text']))
-            lines.append(r'\node[text=grsline,inner sep=0pt] at ('+','.join(_number(t) for t in item['xy'])+') {'+text+'};')
+            options='text=grsline,inner sep=0pt'
+            if item.get('role')=='graph_label':
+                lines.append(r'\definecolor{graphlabelcolor}{HTML}{'+item['color'][1:]+'}')
+                options='text=graphlabelcolor,inner sep=0pt,font={\\fontsize{'+_number(item['font_size'])+'}{'+_number(item['font_size']*1.2)+r'}\selectfont}'
+            lines.append(r'\node['+options+'] at '+coords.point(item['xy'])+' {'+text+'};')
     lines.append(r'\end{tikzpicture}');fragment='\n'.join(lines)+'\n'
     if not standalone:return fragment
     chinese=any('\u3400'<=c<='\u9fff' for item in items if item['kind']=='label' for c in item['text'])
@@ -63,7 +85,13 @@ def to_svg(scene,*,vertex_labels=False):
             lines.append(f'<circle cx="{f(item["xy"][0])}" cy="{f(-item["xy"][1])}" r="{f(item["r"])}" fill="{color}"/>')
         else:
             text=escape(item['text']);text='<tspan font-style="italic">P</tspan><tspan baseline-shift="sub" font-size="11">'+escape(item['text'][2:])+'</tspan>' if item['role']=='path_label' else text
-            lines.append(f'<text x="{f(item["xy"][0])}" y="{f(-item["xy"][1])}" fill="{style["line_color"]}" text-anchor="middle" dominant-baseline="middle" font-family="Times New Roman,serif" font-size="16">{text}</text>')
+            color=style['line_color'];size='16'
+            if item.get('role')=='graph_label':
+                from graph_research.graph_input.figure_label import text_runs
+                color=item['color'];size=_number(item['font_size']*4/3)
+                sub_size=_number(item['font_size']*4/3*.7)
+                text=''.join(escape(v) if k=='text' else '<tspan baseline-shift="'+('sub' if k=='sub' else 'super')+'" font-size="'+sub_size+'">'+escape(v)+'</tspan>' for k,v in text_runs(item['text']))
+            lines.append(f'<text x="{f(item["xy"][0])}" y="{f(-item["xy"][1])}" fill="{color}" text-anchor="middle" dominant-baseline="middle" font-family="Times New Roman,serif" font-size="{size}">{text}</text>')
     return '\n'.join(lines+['</svg>',''])
 
 

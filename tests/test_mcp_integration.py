@@ -337,7 +337,7 @@ class SDKTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(all('approve' not in t.name for t in listed.tools))
                 cancel=next(tool for tool in listed.tools if tool.name=='research_cancel')
                 self.assertTrue(cancel.annotations.idempotent_hint)
-                result=await client.call_tool('research_catalog',{});self.assertFalse(result.is_error);self.assertEqual(len(result.structured_content['tools']),45)
+                result=await client.call_tool('research_catalog',{});self.assertFalse(result.is_error);self.assertEqual(len(result.structured_content['tools']),47)
                 invalid=await client.call_tool('research_read_artifact',{'task_id':'a'*32,'index':0,'path':'C:/private'})
                 self.assertTrue(invalid.is_error)
                 resources=await client.list_resources();self.assertEqual(len(resources.resources),2)

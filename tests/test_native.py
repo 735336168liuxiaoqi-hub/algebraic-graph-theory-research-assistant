@@ -173,7 +173,7 @@ class ToolAndExtensionTests(unittest.TestCase):
         examples['hypergraph_schematic']=self.registry.describe('hypergraph_schematic')['documentation']['examples'][0]['arguments']
         examples["linear_recurrence"]={"coefficients":[-1,-1,1],"initial_values":[0,1]}
         examples["integer_linear_system"]={"matrix":[[2]],"rhs":[1]}
-        for name in ('weighted_graph_spectrum','graph_recipe','hypergraph_path_analysis','graph_batch_study','symbolic_analysis','block_matrix_analysis','graph_class_certificate','graph_energy_study','research_environment','combinatorial_plot','graph_layout','graph_counterexample_round','graph_counterexample_verify'):
+        for name in ('weighted_graph_spectrum','graph_recipe','hypergraph_path_analysis','graph_batch_study','symbolic_analysis','block_matrix_analysis','graph_class_certificate','graph_energy_study','research_environment','combinatorial_plot','graph_layout','graph_counterexample_round','graph_counterexample_verify','graph_property_scan','graph_property_verify'):
             examples[name]=self.registry.describe(name)['documentation']['examples'][0]['arguments']
         self.assertEqual(set(examples),set(self.registry.tools))
         for name,args in examples.items():

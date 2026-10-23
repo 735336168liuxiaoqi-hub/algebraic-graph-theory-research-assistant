@@ -3411,6 +3411,147 @@
           ]
         }
       ]
+    },
+    "graph_property_scan": {
+      "category": "科研工作流",
+      "preconditions": [
+        "仅无向无权简单图，矩阵系数为有理数。可控性针对全一输入。主子矩阵从原矩阵删行列。"
+      ],
+      "limits": [
+        "atlas限1至7阶，trees限1至12阶；单图最多12顶点。",
+        "有限枚举不证明一般关系；provided不声明完整或非同构。",
+        "进程时间、内存和分页候选限制同时生效。"
+      ],
+      "effects": "none",
+      "related_tools": [
+        "graph_property_scan",
+        "graph_property_verify"
+      ],
+      "summary": "按图族分页遍历，精确筛选单谱性、可控性及Wronskian顶点。",
+      "use_for": "有限图族性质统计、寻找性质关系的反例和生成可复核样例",
+      "not_for": "不支持任意自然语言性质、无限图族证明或128点完整枚举。",
+      "parameters": {
+        "matrix": "矩阵类型A、L、Q=D+A、alpha=(1−α)A+αD、U=aA+dD。",
+        "alpha": "有理数α，例如\"1/3\"；小数按其十进制文本精确解释，取值0至1。",
+        "a": "U的邻接系数，有理数且非零。",
+        "d": "U的度对角系数，有理数。",
+        "source": "atlas完整小图谱、trees非同构树或provided输入集合。",
+        "orders": "阶数列表，atlas≤7、trees≤12；provided时不填写。",
+        "graphs": "provided来源的图参数列表，每张为{kind,n,edges}，保留孤立顶点；其他来源不填写。",
+        "filters": "结构条件JSON：connected、bipartite为布尔值；min_edges/max_edges/min_degree/max_degree为非负整数。",
+        "select": "目标性质JSON：simple_spectrum、controllable、has_wronskian_vertex对应布尔值；不影响总体计数，标记selected。",
+        "cursor": "本页开始位置，首次为0；续页使用前次cursor_next。",
+        "source_id": "续页必须使用前次返回的完整范围SHA256，不能更换图族、矩阵或筛选条件。",
+        "batch_size": "本页最多处理1至128个生成器候选位置；含被结构条件排除的图。"
+      },
+      "returns": "source_id、连续分页cursor_start/cursor_next、total_candidates、finished、counts_by_order和含精确证据的rows。每页精确计算不等于独立复核，调用graph_property_verify检查选定样例。",
+      "examples": [
+        {
+          "arguments": {
+            "source": "provided",
+            "graphs": [
+              {
+                "kind": "path",
+                "n": 3
+              }
+            ],
+            "filters": {
+              "connected": true
+            },
+            "select": {
+              "simple_spectrum": true,
+              "controllable": false
+            },
+            "source_id": "39aa1ee0563f5906117c3f8fb2261250b34b6238169ffde8be786207e8a93855"
+          },
+          "expected_keys": [
+            "rows",
+            "counts_by_order",
+            "source_id",
+            "finished"
+          ]
+        }
+      ]
+    },
+    "graph_property_verify": {
+      "category": "科研工作流",
+      "preconditions": [
+        "仅无向无权简单图，矩阵系数为有理数。可控性针对全一输入。主子矩阵从原矩阵删行列。"
+      ],
+      "limits": [
+        "atlas限1至7阶，trees限1至12阶；单图最多12顶点。",
+        "有限枚举不证明一般关系；provided不声明完整或非同构。",
+        "进程时间、内存和分页候选限制同时生效。"
+      ],
+      "effects": "none",
+      "related_tools": [
+        "graph_property_scan",
+        "graph_property_verify"
+      ],
+      "summary": "从原始图独立复核单谱、全一输入可控性及Wronskian顶点证据。",
+      "use_for": "对选定图的性质证据执行与主计算不同的精确有理数复核",
+      "not_for": "不验证遍历完整性，不把单例复核当成全部统计或一般定理的证明。",
+      "parameters": {
+        "matrix": "矩阵类型A、L、Q=D+A、alpha=(1−α)A+αD、U=aA+dD。",
+        "alpha": "有理数α，例如\"1/3\"；小数按其十进制文本精确解释，取值0至1。",
+        "a": "U的邻接系数，有理数且非零。",
+        "d": "U的度对角系数，有理数。",
+        "graph": "需复核的原始图参数{kind,n,edges}，最多12个顶点。",
+        "certificate": "graph_property_scan返回的某一行完整certificate，不是性质布尔值或结果摘要。"
+      },
+      "returns": "passed、scope_sha256、精确walk_rank、性质和Wronskian顶点。采用Fraction特征多项式递推、欧几里得算法及有理数消元，独立于主计算的SymPy实现。",
+      "examples": [
+        {
+          "arguments": {
+            "graph": {
+              "kind": "path",
+              "n": 3
+            },
+            "certificate": {
+              "format": "graph-property-certificate/1",
+              "scope_sha256": "9dd51ebec2977d736ee19b253edf4884868fc4829d2b52df9101634566f5493c",
+              "matrix_spec": {
+                "kind": "A",
+                "adjacency_coefficient": "1",
+                "degree_coefficient": "0"
+              },
+              "characteristic_coefficients": [
+                "1",
+                "0",
+                "-2",
+                "0"
+              ],
+              "multiplicity_gcd": [
+                "1"
+              ],
+              "walk_rank": 2,
+              "vertex_gcds": [
+                [
+                  "1"
+                ],
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "1"
+                ]
+              ],
+              "properties": {
+                "simple_spectrum": true,
+                "controllable": false,
+                "has_wronskian_vertex": true
+              }
+            }
+          },
+          "expected_keys": [
+            "passed",
+            "properties",
+            "walk_rank",
+            "verification_method"
+          ]
+        }
+      ]
     }
   }
 }

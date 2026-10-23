@@ -19,6 +19,22 @@ def result_view(result,detail='summary'):
         if request_mode:
             budget['admission_policy']='execute_until_budget_exhausted' if request_mode=='tools' and not result['summary'].get('fail_fast',False) else 'reject_before_execution' if request_mode in ('tools','scan','batch') else 'runtime_budget_enforced'
     if detail=='full':return result
+    experiment=result.get('summary',{}).get('experiment')
+    if experiment and 'plan' in experiment:
+        plan=experiment['plan'];cases=plan['cases'];plan['cases']=cases[:8];plan['omitted_cases']=max(0,len(cases)-8)
+        experiment.pop('problem',None)
+        experiment['details_location']='research_get(detail=full) or result bundle experiment-preparation.json'
+    elif experiment:
+        experiment['row_count']=len(experiment.pop('rows',[]))
+        experiment['omitted_cases']=max(0,len(experiment['cases'])-8)
+        experiment['cases']=[{k:v for k,v in case.items() if k!='selected_candidate'} for case in experiment['cases'][:8]]
+        experiment['attempt_count']=len(experiment.pop('attempts',[]))
+        if experiment.get('operation')=='study':
+            interpretation=experiment.pop('interpretation',{})
+            experiment['run_statistics']=interpretation.get('run_statistics',[])[:8]
+            experiment['hypothesis_checks']=[{'id':h['hypothesis']['id'],'status':h['status'],'tested':h['tested'],'witness_count':len(h['witnesses'])} for h in interpretation.get('hypothesis_checks',[])]
+            experiment['decision_count']=len(experiment.pop('decisions',[]));experiment['feedback_count']=len(experiment.pop('feedback',[]))
+        experiment['details_location']='research_get(detail=full), research_inspect_result or experiment-results.json in bundle'
     for entry in result.get('results',[]):
         timing=entry.pop('timings',None)
         if timing:

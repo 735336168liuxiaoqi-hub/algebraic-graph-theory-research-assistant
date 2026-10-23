@@ -1,6 +1,7 @@
 """Chinese UI vocabulary. Display strings never replace tool argument values."""
 
 PARAMETERS={
+    'source':'遍历来源','orders':'图的阶数列表','graphs':'输入图集合','filters':'结构筛选条件','select':'目标性质组合','source_id':'分页范围指纹','batch_size':'每页候选上限','certificate':'待复核性质证据','graph':'待复核图','d':'度对角系数',
     'reference':'参考图','candidate':'待核验候选图','strategy':'搜索策略','candidates':'本轮候选上限','incumbent':'当前最好可行图','seen':'已访问图记录','cursor':'枚举续算游标',
     'graph_document':'完整图与绘图样式',
     'total_steps':'路径总步数','right_steps':'向右步序号','bounds':'矩形边界',
@@ -29,6 +30,7 @@ PARAMETERS={
     'vertices':'顶点列表','weighted_incidence':'输出赋权关联矩阵','weights':'超边权重'}
 
 OPTIONS={
+    'atlas':'完整小图谱','trees':'非同构树','provided':'用户输入图集合','U':'通用矩阵',
     'enumerate':'分段枚举','edge_move':'谱向量引导换边','rewire':'随机换边','random':'随机重新构图',
     'grid_path':'逐步格路径','lattice_path':'按步序号生成格路径','rectangle':'矩形绘图','chessboard':'矩阵棋盘',
     'spectral':'谱布局','tree':'树形层次布局','transform':'旋转缩放和平移','align_horizontal':'水平对齐','align_vertical':'竖直对齐',
@@ -61,6 +63,7 @@ OPTIONS={
     'gwg':'指定分布悬挂路族','ca':'圈叶点附路族','cva':'圈交点附路族'}
 
 HINTS={
+    'atlas':'完整图谱仅支持1至7阶；按照游标分批处理，不将未完成页数当成完整遍历。','trees':'生成指定阶数的非同构树，支持1至12阶。','provided':'只处理明确给出的图集合，不声明它包含该阶数的全部图。','U':'通用矩阵U=aA+dD，邻接系数a非零。',
     'iteration':'使用稳定对数求值的移位幂迭代，可按顶点顺序指定正初值。','auto':'先尝试两块等价划分；高α使用Newton–Noda，普通区域先幂迭代，预算内停滞时切换。',
     'newton_noda':'保持向量为正的Newton–Noda迭代；结合对数求值、系统缩放、高α延拓与按需60位精化，共享总迭代预算。',
     'path':'构造路径图，相邻顶点依次连接。','cycle':'构造闭合的圈图。','complete':'每两个不同顶点之间都有一条边。',
@@ -80,6 +83,7 @@ def parameter_title(definition,name):
         return definition.get('parameters',{}).get('properties',{}).get(name,{}).get('title',name)
     if definition.get('name')=='hypergraph_schematic' and name=='parameters':return '展开赋值'
     tool=definition.get('name','')
+    if tool in ('graph_property_scan','graph_property_verify') and name=='a':return '邻接矩阵系数'
     if tool=='combinatorial_plot':
         special={'matrix':'棋盘数值矩阵','steps':'路径步序列'}
         if name in special:return special[name]

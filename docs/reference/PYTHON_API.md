@@ -1,6 +1,8 @@
 # Python接口与工具入口
 
-当前复用现有Python实现及NetworkX、SymPy、Matplotlib，不新增依赖。当前工作版共43个内置工具、238项顶层参数；桌面显示37项，绘图、布局与LaTeX整合到对应图的操作面板。所有入口共用受保护计算、中文契约、输入示例、悬停说明和结果打包。
+当前复用NumPy、NetworkX、SymPy及可选Matplotlib，提供47个内置计算工具；绘图、布局与LaTeX整合到对应图旁。普通计算与传统搜索不需要torch，CEM使用search可选依赖。工具／任务入口共用契约、输入示例、受保护执行和结果包；直接调用Python数学函数属于可信程序接口，本身不建立任务隔离或审批。
+
+通用研究流程通过[子agent工厂](SUBAGENT.md)提交prepare／execute／study，纯Python评价及核验接口见[通用实验](../EXPERIMENTS.md)。experiment_evaluate和experiment_search是内部保护操作，不是额外的公开ToolRegistry函数。
 
 ## 桌面使用
 

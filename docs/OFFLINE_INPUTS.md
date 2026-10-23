@@ -51,6 +51,8 @@
 - [graph_layout](#graph_layout)：普通图自动布局、固定顶点重排与坐标变换，导出预览及完整坐标。
 - [graph_counterexample_round](#graph_counterexample_round)：固定n/m连通简单图的有界反例搜索，仅数值筛选。
 - [graph_counterexample_verify](#graph_counterexample_verify)：从原始边表精确核验邻接谱半径严格改进。
+- [graph_property_scan](#graph_property_scan)：按图族分页遍历，精确筛选单谱性、可控性及Wronskian顶点。
+- [graph_property_verify](#graph_property_verify)：从原始图独立复核单谱、全一输入可控性及Wronskian顶点证据。
 
 ## generate_hypergraph
 
@@ -1583,3 +1585,65 @@
 ```
 
 可导入参数文件：[第一个完整例子](../examples/offline-inputs/graph_counterexample_verify.json)
+
+## graph_property_scan
+
+按图族分页遍历，精确筛选单谱性、可控性及Wronskian顶点。
+
+前提：仅无向无权简单图，矩阵系数为有理数。可控性针对全一输入。主子矩阵从原矩阵删行列。
+
+工具限制：atlas限1至7阶，trees限1至12阶；单图最多12顶点。；有限枚举不证明一般关系；provided不声明完整或非同构。；进程时间、内存和分页候选限制同时生效。
+
+字段范围仅描述输入格式上限；还须满足上述工具限制及数学前提。
+
+
+| 参数 | 含义 | 输入方式与范围 | 留空规则 | 单字段输入例子 |
+| --- | --- | --- | --- | --- |
+| source | atlas完整小图谱、trees非同构树或provided输入集合。 | 填写选项原值（不加引号），或在逐项填写时输入从1开始的选项编号。可选：atlas, trees, provided | 可选；未填写过时回车使用默认值"atlas"；从示例开始时优先保留示例中的值。 | `provided` |
+| orders | 阶数列表，atlas≤7、trees≤12；provided时不填写。 | 填写JSON数字列表，例如[1,2,3]；逐项填写也可用1,2,3，逗号分项。 范围：至少1项，最多12项。 | 可选，无值时可留空；某些操作分支仍需要此项，见用途说明。 | `[1]` |
+| graphs | provided来源的图参数列表，每张为{kind,n,edges}，保留孤立顶点；其他来源不填写。 | 填写JSON对象列表，每项为一个记录；不要使用逗号/分号数字简写。 范围：至少1项，最多128项。 | 可选，无值时可留空；某些操作分支仍需要此项，见用途说明。 | `[{"kind":"path","n":3}]` |
+| matrix | 矩阵类型A、L、Q=D+A、alpha=(1−α)A+αD、U=aA+dD。 | 填写选项原值（不加引号），或在逐项填写时输入从1开始的选项编号。可选：A, L, Q, alpha, U | 可选；未填写过时回车使用默认值"A"；从示例开始时优先保留示例中的值。 | `A` |
+| alpha | 有理数α，例如"1/3"；小数按其十进制文本精确解释，取值0至1。 | 填写整数或小数，不填单位、算式、NaN或Infinity。 或 填写文本原值；逐项填写不需要外层引号，完整JSON中必须加双引号。 范围：最多64字符。 | 可选；未填写过时回车使用默认值0；从示例开始时优先保留示例中的值。 | `0` |
+| a | U的邻接系数，有理数且非零。 | 填写整数或小数，不填单位、算式、NaN或Infinity。 或 填写文本原值；逐项填写不需要外层引号，完整JSON中必须加双引号。 范围：最多64字符。 | 可选；未填写过时回车使用默认值1；从示例开始时优先保留示例中的值。 | `1` |
+| d | U的度对角系数，有理数。 | 填写整数或小数，不填单位、算式、NaN或Infinity。 或 填写文本原值；逐项填写不需要外层引号，完整JSON中必须加双引号。 范围：最多64字符。 | 可选；未填写过时回车使用默认值0；从示例开始时优先保留示例中的值。 | `0` |
+| filters | 结构条件JSON：connected、bipartite为布尔值；min_edges/max_edges/min_degree/max_degree为非负整数。 | 填写JSON对象，字段名和字符串用英文双引号，例如{"kind":"path","n":3}。 | 可选，无值时可留空；某些操作分支仍需要此项，见用途说明。 | `{"connected":true}` |
+| select | 目标性质JSON：simple_spectrum、controllable、has_wronskian_vertex对应布尔值；不影响总体计数，标记selected。 | 填写JSON对象，字段名和字符串用英文双引号，例如{"kind":"path","n":3}。 | 可选，无值时可留空；某些操作分支仍需要此项，见用途说明。 | `{"simple_spectrum":true,"controllable":false}` |
+| cursor | 本页开始位置，首次为0；续页使用前次cursor_next。 | 填写一个整数，不填单位或Python表达式。 范围：≥0。 | 可选；未填写过时回车使用默认值0；从示例开始时优先保留示例中的值。 | `0` |
+| source_id | 续页必须使用前次返回的完整范围SHA256，不能更换图族、矩阵或筛选条件。 | 填写文本原值；逐项填写不需要外层引号，完整JSON中必须加双引号。 | 可选，无值时可留空；某些操作分支仍需要此项，见用途说明。 | `39aa1ee0563f5906117c3f8fb2261250b34b6238169ffde8be786207e8a93855` |
+| batch_size | 本页最多处理1至128个生成器候选位置；含被结构条件排除的图。 | 填写一个整数，不填单位或Python表达式。 范围：≥1，≤128。 | 可选；未填写过时回车使用默认值32；从示例开始时优先保留示例中的值。 | `32` |
+
+完整例子 1（可直接粘贴到方式4）：
+
+```json
+{"source":"provided","graphs":[{"kind":"path","n":3}],"filters":{"connected":true},"select":{"simple_spectrum":true,"controllable":false},"source_id":"39aa1ee0563f5906117c3f8fb2261250b34b6238169ffde8be786207e8a93855"}
+```
+
+可导入参数文件：[第一个完整例子](../examples/offline-inputs/graph_property_scan.json)
+
+## graph_property_verify
+
+从原始图独立复核单谱、全一输入可控性及Wronskian顶点证据。
+
+前提：仅无向无权简单图，矩阵系数为有理数。可控性针对全一输入。主子矩阵从原矩阵删行列。
+
+工具限制：atlas限1至7阶，trees限1至12阶；单图最多12顶点。；有限枚举不证明一般关系；provided不声明完整或非同构。；进程时间、内存和分页候选限制同时生效。
+
+字段范围仅描述输入格式上限；还须满足上述工具限制及数学前提。
+
+
+| 参数 | 含义 | 输入方式与范围 | 留空规则 | 单字段输入例子 |
+| --- | --- | --- | --- | --- |
+| graph | 需复核的原始图参数{kind,n,edges}，最多12个顶点。 | 填写JSON对象，字段名和字符串用英文双引号，例如{"kind":"path","n":3}。 | 必填，不能留空；从示例开始时可回车保留已填值。 | `{"kind":"path","n":3}` |
+| certificate | graph_property_scan返回的某一行完整certificate，不是性质布尔值或结果摘要。 | 填写JSON对象，字段名和字符串用英文双引号，例如{"kind":"path","n":3}。 | 必填，不能留空；从示例开始时可回车保留已填值。 | `{"format":"graph-property-certificate/1","scope_sha256":"9dd51ebec2977d736ee19b253edf4884868fc4829d2b52df9101634566f5493c","matrix_spec":{"kind":"A","adjacency_coefficient":"1","degree_coefficient":"0"},"characteristic_coefficients":["1","0","-2","0"],"multiplicity_gcd":["1"],"walk_rank":2,"vertex_gcds":[["1"],["1","0"],["1"]],"properties":{"simple_spectrum":true,"controllable":false,"has_wronskian_vertex":true}}` |
+| matrix | 矩阵类型A、L、Q=D+A、alpha=(1−α)A+αD、U=aA+dD。 | 填写选项原值（不加引号），或在逐项填写时输入从1开始的选项编号。可选：A, L, Q, alpha, U | 可选；未填写过时回车使用默认值"A"；从示例开始时优先保留示例中的值。 | `A` |
+| alpha | 有理数α，例如"1/3"；小数按其十进制文本精确解释，取值0至1。 | 填写整数或小数，不填单位、算式、NaN或Infinity。 或 填写文本原值；逐项填写不需要外层引号，完整JSON中必须加双引号。 范围：最多64字符。 | 可选；未填写过时回车使用默认值0；从示例开始时优先保留示例中的值。 | `0` |
+| a | U的邻接系数，有理数且非零。 | 填写整数或小数，不填单位、算式、NaN或Infinity。 或 填写文本原值；逐项填写不需要外层引号，完整JSON中必须加双引号。 范围：最多64字符。 | 可选；未填写过时回车使用默认值1；从示例开始时优先保留示例中的值。 | `1` |
+| d | U的度对角系数，有理数。 | 填写整数或小数，不填单位、算式、NaN或Infinity。 或 填写文本原值；逐项填写不需要外层引号，完整JSON中必须加双引号。 范围：最多64字符。 | 可选；未填写过时回车使用默认值0；从示例开始时优先保留示例中的值。 | `0` |
+
+完整例子 1（可直接粘贴到方式4）：
+
+```json
+{"graph":{"kind":"path","n":3},"certificate":{"format":"graph-property-certificate/1","scope_sha256":"9dd51ebec2977d736ee19b253edf4884868fc4829d2b52df9101634566f5493c","matrix_spec":{"kind":"A","adjacency_coefficient":"1","degree_coefficient":"0"},"characteristic_coefficients":["1","0","-2","0"],"multiplicity_gcd":["1"],"walk_rank":2,"vertex_gcds":[["1"],["1","0"],["1"]],"properties":{"simple_spectrum":true,"controllable":false,"has_wronskian_vertex":true}}}
+```
+
+可导入参数文件：[第一个完整例子](../examples/offline-inputs/graph_property_verify.json)

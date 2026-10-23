@@ -32,6 +32,40 @@ def incidence(graph):
 
 
 class SchematicTests(unittest.TestCase):
+    def test_whole_figure_label_survives_scene_roundtrip_and_expansion(self):
+        from graph_research.graph_input.figure_label import validate
+        data=template('E').to_dict();data['style']['graph_label']={'text':'H_k 图(a)','position':'above','offset':[.1,0]}
+        scene=SchematicDocument(data);before=scene.to_dict();plain=template('E')
+        without_label=[p for p in primitives(scene) if p.get('role')!='graph_label']
+        self.assertEqual(without_label,primitives(plain))
+        labels=[p for p in primitives(scene) if p.get('role')=='graph_label'];self.assertEqual(len(labels),1)
+        self.assertEqual(labels[0]['text'],'Hₖ 图(a)');self.assertIn(r'H\textsubscript{k} 图(a)',to_tikz(scene))
+        self.assertIn('ctex',to_tikz(scene,standalone=True));root=ET.fromstring(to_svg(scene))
+        self.assertTrue(any('H' in ''.join(t.itertext()) and '图(a)' in ''.join(t.itertext()) for t in root.findall('{http://www.w3.org/2000/svg}text')))
+        graph_text=next(t for t in root.findall('{http://www.w3.org/2000/svg}text') if '图(a)' in ''.join(t.itertext()))
+        sub=graph_text.find('{http://www.w3.org/2000/svg}tspan')
+        self.assertAlmostEqual(float(sub.attrib['font-size']),float(graph_text.attrib['font-size'])*.7)
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/'figure.json';save(scene,path);restored=SchematicDocument(json.loads(path.read_text(encoding='utf-8')))
+            self.assertEqual(restored.to_dict(),before);self.assertEqual(to_tikz(restored),to_tikz(scene))
+        graph=expand(scene,{'k':3,'a':1,'b':1,'c':1})
+        self.assertEqual(graph.to_dict()['style']['graph_label'],validate(data['style']['graph_label']))
+        self.assertEqual(from_graph(graph).to_dict()['style']['graph_label'],graph.to_dict()['style']['graph_label'])
+        self.assertEqual(scene.to_dict(),before)
+
+    def test_tex_coordinates_are_short_and_do_not_change_scene_or_svg(self):
+        import re
+        from graph_research.schematics.tikz import _tex_coordinates as tex_coordinates
+        for name in ('E','F','H','G'):
+            scene=template(name);data=scene.to_dict();data['vertices'][0]['xy']=[.123456789,-.987654321]
+            scene=SchematicDocument(data);before=scene.to_dict();svg=to_svg(scene)
+            code=to_tikz(scene);coords=tex_coordinates(scene)
+            self.assertEqual(coords.places,4)
+            for x,y in re.findall(r'\((-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)\)',code):
+                self.assertTrue(all(len(v.split('.')[-1])<=4 for v in (x,y) if '.' in v))
+            self.assertEqual(scene.to_dict(),before);self.assertEqual(to_svg(scene),svg)
+            self.assertIn(coords.point(data['vertices'][0]['xy']),code)
+
     def test_templates_exports_and_explicit_instantiation(self):
         for name in ('E','F','H','G'):
             scene=template(name);code=to_tikz(scene,standalone=True);svg=to_svg(scene)
@@ -149,8 +183,10 @@ class SchematicTests(unittest.TestCase):
         from graph_research.runtime.runner import run_tool
         from graph_research.runtime.integrity import CORE
         with tempfile.TemporaryDirectory() as directory:
-            root=Path(directory);result=run_tool('hypergraph_schematic',{'diagram':template('E').to_dict()},root/'tools',directory=root/'tasks')
+            data=template('E').to_dict();data['style']['graph_label']={'text':'H_k'}
+            root=Path(directory);result=run_tool('hypergraph_schematic',{'diagram':data},root/'tools',directory=root/'tasks')
             self.assertTrue(all(Path(p).is_file() for p in result['files'].values()))
+            self.assertIn(r'H\textsubscript{k}',Path(result['files']['tex']).read_text(encoding='utf-8'))
         with self.assertRaises(PermissionError):save(template('E'),CORE/'accidental-schematic.tex')
 
     @unittest.skipUnless(os.name=='nt','Windows protected task workflow')

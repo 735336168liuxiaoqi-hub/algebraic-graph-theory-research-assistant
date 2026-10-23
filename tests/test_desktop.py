@@ -56,7 +56,7 @@ class DesktopTests(unittest.TestCase):
                 import jsonschema
                 jsonschema.validate(arguments,self.workspace.registry.tools[name].parameters)
                 self.application.processEvents()
-        self.assertEqual(len(self.window.items),39)
+        self.assertEqual(len(self.window.items),41)
 
     def test_drawing_menu_integrates_layout_and_legacy_selection_routes_to_structure_plot(self):
         self.assertNotIn('hypergraph_editor',self.window.items)
@@ -197,7 +197,7 @@ app=QApplication([])
 window=DesktopWindow(DesktopWorkspace(WORKSPACE))
 window.apply_example()
 assert window.collect_arguments()['n']==3
-assert len(window.items)==39
+assert len(window.items)==41
 window.close()
 app.processEvents()
 print('native_desktop_without_browser_or_api_ok')

@@ -1,0 +1,94 @@
+{
+  "operation": "submit",
+  "task": {
+    "version": 1,
+    "request_id": "clique-free-cem-study-v1",
+    "objective": "在有限预算内探索候选结构，保留反驳证据及证明缺口。",
+    "execution": {
+      "mode": "experiment",
+      "experiment": {
+        "operation": "study",
+        "problem": {
+          "version": 1,
+          "question": "研究F(n,r,alpha)及候选极图结构随参数的变化；本次仅准备实验。",
+          "intent": "parameterized_extremum",
+          "object": {
+            "type": "simple_graph",
+            "order": {
+              "parameter": "n"
+            }
+          },
+          "parameters": {
+            "n": {
+              "kind": "integer",
+              "role": "fixed",
+              "meaning": "order",
+              "value": 5
+            },
+            "r": {
+              "kind": "integer",
+              "role": "fixed",
+              "meaning": "clique_order",
+              "value": 3
+            },
+            "alpha": {
+              "kind": "real",
+              "role": "explore",
+              "meaning": "alpha",
+              "values": [
+                "1/4",
+                "3/4"
+              ]
+            }
+          },
+          "constraints": {
+            "predicate": "clique_free",
+            "arguments": {
+              "r": {
+                "parameter": "r"
+              }
+            }
+          },
+          "objective": {
+            "metric": "alpha_spectral_radius",
+            "direction": "maximize",
+            "arguments": {
+              "alpha": {
+                "parameter": "alpha"
+              }
+            }
+          },
+          "assumptions": [
+            "参数采样范围不等于数学命题的完整范围。",
+            "不预先将K_r-free限制为完全多部图。"
+          ]
+        },
+        "methods": [
+          "cem"
+        ],
+        "seeds": [
+          11,
+          22
+        ],
+        "rounds": 2,
+        "batch_size": 4,
+        "case_limit": 2,
+        "segment_rounds": 2,
+        "planner": "rules",
+        "adaptive": true,
+        "max_edges": 8,
+        "budget": {
+          "max_evaluations": 128,
+          "wall_seconds": 240,
+          "cpu_seconds": 180,
+          "memory_mb": 1024
+        }
+      }
+    },
+    "constraints": {
+      "max_tool_calls": 10,
+      "max_model_calls": 0,
+      "allow_extensions": false
+    }
+  }
+}

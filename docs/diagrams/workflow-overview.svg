@@ -33,7 +33,7 @@
 <text x="560" y="313.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#284f91">模型澄清、选择或组合工具</text>
 <rect x="770" y="257" width="290" height="86" rx="14" fill="#f0edfa" stroke="#b5a7da" stroke-width="1.5"/>
 <text x="915" y="286.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="18" font-weight="600" fill="#5b438c">委派结构化计算任务</text>
-<text x="915" y="313.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#5b438c">固定步骤、批量或参数扫描</text>
+<text x="915" y="313.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="16" font-weight="400" fill="#5b438c">固定步骤、批量或通用实验</text>
 <rect x="190" y="415" width="740" height="80" rx="14" fill="#e9f3f7" stroke="#8fb1c3" stroke-width="1.5"/>
 <text x="560" y="441.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="20" font-weight="600" fill="#224d64">统一参数与图对象</text>
 <text x="560" y="468.5" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="17" font-weight="400" fill="#224d64">校验工具契约、图类型及数学前提</text>

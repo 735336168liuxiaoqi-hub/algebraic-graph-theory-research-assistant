@@ -244,7 +244,7 @@ with patch.dict(os.environ,{"PYTHONPATH":str(target)}):
             run_offline_console(manual,input_fn=lambda _:next(choices),print_fn=lambda _:None)
         assert manual.state['observations'][0]['result']['diameter']==2
         assert manual.result_bundle['summary']['verified_calls']==1
-        assert sum(len(g['tools']) for g in grouped_tools(manual._registry()))==45
+        assert sum(len(g['tools']) for g in grouped_tools(manual._registry()))==47
         from graph_research.tools.input_guides import input_guide,show_input_guide
         from graph_research.assistant.offline import parse_parameter
         field_count=0
@@ -253,7 +253,7 @@ with patch.dict(os.environ,{"PYTHONPATH":str(target)}):
             for field in guide['fields']:
                 assert parse_parameter(field['input_example'],definition['parameters']['properties'][field['name']])==field['example']
                 field_count+=1
-        assert field_count==248
+        assert field_count==266
         input_help=[];show_input_guide(tools.describe('graph_invariants'),input_help.append)
         assert any('完整参数输入例子' in line for line in input_help)
         assert verify_bundle(manual.result_bundle['archive'],manual.result_bundle['sha256'])['ok']
@@ -289,7 +289,7 @@ with patch.dict(os.environ,{"PYTHONPATH":str(target)}):
         code=to_tikz(paper_scene);assert code.rfind(r'\path[draw=none,fill=grsfill]')<code.find(r'\draw[')
         paper.close();paper.deleteLater();qt.processEvents()
         desktop=DesktopWindow(DesktopWorkspace(root/'native-desktop',session_directory=manual.directory))
-        assert len(desktop.items)==39 and "hypergraph_editor" not in desktop.items
+        assert len(desktop.items)==41 and "hypergraph_editor" not in desktop.items
         for tool_name in desktop.items:
             desktop.select_tool(tool_name);desktop.apply_example()
             jsonschema.validate(desktop.collect_arguments(),desktop.definition['parameters'])
@@ -482,7 +482,7 @@ print(json.dumps({"package_loaded_from":str(Path(graph_research.__file__).resolv
                   "installed_phase_timings_and_correlated_diagnostics_verified":True,
                   "installed_standalone_console_without_parent_verified":True,
                   "installed_offline_category_menu_real_calculation_and_bundle_verified":True,
-                  "installed_input_guides_tools":45,"installed_parameter_examples_verified":field_count,
+                  "installed_input_guides_tools":47,"installed_parameter_examples_verified":field_count,
                   "installed_verified_result_view_without_reexecution":True,
                   "installed_native_desktop_visible_forms_and_result_view_verified":True,
                   "installed_native_chinese_choices_parameter_values_and_tooltips_verified":True,

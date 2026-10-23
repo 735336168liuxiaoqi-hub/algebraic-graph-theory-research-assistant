@@ -38,8 +38,8 @@ class GraphContextTests(unittest.TestCase):
         from graph_research.assistant.offline import grouped_tools
         groups=grouped_tools(self.registry);before=copy.deepcopy(groups);shown=desktop_groups(groups)
         names={d['name'] for g in shown for d in g['tools']}
-        self.assertEqual(len(names),39);self.assertFalse(names & INTEGRATED);self.assertEqual(groups,before)
-        self.assertEqual(len(self.registry.tools),45);self.assertTrue(INTEGRATED<=self.registry.tools.keys())
+        self.assertEqual(len(names),41);self.assertFalse(names & INTEGRATED);self.assertEqual(groups,before)
+        self.assertEqual(len(self.registry.tools),47);self.assertTrue(INTEGRATED<=self.registry.tools.keys())
         self.assertIn('绘图、布局与LaTeX',[g['name'] for g in groups]);self.assertNotIn('绘图、布局与LaTeX',[g['name'] for g in shown])
 
     def test_numeric_simple_graph_recovery_defaults_and_isolated_vertices(self):
@@ -159,6 +159,74 @@ class GraphContextTests(unittest.TestCase):
                 with patch.object(window,'open_graph_actions') as opened:window.open_input_drawing()
                 graph=opened.call_args.args[0][0][1];self.assertEqual(graph.graph_type,'graph');self.assertEqual(graph.order,6)
             finally:window.close();window.deleteLater();self.app.processEvents()
+
+
+@unittest.skipUnless(AVAILABLE,'Optional desktop dependencies unavailable')
+class FigureLabelNativeTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):cls.app=QApplication.instance() or QApplication([]);cls.app.setQuitOnLastWindowClosed(False)
+
+    def test_add_remove_switch_language_and_drag_whole_label_with_one_undo(self):
+        from PySide6.QtCore import Qt,QPoint,QEvent
+        from PySide6.QtGui import QMouseEvent
+        from PySide6.QtTest import QTest
+        from graph_research.desktop.graph_canvas import GraphCanvas
+        from graph_research.desktop.schematic import SchematicCanvas
+        from graph_research.schematics import template
+        from graph_research.desktop.i18n import set_language
+        graph=GraphCanvas();graph.set_graph(document([0,1],[{'vertices':[0,1]}],positions=[[0,0],[2,1]]))
+        editors=[graph,SchematicCanvas(template('F'))]
+        try:
+            for editor in editors:
+                with self.subTest(editor=type(editor).__name__):
+                    current=editor.current_graph if isinstance(editor,GraphCanvas) else editor.current_document
+                    controls=editor.figure_label_controls;before=current().to_dict()
+                    controls.text.setText('G_1');controls.apply_button.click()
+                    labelled=current().to_dict();self.assertEqual(labelled['vertices'],before['vertices']);self.assertEqual(labelled['edges'],before['edges'])
+                    self.assertEqual(labelled['name'],before['name'])
+                    self.assertEqual(labelled['style']['graph_label']['text'],'G_1');self.assertTrue(controls.item.isVisible())
+                    editor.resize(950,700);editor.show();self.app.processEvents();editor.fit()
+                    view=editor.view;item=controls.item;start=view.mapFromScene(item.mapToScene(item.boundingRect().center()));end=start+QPoint(55,-30)
+                    prior=len(editor.undo_stack);scale=view.transform().m11()
+                    QTest.mousePress(view.viewport(),Qt.MouseButton.LeftButton,pos=start)
+                    event=QMouseEvent(QEvent.Type.MouseMove,QPointF(end),QPointF(view.viewport().mapToGlobal(end)),Qt.MouseButton.NoButton,Qt.MouseButton.LeftButton,Qt.KeyboardModifier.NoModifier)
+                    self.app.sendEvent(view.viewport(),event);QTest.mouseRelease(view.viewport(),Qt.MouseButton.LeftButton,pos=end);self.app.processEvents()
+                    moved=current().to_dict();self.assertNotEqual(moved['style']['graph_label']['offset'],[0.,0.])
+                    self.assertEqual(len(editor.undo_stack),prior+1);self.assertEqual(moved['vertices'],labelled['vertices']);self.assertEqual(moved['edges'],labelled['edges'])
+                    self.assertAlmostEqual(view.transform().m11(),scale)
+                    set_language('en');self.assertEqual(controls.apply_button.text(),'Apply label');self.assertEqual(controls.text.text(),'G_1');self.assertEqual(current().to_dict(),moved)
+                    set_language('zh');editor.undo();self.assertEqual(current().to_dict(),labelled)
+                    controls.text.clear();controls.apply_button.click();self.assertNotIn('graph_label',current().to_dict().get('style',{}));self.assertFalse(controls.item.isVisible())
+                    editor.undo();self.assertEqual(current().to_dict(),labelled)
+        finally:
+            set_language('zh')
+            for editor in editors:editor.close();editor.deleteLater()
+            self.app.processEvents()
+
+    def test_export_dialog_keeps_label_when_applying_styles_and_switching_graphs(self):
+        registry=ToolRegistry();first=document([0,1],[{'vertices':[0,1]}],positions=[[0,0],[2,1]])
+        second=document([0,1,2],[{'vertices':[0,1,2]}],graph_type='hypergraph',positions=[[0,0],[1,2],[2,0]])
+        dialog=GraphActionsDialog([('first',first),('second',second)],registry)
+        try:
+            controls=dialog.canvas.figure_label_controls;controls.text.setText('G_1');controls.apply()
+            dialog.apply_style();self.assertEqual(dialog.styled_graph().to_dict()['style']['graph_label']['text'],'G_1')
+            dialog.choice.setCurrentIndex(1);controls.text.setText('H_k');controls.apply();dialog.choice.setCurrentIndex(0)
+            self.assertEqual(controls.text.text(),'G_1');self.assertEqual(dialog.styled_graph().to_dict()['style']['graph_label']['text'],'G_1')
+            dialog.prepare('tex');self.assertEqual(dialog.request[1]['graph_document']['style']['graph_label']['text'],'G_1')
+        finally:dialog.close();dialog.deleteLater();self.app.processEvents()
+
+    def test_legacy_layout_saves_and_emits_label_with_graph_document(self):
+        from graph_research.desktop.layout import LayoutDialog
+        from graph_research.rendering.editor import validate_layout
+        dialog=LayoutDialog({'edges':[[0,1,2]]});results=[];dialog.positions_ready.connect(results.append)
+        try:
+            controls=dialog.figure_label_controls;controls.text.setText('H_k');controls.apply()
+            data=dialog.current_document();validate_layout(data)
+            self.assertEqual(data['style']['graph_label']['text'],'H_k')
+            dialog.document=data;dialog.build_scene();self.assertEqual(controls.text.text(),'H_k')
+            dialog.use_positions();self.assertEqual(results[0]['graph_document']['style']['graph_label']['text'],'H_k')
+            self.assertEqual(results[0]['graph_document']['positions'],data['positions'])
+        finally:dialog.close();dialog.deleteLater();self.app.processEvents()
 
 
 if __name__=='__main__':unittest.main()

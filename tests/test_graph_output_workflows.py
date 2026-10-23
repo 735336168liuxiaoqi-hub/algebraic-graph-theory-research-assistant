@@ -21,6 +21,51 @@ from graph_research import graphs,Hypergraph
 os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
 
 
+class WholeFigureLabelTests(unittest.TestCase):
+    def test_label_validation_and_simple_subscripts_are_literal_and_bounded(self):
+        from graph_research.graph_input import figure_label as api
+        self.assertEqual(api.display_text('G_1 H_k G_{n+1}'),'G₁ Hₖ Gₙ₊₁')
+        self.assertEqual(api.tex_text('G₁ H_k'),r'G\textsubscript{1} H\textsubscript{k}')
+        self.assertNotIn('<img',api.html_text('<img src=x>'))
+        self.assertNotIn(r'\input{secret}',api.tex_text(r'G_1 \input{secret} $%'))
+        for invalid in ({'text':'x\ny'},{'text':'x','position':'free'},{'text':'x','font_size':True},
+                        {'text':'x','offset':[float('nan'),0]},{'text':'x','offset':[6,0]},
+                        {'text':'x','color':'red;bad'},{'text':'x','raw_tex':True}):
+            with self.subTest(value=invalid),self.assertRaises(ValueError):api.validate(invalid)
+
+    def test_graph_label_exports_without_changing_structure_coordinates_or_scale(self):
+        import re
+        for kind,directed,weighted,edges in [('graph',False,False,[{'vertices':[0,1]}]),
+                                           ('graph',True,True,[{'vertices':[0,1],'weight':-2}]),
+                                           ('hypergraph',False,True,[{'vertices':[0,1,2],'weight':2}])]:
+            original=document([0,1,2],edges,graph_type=kind,directed=directed,weighted=weighted,
+                              positions=[[0,0],[2,1],[3,-1]])
+            label={'text':'H_k 图(a)','position':'below','offset':[.1,-.08],'font_size':14,'color':'#112233'}
+            labelled=original.with_updates(style={'graph_label':label});before=labelled.to_dict()
+            code=document_to_tikz(labelled,standalone=True);unlabelled=document_to_tikz(original)
+            self.assertIn(r'H\textsubscript{k} 图(a)',code);self.assertIn(r'\usepackage[UTF8]{ctex}',code)
+            pattern=r'\\coordinate .*?;'
+            self.assertEqual(re.findall(pattern,code),re.findall(pattern,unlabelled))
+            figure=plot_document(labelled);annotations=[t for t in figure.axes[0].texts if t.get_gid()=='graph-label']
+            self.assertEqual(len(annotations),1);self.assertEqual(annotations[0].get_text(),'Hₖ 图(a)')
+            self.assertEqual(figure.graph_document['style']['graph_label'],label)
+            for a,b in zip(geometry(original,coordinates(original)),figure.hypergraph_paths):np.testing.assert_array_equal(a.vertices,b.vertices)
+            self.assertEqual(labelled.to_dict(),before)
+            self.assertEqual(labelled.edges,original.edges);self.assertEqual(labelled.vertices,original.vertices)
+            self.assertEqual(parse_graph(labelled._serialized,'json').to_dict(),before)
+            for ext in ('png','svg','pdf'):
+                with tempfile.TemporaryDirectory() as folder:
+                    path=Path(folder)/('label.'+ext);figure.savefig(path,bbox_inches='tight');self.assertGreater(path.stat().st_size,100)
+
+    def test_empty_label_is_backward_compatible_and_renumbering_keeps_whole_label(self):
+        from graph_research.graph_input.styles import remap_style,reconcile_style
+        label={'text':'G_1'};style={'graph_label':label}
+        self.assertEqual(remap_style(style,['a','b'],[0,1]),style)
+        self.assertEqual(reconcile_style(style,[{'vertices':['a','b']}],['a'],[]),style)
+        graph=document([0,1],[{'vertices':[0,1]}],positions=[[0,0],[1,0]])
+        self.assertEqual(document_to_tikz(graph.with_updates(style={'graph_label':{'text':''}})),document_to_tikz(graph))
+
+
 class GraphOutputTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):cls.registry=ToolRegistry()

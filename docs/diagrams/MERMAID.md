@@ -11,7 +11,7 @@ flowchart TB
     mcp["MCP 主agent接入<br/>使用主agent的模型"]:::host
     form["填写参数或输入图<br/>表单、JSON、鼠标构图"]:::manual
     plan["自然语言提出需求<br/>模型澄清、选择或组合工具"]:::model
-    delegate["委派结构化计算任务<br/>固定步骤、批量或参数扫描"]:::host
+    delegate["委派结构化计算任务<br/>固定步骤、批量或通用实验"]:::host
     validate["统一参数与图对象<br/>校验工具契约、图类型及数学前提"]:::guard
     execute["受保护的本地执行<br/>预算、完整性、资源限制、取消及执行回执"]:::guard
     evidence["保留结果与执行证据<br/>数值、图对象、坐标、逐步状态与验证信息"]:::data
@@ -177,7 +177,7 @@ flowchart TB
     mcp["MCP host integration<br/>Use the host agent's model"]:::host
     form["Enter parameters or a graph<br/>Forms, JSON or visual editing"]:::manual
     plan["Describe a research task<br/>Clarify, select or compose tools"]:::model
-    delegate["Delegate a structured task<br/>Steps, batches or alpha scans"]:::host
+    delegate["Delegate a structured task<br/>Tools, batches or studies"]:::host
     validate["Shared parameters and graph objects<br/>Validate contracts, graph types and mathematical assumptions"]:::guard
     execute["Protected local execution<br/>Budgets, core integrity, resource limits, cancellation and receipts"]:::guard
     evidence["Results with execution evidence<br/>Values, graph objects, coordinates, step status and verification"]:::data

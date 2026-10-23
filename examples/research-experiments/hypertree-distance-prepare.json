@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "request_id": "experiment-hypertree-distance-prepare-v1",
+  "objective": "准备固定结构参数的一致超树距离谱极值实验，参数尚无具体取值。",
+  "execution": {
+    "mode": "experiment",
+    "experiment": {
+      "operation": "prepare",
+      "max_cases": 16,
+      "seed": 42,
+      "problem": {
+        "version": 1,
+        "question": "研究给定一致度、超边数、最大度和达到最大度的顶点个数时的距离谱极值结构。",
+        "intent": "parameterized_extremum",
+        "object": {"type": "uniform_hypertree", "uniformity": {"parameter": "k"}},
+        "parameters": {
+          "k": {"kind": "integer", "role": "explore", "meaning": "uniformity"},
+          "m": {"kind": "integer", "role": "explore", "meaning": "size"},
+          "Delta": {"kind": "integer", "role": "explore", "meaning": "max_degree", "minimum": 3},
+          "q": {"kind": "integer", "role": "explore", "meaning": "max_degree_vertices"}
+        },
+        "constraints": {"all": [
+          {"predicate": "edge_count", "arguments": {"value": {"parameter": "m"}}},
+          {"predicate": "max_degree", "arguments": {"value": {"parameter": "Delta"}}},
+          {"predicate": "max_degree_vertex_count", "arguments": {"value": {"parameter": "q"}}}
+        ]},
+        "objective": {"metric": "distance_spectral_radius", "direction": "maximize"},
+        "assumptions": ["q是达到最大超图度的顶点数；总顶点数N=1+(k-1)m。", "距离按超图路径经过的超边数计算；不使用邻接张量谱。"]
+      }
+    }
+  },
+  "constraints": {"max_model_calls": 0, "max_tool_calls": 0, "allow_extensions": false}
+}

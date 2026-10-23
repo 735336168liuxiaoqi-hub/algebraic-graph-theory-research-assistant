@@ -58,12 +58,14 @@ SCAN_SCHEMA=obj({
     'warm_start':{'type':'boolean'},'continue_on_error':{'type':'boolean'},
 },['alphas'])
 from .counterexample import problem_schema as _counterexample_schema
+from .research_protocol import options_schema as _research_schema
+from graph_research.experiments.research_contract import operation_schema as _experiment_schema
 
 TASK_SCHEMA=obj({
     'version':{'const':1},'request_id':IDENTIFIER,'parent_task_id':IDENTIFIER,'objective':TEXT,
     'inputs':{'type':'object'},'definitions':{'type':'array','maxItems':32,'items':{'type':'string','minLength':1,'maxLength':2000}},
     'expected_outputs':{'type':'array','maxItems':32,'items':{'type':'string','minLength':1,'maxLength':256}},
-    'execution':obj({'mode':{'enum':['agent','tools','scan','batch','counterexample']},'steps':{'type':'array','minItems':1,'maxItems':100,'items':STEP_SCHEMA},'scan':SCAN_SCHEMA,'batch':BATCH_SCHEMA,'counterexample':_counterexample_schema()},['mode']),
+    'execution':obj({'mode':{'enum':['agent','research','tools','scan','batch','counterexample','experiment']},'steps':{'type':'array','minItems':1,'maxItems':100,'items':STEP_SCHEMA},'scan':SCAN_SCHEMA,'batch':BATCH_SCHEMA,'counterexample':_counterexample_schema(),'research':_research_schema(obj),'experiment':_experiment_schema()},['mode']),
     'constraints':POLICY_SCHEMA,
 },['version','request_id','objective','execution'])
 
@@ -96,6 +98,17 @@ def validate_task(value):
         raise TaskProtocolError('invalid_task','任务输入不符合协议或超过256KiB；身份、密钥、路径和审批字段不能由任务JSON指定。') from None
     result=json.loads(encoded)
     execution=result['execution'];mode=execution['mode']
+    if mode=='experiment':
+        if set(execution)!={'mode','experiment'}:raise TaskProtocolError('invalid_experiment','实验准备不混用其他模式或固定步骤。')
+        from graph_research.experiments.research_contract import validate_experiment
+        execution['experiment']=validate_experiment(execution['experiment'])
+        if execution['experiment']['operation'] in ('execute','study') and result.get('definitions'):
+            raise TaskProtocolError('unformalized_experiment','definitions中的附加文字须先形式化为problem约束，不能在执行时静默忽略。')
+    elif 'experiment' in execution:raise TaskProtocolError('invalid_experiment','experiment参数仅用于对应模式。')
+    if mode=='research':
+        if set(execution)-{'mode','research'}:raise TaskProtocolError('invalid_research','科研模式由规划器安排步骤，只接受execution.research选项。')
+        execution.setdefault('research',{})
+    elif 'research' in execution:raise TaskProtocolError('invalid_research','research选项仅用于科研规划模式。')
     if mode=='counterexample':
         if set(execution)!={'mode','counterexample'}:raise TaskProtocolError('invalid_counterexample','反例搜索只接受execution.counterexample，不混用固定步骤或其他模式。')
         if result.get('definitions'):raise TaskProtocolError('unsupported_search_definitions','当前专用搜索只验证固定n/m、连通简单图及邻接谱目标；不接受definitions中的额外数学约束，请勿把返回反例用于更窄的图类。')
@@ -146,5 +159,6 @@ def tool_definition():
 
 
 def contracts():
+    from graph_research.experiments.research_contract import contracts as experiment_contracts
     return copy.deepcopy({'protocol':PROTOCOL,'task_input':TASK_SCHEMA,'task_result':RESULT_SCHEMA,'parent_dispatch':dispatch_schema(),
-                          'parent_tool_definition':tool_definition()})
+                          'parent_tool_definition':tool_definition(),'experiment_contracts':experiment_contracts()})

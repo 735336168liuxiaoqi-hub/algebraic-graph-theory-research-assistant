@@ -102,6 +102,15 @@ def primitives(scene,vertex_labels=False):
             if item['fill']!='none':layered.append({**item,'stroke':'none','layer':0})
             layered.append({**item,'fill':'none','layer':1})
         else:layered.append({**item,'layer':3 if item['kind']=='label' else 4 if item['role'] in ('anchor','junction') else 2})
+    if 'graph_label' in style:
+        from graph_research.graph_input import figure_label as label_api
+        label=label_api.validate(style['graph_label'])
+        if label['text'].strip():
+            low_x,low_y,high_x,high_y=bounds(layered)
+            xy,_=label_api.layout([(low_x,low_y),(high_x,high_y)],label)
+            layered.append({'kind':'label','role':'graph_label','tag':['graph_label',0],'xy':xy,
+                            'text':label_api.display_text(label['text']),'tex':label_api.tex_text(label['text']),
+                            'color':label['color'],'font_size':label['font_size'],'layer':5})
     return sorted(layered,key=lambda item:item['layer'])
 
 
@@ -113,7 +122,8 @@ def bounds(items):
                 points.extend(zip(command[1::2],command[2::2]))
         else:
             x,y=item['xy'];pad=item.get('r',.28)
-            xpad=max(pad,len(item.get('text',''))*.075) if item['kind']=='label' else pad
+            if item.get('role')=='graph_label':pad=max(pad,item['font_size']/28.45*.6)
+            xpad=max(pad,len(item.get('text',''))*.075*(item.get('font_size',12)/12)) if item['kind']=='label' else pad
             points.extend([(x-xpad,y-pad),(x+xpad,y+pad)])
     if not points:return [-1,-1,1,1]
     return [min(p[0] for p in points)-.18,min(p[1] for p in points)-.18,max(p[0] for p in points)+.18,max(p[1] for p in points)+.18]

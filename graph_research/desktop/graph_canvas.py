@@ -78,6 +78,10 @@ class GraphCanvas(QWidget):
         self.clear_selection=QPushButton('清除选点');self.clear_selection.clicked.connect(self.unselect);bottom.addWidget(self.clear_selection)
         self.selection_text=QLabel('');self.selection_text.setWordWrap(True);bottom.addWidget(self.selection_text,1);root.addLayout(bottom)
         self.selection_text.setTextFormat(Qt.TextFormat.PlainText)
+        from .coordinate_labels import CoordinateControls
+        self.coordinate_controls=CoordinateControls(self);self.coordinate_controls.changed.connect(self.redraw);root.addWidget(self.coordinate_controls)
+        from .figure_label import FigureLabelControls
+        self.figure_label_controls=FigureLabelControls(self);self.figure_label_controls.applied.connect(self._set_figure_label);root.addWidget(self.figure_label_controls)
         self.set_graph(self.graph)
 
     def set_editable(self,editable):
@@ -87,7 +91,8 @@ class GraphCanvas(QWidget):
     def set_graph(self,graph,*,remember=False,reset_undo=False):
         if remember:self._remember()
         if reset_undo:self.undo_stack=[]
-        self.graph=graph;self._updating=True;self.selected=[];self._delete_target=None;self.vertices=[];self.paths=[];self.scene.clear()
+        self.graph=graph;self._updating=True;self.selected=[];self._delete_target=None;self.vertices=[];self.paths=[];self.figure_label_controls.reset_item();self.scene.clear()
+        self.figure_label_controls.load(graph.to_dict().get('style',{}).get('graph_label'))
         positions=_positions(graph);self.graph=graph.with_updates(positions=positions)
         for i,_ in enumerate(graph.edges):
             item=QGraphicsPathItem();item.setPen(QPen(QColor(COLORS[i%len(COLORS)] if graph.graph_type=='hypergraph' else '#263e47'),2))
@@ -99,6 +104,16 @@ class GraphCanvas(QWidget):
 
     def current_graph(self):
         return self.graph.with_updates(positions=[[v.pos().x()/160,-v.pos().y()/160] for v in self.vertices])
+
+    def _set_figure_label(self,value):
+        try:
+            before=self.current_graph();style=before.to_dict().get('style',{})
+            if value is None:style.pop('graph_label',None)
+            else:style['graph_label']=value
+            candidate=before.with_updates(style=style)
+            if candidate!=before:
+                self._remember();self.graph=candidate;self.figure_label_controls.load(style.get('graph_label'));self.redraw();self.changed.emit(candidate)
+        except ValueError as error:self.error.emit(str(error));self.redraw()
 
     def _remember(self):
         self.undo_stack.append(self.current_graph());self.undo_stack=self.undo_stack[-100:];self.undo_button.setEnabled(True)
@@ -120,7 +135,7 @@ class GraphCanvas(QWidget):
         self.unselect()
 
     def unselect(self):
-        self.selected=[];self._delete_target=None;self.redraw()
+        self.selected=[];self._delete_target=None;self.coordinate_controls.focused=set();self.redraw()
         self.selection_text.setText('')
 
     def preview_delete(self,tag):
@@ -143,6 +158,7 @@ class GraphCanvas(QWidget):
         if label in self.selected:self.selected.remove(label)
         else:self.selected.append(label)
         for value,item in zip(self.graph.vertices,self.vertices):item.setBrush(QBrush(QColor('#df8d25' if value in self.selected else '#173d3b')))
+        self._coordinate_labels()
         labels=', '.join(_caption(v) for v in self.selected);self.selection_text.setText(UiText('选中：'+labels,'Selected: '+labels))
 
     def add_vertex(self,label=None,position=None):
@@ -177,11 +193,15 @@ class GraphCanvas(QWidget):
 
     def _pressed(self,event):
         if event.button()!=Qt.MouseButton.LeftButton:return
-        item=self.view.itemAt(event.position().toPoint())
+        item=next((item for item in self.view.items(event.position().toPoint()) if item.data(1)!='coordinate-overlay'),None)
         while item is not None and item.data(0) is None:item=item.parentItem()
         tag=item.data(0) if item is not None else None;mode=self.mode.currentData()
         try:
-            if mode=='move':self._drag_start=self.current_graph();return
+            if tag and tag[0]=='graph_label':self._drag_start=None;return
+            if mode=='move':
+                self._drag_start=self.current_graph()
+                if tag is None:self.coordinate_controls.focused=set();self._coordinate_labels()
+                return
             if mode=='vertex' and tag is None:
                 text=self.label_input.text().strip();labels=tokens(text) if text else []
                 if len(labels)>1:raise GraphInputError('一次填写一个新顶点标签；含空格的标签使用双引号。')
@@ -254,6 +274,17 @@ class GraphCanvas(QWidget):
             text=edge_text(self.graph,index,style)
             if text:
                 caption=QGraphicsSimpleTextItem(text,item);caption.setFont(font);caption.setBrush(QBrush(item.pen().color()));xy=edge_offsets.get(index,[3,4]);caption.setPos(path.pointAtPercent(.5)+QPointF(xy[0]*1.33,-xy[1]*1.33-12));caption.setZValue(3)
+        self._coordinate_labels()
+        points=list(math_coordinates.values())+[p/[160,-160] for curve in paths for p in curve.vertices]
+        self.figure_label_controls.sync(self.scene,style.get('graph_label'),points,movable=self.mode.currentData()=='move')
+
+    def _coordinate_labels(self):
+        from graph_research.rendering.tex_coordinates import for_paths
+        from graph_research.rendering.presentation import geometry
+        import numpy as np
+        items=dict(zip(self.graph.vertices,self.vertices))
+        positions={v:np.array([item.pos().x()/160,-item.pos().y()/160]) for v,item in items.items()}
+        self.coordinate_controls.update_items(items,positions,lambda:for_paths(positions,geometry(self.graph,positions)),self.selected)
 
     def fit(self):
         bounds=self.scene.itemsBoundingRect().adjusted(-55,-55,55,55)

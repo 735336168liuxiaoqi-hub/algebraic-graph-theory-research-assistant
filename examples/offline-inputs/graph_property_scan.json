@@ -1,0 +1,17 @@
+{
+  "source": "provided",
+  "graphs": [
+    {
+      "kind": "path",
+      "n": 3
+    }
+  ],
+  "filters": {
+    "connected": true
+  },
+  "select": {
+    "simple_spectrum": true,
+    "controllable": false
+  },
+  "source_id": "39aa1ee0563f5906117c3f8fb2261250b34b6238169ffde8be786207e8a93855"
+}

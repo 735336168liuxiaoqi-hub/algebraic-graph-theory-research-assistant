@@ -34,7 +34,7 @@ python -m graph_research mcp-config --root C:/Research/graph-state --user local-
 
 ## 主agent如何调用
 
-服务对外只提供少量调度工具，计算函数通过按需目录发现。当前开发版45个内置工具不会同时展开全部Schema占用上下文。
+服务对外提供13个调度／集成入口，47个内置计算工具通过按需目录发现，不同时展开全部Schema占用上下文。
 
 | MCP工具 | 功能 |
 | --- | --- |
@@ -77,6 +77,14 @@ python -m graph_research mcp-config --root C:/Research/graph-state --user local-
 结果为`queued/running`时仍未完成。后台执行状态在`transport.worker_state/active`中；任务状态、修订、剩余预算和终止标记沿用原协议。`get`可能短暂重读并发更新的JSON文件，不会因此重新执行计算或请求模型。
 
 ## 长计算、取消和恢复
+
+### 通用实验入口
+
+当前main的`execution.mode="experiment"`支持prepare／execute／study。已有工具、明确候选评价及rules规划的study无需本助手API；`planner="model"`才需要宿主开启内部模型。study在确认后的有限参数网格、方法、种子及预算内运行枚举／随机／局部／可选CPU CEM，内部experiment_evaluate和experiment_search不是额外的公开计算工具。
+
+先从`graph-research://contracts`读取experiment_contracts；以`examples/research-experiments/clique-free-study.json`任务本体提交research_submit。CLI的`*-request.json`带submit外层，不能直接当作MCP task。首次等待experiment_review，可信用户确认后签发continue事件，由主agent交给research_resume；分段暂停可由可信门户或subagent-user的study-feedback提交反馈，仍不向模型开放签发权限。
+
+指南、完整例子、CEM依赖和研究边界见[通用实验](EXPERIMENTS.md)。按每轮保护进程扣工具尝试，另计候选评价和时间预算；失败／重启／恢复不清零。CEM需可选search依赖，`[all]`不含torch。一般超图允许含环，张量目标不由普通图矩阵替代。升级后须更新实际启动副本并重连以加载新契约。
 
 首版同一状态目录、同一用户同时接受一个后台任务。另一新任务返回`mcp_busy`且不创建额外任务；同request_id查询继续幂等。已有步骤可以在一个任务中连续执行。
 
@@ -160,3 +168,7 @@ DSH等客户端对二进制资源的展示支持各不相同，通用路径和�
 
 
 开发版专用任务 `execution.mode=counterexample` 的输入、预算及科研结论边界见[反例搜索](COUNTEREXAMPLE_SEARCH.md)。
+
+## 科研自主规划（开发源码0.38.0a1）
+
+execution.mode=research将目标交给已显式配置的助手模型，支持正式计划、可选用户查看、预算估计、失败反馈和有界重规划。参数及例子见[科研实验说明](RESEARCH_PLANNING.md)。仅使用主agent模型时，由主agent规划并通过固定tools/batch调用graph_property_scan/verify，无需本助手另配API。

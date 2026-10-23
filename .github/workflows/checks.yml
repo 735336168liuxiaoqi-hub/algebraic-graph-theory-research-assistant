@@ -11,7 +11,9 @@ permissions:
 jobs:
   windows:
     runs-on: windows-latest
-    timeout-minutes: 25
+    # Full Windows validation alone takes about 22 minutes locally; also allow
+    # time for dependency installation and wheel/runtime verification.
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:

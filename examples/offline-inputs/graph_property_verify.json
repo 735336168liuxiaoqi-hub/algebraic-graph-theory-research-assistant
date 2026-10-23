@@ -1,0 +1,42 @@
+{
+  "graph": {
+    "kind": "path",
+    "n": 3
+  },
+  "certificate": {
+    "format": "graph-property-certificate/1",
+    "scope_sha256": "9dd51ebec2977d736ee19b253edf4884868fc4829d2b52df9101634566f5493c",
+    "matrix_spec": {
+      "kind": "A",
+      "adjacency_coefficient": "1",
+      "degree_coefficient": "0"
+    },
+    "characteristic_coefficients": [
+      "1",
+      "0",
+      "-2",
+      "0"
+    ],
+    "multiplicity_gcd": [
+      "1"
+    ],
+    "walk_rank": 2,
+    "vertex_gcds": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "0"
+      ],
+      [
+        "1"
+      ]
+    ],
+    "properties": {
+      "simple_spectrum": true,
+      "controllable": false,
+      "has_wronskian_vertex": true
+    }
+  }
+}

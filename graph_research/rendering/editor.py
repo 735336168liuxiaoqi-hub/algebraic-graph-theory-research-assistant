@@ -34,6 +34,9 @@ def validate_layout(data, hypergraph=None):
         raise ValueError("One finite coordinate pair per vertex required (absolute value <=1e9)")
     graph = Hypergraph([[labels[i] for i in e] for e in edges],vertices=labels,weights=data.get("weights"))
     positions = vertex_positions(graph,dict(zip(labels,xy)))
+    if 'style' in data:
+        from graph_research.graph_input.styles import validate_style
+        validate_style(data['style'],labels,[{'vertices':list(e)} for e in graph.Edges])
     if hypergraph is not None:
         supplied = {frozenset(e) for e in graph.Edges}
         expected = {frozenset(e) for e in hypergraph.Edges}

@@ -17,6 +17,7 @@ from .model_service import SafeModel
 
 
 STATUSES={'recovery_required':'等待确认是否重算','manual_development_required':'需要独立开发','awaiting_clarification':'等待补充需求','awaiting_approval':'等待开发审批','awaiting_plan':'等待查看任务计划','running':'正在处理',
+    'research_complete':'科研实验流程已完成','research_partial':'科研实验保留部分结果',
     'tool_results_available':'计算完成','model_analysis_only':'分析完成 · 未执行计算','cancelled':'已停止',
     'execution_error':'执行中断 · 可手动继续','extension_rejected':'已拒绝开发','extension_ready':'实验扩展已就绪',
     'budget_exhausted':'达到本轮调用上限','approval_or_budget_required':'需要重新评估或补充预算',
@@ -131,6 +132,8 @@ class ChatWindow(DesktopWindow):
         row=QHBoxLayout();self.progress_text=label('就绪','muted');row.addWidget(self.progress_text,1)
         self.review_plan=QCheckBox('先查看计划');self.review_plan.setToolTip('多步任务先展示计划，点击开始执行后计算；已有单步工具正常执行。')
         self.review_plan.toggled.connect(self.set_plan_review);row.addWidget(self.review_plan)
+        self.research_mode=QCheckBox('科研实验');self.research_mode.setToolTip('在新对话开始前选择：先明确研究范围和核验方法，再按计划执行；可分批统计并根据结果调整。')
+        self.research_mode.toggled.connect(self.set_research_mode);row.addWidget(self.research_mode)
         self.resume=QPushButton('继续未完成任务');self.resume.clicked.connect(lambda:self.start_action('continue'));row.addWidget(self.resume)
         self.retry_calculation=QPushButton('确认重新执行未核验步骤');self.retry_calculation.clicked.connect(lambda:self.start_action('retry_calculation'));row.addWidget(self.retry_calculation);self.retry_calculation.hide()
         self.cancel=QPushButton('停止');self.cancel.setObjectName('stop');self.cancel.setEnabled(False);self.cancel.clicked.connect(self.cancel_calculation);row.addWidget(self.cancel)
@@ -286,6 +289,12 @@ class ChatWindow(DesktopWindow):
             if ref==objects['active']:self.object_choice.setCurrentIndex(self.object_choice.count()-1)
         self.object_choice.blockSignals(False)
         self.review_plan.blockSignals(True);self.review_plan.setChecked(self.workspace.session.review_plans);self.review_plan.blockSignals(False)
+        self.research_mode.blockSignals(True);self.research_mode.setChecked(self.workspace.session.task_context.get('execution',{}).get('mode')=='research');self.research_mode.blockSignals(False)
+
+    def set_research_mode(self,checked):
+        if self.thread is not None:return
+        try:self.workspace.session.set_research_mode(checked)
+        except ValueError as error:QMessageBox.warning(self,'模式未切换',str(error));self.refresh_objects()
 
     def set_plan_review(self,checked):
         if self.thread is not None:return
@@ -310,7 +319,12 @@ class ChatWindow(DesktopWindow):
             user=QFrame();user.setObjectName('metric');row=QVBoxLayout(user);row.addWidget(label('你 · 第'+str(turn['number'])+'轮','muted'));row.addWidget(label(turn['user_request'],raw=True));self.transcript.addWidget(user)
             if turn.get('plan') and turn['plan']['status']!='awaiting_review':
                 from graph_research.assistant.planning import plan_text
-                plan_label=label(UiText('任务计划\n'+plan_text(turn['plan']),'Task plan\n'+plan_text(turn['plan'])));plan_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse);self.transcript.addWidget(plan_label)
+                plan_label=label(UiText('任务计划\n'+plan_text(turn['plan']),'Task plan\n'+plan_text(turn['plan'],language='en')));plan_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse);self.transcript.addWidget(plan_label)
+            if turn.get('research'):
+                research=turn['research'];outcome={'completed':('已完成','Completed'),'partial':('部分结果','Partial results'),'in_progress':('处理中','In progress')}[research['outcome']]
+                coverage=('完整','Complete') if research['enumeration_complete'] else ('尚未形成完整遍历','Complete enumeration not established')
+                self.transcript.addWidget(label(UiText('科研实验：'+outcome[0]+' · 遍历覆盖：'+coverage[0]+' · 独立复核样例：'+str(len(research['independent_witnesses'])),
+                    'Research experiment: '+outcome[1]+' · Coverage: '+coverage[1]+' · Independently checked examples: '+str(len(research['independent_witnesses']))),'muted'))
             start=turn.get('observation_start',0);end=turn.get('observation_end',len(observations))
             for observation in observations[start:end]:
                 if 'tool' in observation:
@@ -345,6 +359,7 @@ class ChatWindow(DesktopWindow):
         self.graph_button.setEnabled(not busy)
         self.object_choice.setEnabled(not busy)
         self.review_plan.setEnabled(not busy)
+        self.research_mode.setEnabled(not busy and not self.workspace.session.state)
         self.budget_button.setEnabled(not busy)
         from .research_view import usage_text
         usage=self.workspace.session.workflow_usage();self.usage_label.setText(usage_text(usage));self.usage_label.setToolTip('本任务累计。未知用量保留预留值；金额按用户配置单价估算，实际以服务商账单为准。')
@@ -352,7 +367,7 @@ class ChatWindow(DesktopWindow):
         self.plan_panel.setVisible(self.pending_plan is not None);self.run_plan_button.setEnabled(not busy and self.model is not None)
         if self.pending_plan:
             from graph_research.assistant.planning import plan_text
-            self.plan_detail.setText(plan_text(plan))
+            self.plan_detail.setText(UiText(plan_text(plan),plan_text(plan,language='en')))
         self._refresh_result_actions()
         self.pending_approval=(state.get('assessment_id'),state.get('assessment',{}).get('scope_sha256')) if status=='awaiting_approval' else None
         self.approval.setVisible(self.pending_approval is not None)

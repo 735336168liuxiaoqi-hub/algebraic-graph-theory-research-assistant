@@ -1,6 +1,6 @@
 {
   "format": "research-assistant-workflow-diagrams/1",
-  "date": "2026-10-20",
+  "date": "2026-10-24",
   "scope": "Implemented behavior, not planned performance optimizations",
   "charts": [
     {
@@ -82,7 +82,7 @@
           "h": 86,
           "lines": [
             "委派结构化计算任务",
-            "固定步骤、批量或参数扫描"
+            "固定步骤、批量或通用实验"
           ],
           "kind": "host"
         },
@@ -1519,7 +1519,7 @@
           "h": 86,
           "lines": [
             "Delegate a structured task",
-            "Steps, batches or alpha scans"
+            "Tools, batches or studies"
           ],
           "kind": "host"
         },

@@ -30,6 +30,17 @@ from tests.feature_helpers import proposal,request_for
 
 @unittest.skipUnless(AVAILABLE,'Optional desktop and model dependencies unavailable')
 class ChatDesktopTests(unittest.TestCase):
+    def test_research_profile_is_selected_before_chat_and_displays_verified_progress(self):
+        from tests.test_research_planning import plan,FINAL
+        self.window.research_mode.setChecked(True)
+        self.assertEqual(self.workspace.session.task_context['execution']['mode'],'research')
+        self.window.model=ScriptedModel([plan(),FINAL])
+        self.send('研究路径图的单谱性和可控性')
+        self.assertEqual(self.window.view_state['status'],'research_complete',self.window.view_state)
+        self.assertFalse(self.window.research_mode.isEnabled())
+        self.assertEqual(self.window.view_turns[-1]['research']['outcome'],'completed')
+        self.assertEqual(len(self.window.view_turns[-1]['research']['independent_witnesses']),1)
+
     @classmethod
     def setUpClass(cls):
         cls.app=QApplication.instance() or QApplication([]);cls.app.setQuitOnLastWindowClosed(False)

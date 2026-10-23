@@ -195,6 +195,14 @@ python examples/subagent_demo.py --simulate-user-approval --output outputs/subag
 
 设置`create_subagent(..., results_directory=...)`后，返回包附稳定成果/版本编号及友好名称；成果改名不改变SHA256，查询和附件读取继续解析已登记路径。整任务清理返回`cleared`终态，保留request_id、任务编号和已用预算，不重复执行；通过成果中心回收区恢复后可再次取得原记录。未设置results_directory的直接Python调用继续使用原导出方式。
 
+## 通用有限实验
+
+开发源码0.38.0a1增加execution.mode=experiment，操作为prepare／execute／study。完整问题、搜索、控制器动作及反馈Schema在experiment_contracts；见[通用实验说明](../EXPERIMENTS.md)。prepare不执行；execute及study先暂停审阅，只有绑定当前交互的可信continue事件才能开始。规则study无需内部模型；模型调度需要model_factory／现有模型配置和正的模型预算。
+
+study分段暂停时，可信宿主可调用`portal.study_feedback(task_id, interaction_id, revision, value)`；value可含knobs、focus_runs、hypotheses及note。该方法只签发事件，随后由parent.resume传递；不能注册成模型工具。它不能提高预算或添加网格外实例。使用allowed_tools白名单时，明确候选评价需允许experiment_evaluate，搜索需允许experiment_search；它们是固定保护操作，不是第48/49项公开工具。
+
+结果summary.experiment区分study_complete与collection_complete。study结束不代表穷尽全类；具体有限覆盖和反例证据在interpretation中，原始检查点保留在逐轮结果。重启、失败及用户反馈均不重置累计预算。
+
 ## 固定α扫描
 
 新增execution.mode=scan，输入为scan对象，含edges或generator及alphas；复用已有固定步骤后端，预算按构图和每点分别预扣尝试数。失败点保留且不自动重试，取消后的继续仍由可信用户门户签发事件，已核验完成点不会重算。完整契约由subagent-schema返回，示例见[MCP实测改进说明](../MCP.md)。

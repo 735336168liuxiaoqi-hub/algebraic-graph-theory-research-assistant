@@ -29,7 +29,7 @@ class OfflineTests(unittest.TestCase):
     def test_every_native_tool_is_reachable_once_with_reviewed_descriptions(self):
         registry=ToolRegistry();groups=grouped_tools(registry)
         names=[t['name'] for g in groups for t in g['tools']]
-        self.assertEqual(len(names),45);self.assertEqual(set(names),set(registry.tools))
+        self.assertEqual(len(names),47);self.assertEqual(set(names),set(registry.tools))
         self.assertEqual(len(groups),8)
         for group in groups:
             for tool in group['tools']:
@@ -61,7 +61,7 @@ class OfflineTests(unittest.TestCase):
 
     def test_manual_and_tool_selection_help_include_complete_examples_and_real_limits(self):
         definitions=ToolRegistry().catalog();manual=render_manual(definitions)
-        self.assertEqual(manual.count('\n## '),45)
+        self.assertEqual(manual.count('\n## '),47)
         for definition in definitions:
             lines=[];show_input_guide(definition,lines.append)
             sample=definition['documentation']['examples'][0]['arguments']

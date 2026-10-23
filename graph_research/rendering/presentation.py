@@ -93,11 +93,13 @@ def plot_document(graph,*,ax=None,layout='spring',seed=42,legend=False,title=Non
     from .tikz import _label_offset
     from graph_research.hypergraphs import Hypergraph
     style=resolved_style(graph);pos=coordinates(graph,layout,seed);paths=geometry(graph,pos)
+    from graph_research.graph_input import figure_label as label_api
+    label=label_api.validate(style['graph_label']) if 'graph_label' in style else None
     texts={r['vertex']:r['text'] for r in style.get('vertex_texts',[])}
     figure=Figure(figsize=(7,5),layout='constrained') if ax is None else ax.figure
     ax=figure.add_subplot() if ax is None else ax
     families={'sans':'sans-serif','serif':'serif','monospace':'monospace'}
-    font=(label_font_families(' '.join(str(texts.get(v,display_label(v))) for v in graph.vertices)+' '+str(title or '')) or [])+[families[style['font_family']]]
+    font=(label_font_families(' '.join(str(texts.get(v,display_label(v))) for v in graph.vertices)+' '+str(title or '')+' '+(label['text'] if label else '')) or [])+[families[style['font_family']]]
     span=float(np.ptp(np.array(list(pos.values())),axis=0).max()) if pos else 1.;span=span or 1.
     vo={r['vertex']:r['xy'] for r in style.get('vertex_label_offsets',[])};eo={r['edge_index']:r['xy'] for r in style.get('edge_label_offsets',[])}
     supports=[];seen=set()
@@ -125,6 +127,12 @@ def plot_document(graph,*,ax=None,layout='spring',seed=42,legend=False,title=Non
             from matplotlib.lines import Line2D
             ax.legend(handles=[Line2D([],[],color=edge_color(graph,i,style),label='e'+str(i)+': '+', '.join(map(display_label,e['vertices']))+(' ; w='+weight_text(e['weight']) if graph.weighted else '')) for i,e in enumerate(graph.edges)],loc='upper left',bbox_to_anchor=(1,1),prop={'family':font,'size':style['font_size']})
         if title:ax.set_title(title,fontfamily=font)
+        if label and label['text'].strip():
+            point,_=label_api.layout(list(pos.values())+[p for path in paths for p in path.vertices],label)
+            annotation=ax.text(*point,label_api.display_text(label['text']),ha='center',va='center',
+                               fontsize=label['font_size'],color=label['color'],fontfamily=font,parse_math=False,
+                               clip_on=False,zorder=10)
+            annotation.set_gid('graph-label')
     ax.set_aspect('equal');ax.autoscale_view();ax.margins(.18);ax.axis('off')
     figure.hypergraph_positions={v:p.copy() for v,p in pos.items()};figure.hypergraph_paths=paths
     figure.graph_document=graph.with_updates(positions=[pos[v].tolist() for v in graph.vertices]).to_dict()
@@ -133,17 +141,17 @@ def plot_document(graph,*,ax=None,layout='spring',seed=42,legend=False,title=Non
 
 def document_to_tikz(graph,*,standalone=False,normalize=True,size_cm=10):
     from .tikz import escape_latex,tex_number,_label_offset
+    from .tex_coordinates import for_paths
+    from graph_research.graph_input import figure_label as label_api
     from graph_research.hypergraphs import Hypergraph
     if not math.isfinite(size_cm) or not 0<size_cm<=50:raise ValueError('size_cm须为(0,50]内有限数。')
     style=resolved_style(graph);pos=coordinates(graph);paths=geometry(graph,pos)
+    label=label_api.validate(style['graph_label']) if 'graph_label' in style else None
     texts={r['vertex']:r['text'] for r in style.get('vertex_texts',[])}
     points=list(pos.values())+[p for path in paths for p in path.vertices]
     low,high=(np.min(points,axis=0),np.max(points,axis=0)) if points else (np.zeros(2),np.zeros(2))
-    span=float((high-low).max()) or 1.;offset=(low+high)/2 if normalize else np.zeros(2);factor=size_cm/span if normalize else 1.
-    def point(xy):
-        value=(np.asarray(xy)-offset)*factor
-        if not normalize and np.max(np.abs(value))>100:raise ValueError('原始坐标超过100cm，请启用归一化。')
-        return '('+tex_number(value[0])+','+tex_number(value[1])+')'
+    span=float((high-low).max()) or 1.
+    coords=for_paths(pos,paths,normalize=normalize,size_cm=size_cm);point=coords.point
     lines=['% Graph type: '+graph.graph_type+'; directed: '+str(graph.directed).lower()+'; weighted: '+str(graph.weighted).lower(),
            '% Labels are literal escaped text. Requires \\usepackage{tikz}.',
            r'\definecolor{vertexcolor}{HTML}{'+style['vertex_color'][1:]+'}']
@@ -167,17 +175,21 @@ def document_to_tikz(graph,*,standalone=False,normalize=True,size_cm=10):
             if triangle is not None:lines.append(r'\fill[edgecolor'+str(i)+'] '+' -- '.join(point(p) for p in triangle)+' -- cycle;')
         text=edge_text(graph,i,style)
         if text:
-            dx,dy=eo.get(i,[3,4]);lines.append(r'\node[fill=white,inner sep=1pt,anchor=south west,xshift='+tex_number(dx)+'pt,yshift='+tex_number(dy)+'pt] at '+point(midpoint(path))+' {'+escape_latex(text)+'};')
+            dx,dy=eo.get(i,[3,4]);lines.append(r'\node[fill=white,inner sep=1pt,anchor=south west,xshift='+coords.number(dx)+'pt,yshift='+coords.number(dy)+'pt] at '+point(midpoint(path))+' {'+escape_latex(text)+'};')
     supports=list({frozenset(e['vertices']):e['vertices'] for e in graph.edges}.values());h=Hypergraph(supports,vertices=list(graph.vertices))
     for v in graph.vertices:
         name='v'+str(index[v]);lines.append(r'\fill[vertexcolor] ('+name+') circle[radius='+tex_number(style['vertex_size'])+'pt];')
         if style['vertex_labels']:
             dx,dy,anchor=_label_offset(h,pos,v)
             if v in vo:dx,dy=vo[v];anchor=('south' if dy>0 else 'north' if dy<0 else '')+(' west' if dx>0 else ' east' if dx<0 else '');anchor=anchor.strip() or 'center'
-            lines.append(r'\node[inner sep=0pt,anchor='+anchor+',xshift='+tex_number(dx)+'pt,yshift='+tex_number(dy)+'pt] at ('+name+') {'+escape_latex(texts.get(v,display_label(v)))+'};')
+            lines.append(r'\node[inner sep=0pt,anchor='+anchor+',xshift='+coords.number(dx)+'pt,yshift='+coords.number(dy)+'pt] at ('+name+') {'+escape_latex(texts.get(v,display_label(v)))+'};')
+    if label and label['text'].strip():
+        xy,_=label_api.layout(points,label)
+        lines.append(r'\definecolor{graphlabelcolor}{HTML}{'+label['color'][1:]+'}')
+        lines.append(r'\node[text=graphlabelcolor,inner sep=0pt,anchor=center,font={\fontsize{'+coords.number(label['font_size'])+'}{'+coords.number(label['font_size']*1.2)+r'}\selectfont}] at '+point(xy)+' {'+label_api.tex_text(label['text'])+'};')
     lines.append(r'\end{tikzpicture}');fragment='\n'.join(lines)+'\n'
     if not standalone:return fragment
-    chinese=any('\u3400'<=c<='\u9fff' for v in graph.vertices for c in str(texts.get(v,display_label(v))))
+    chinese=any('\u3400'<=c<='\u9fff' for c in ''.join(str(texts.get(v,display_label(v))) for v in graph.vertices)+(label['text'] if label else ''))
     preamble=['% !TeX program = '+('xelatex' if chinese else 'pdflatex'),r'\documentclass[tikz,border=5pt]{standalone}']
     if chinese:preamble.append(r'\usepackage[UTF8]{ctex}')
     return '\n'.join(preamble+[r'\begin{document}',fragment.rstrip(),r'\end{document}',''])

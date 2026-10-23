@@ -1,0 +1,76 @@
+{
+  "format": "graph-research-development-validation/1",
+  "version": "0.38.0a1",
+  "checked_at": "2026-10-24T01:44:04.030457+08:00",
+  "delivery": "main development source; no new GitHub Release created",
+  "environment": {
+    "python": "3.13.9",
+    "platform": "win32"
+  },
+  "core": {
+    "manifest_sha256": "b6afe16f08366559aeb005c855f2580e8a018f4e17f39a4d766a78947fd2d199",
+    "files_checked": 231,
+    "ok": true
+  },
+  "full_gate": {
+    "status": "passed",
+    "collected": 842,
+    "counts": {
+      "passed": 839,
+      "failed": 0,
+      "error": 0,
+      "skipped": 3,
+      "expected_failure": 0,
+      "unexpected_success": 0,
+      "incomplete": 0,
+      "not_run": 0
+    },
+    "seconds": 1292.437659999996,
+    "source_changed_during_execution": false,
+    "test_ids_sha256": "b318b6bcb2111f7a08bbb06bfe1ef9b4f8a16eb85c0c4d8197f3d77822a5dcd8",
+    "tested_source_sha256": "0049b88268e8a95c04cfa7853bcdd7d05a3351eda97577803829abab7656d4f5",
+    "result_sha256": "1b9fe2d77b9fdf0c61345b9ef8a9deeec3f9db37a041a0c48f878f3fd6ec2647",
+    "skipped": [
+      {
+        "id": "tests.test_result_cleanup.ResultCleanupTests.test_symlink_in_managed_directory_blocks_cleanup_without_following_it",
+        "reason": "Host does not allow unprivileged symlinks"
+      },
+      {
+        "id": "tests.test_experiment_study.SearchTests.test_cpu_cem_json_checkpoint_preserves_weights_momentum_and_trajectory_sequence",
+        "reason": "Optional CPU torch not installed"
+      },
+      {
+        "id": "tests.test_experiment_study.StudyEntryTests.test_actual_protected_cem_round_and_restart",
+        "reason": "Optional CPU torch not installed"
+      }
+    ]
+  },
+  "other_checks": [
+    "strict dependency lock",
+    "pip check",
+    "Ruff",
+    "generated contracts and guides",
+    "core integrity",
+    "Git diff whitespace"
+  ],
+  "optional_cpu_cem": {
+    "separately_validated": true,
+    "torch": "2.14.0+cpu",
+    "default_environment_requires_optional_install": true,
+    "test_group": "62 experiment tests including CPU CEM and protected continuation; earlier focused validation"
+  },
+  "privacy": {
+    "private_history_included": false,
+    "user_state_or_model_secrets_included": false
+  },
+  "ci": {
+    "remote_result": "not yet known for this commit",
+    "timeout_minutes": 45,
+    "note": "After the local full gate completed, only the CI timeout was raised from25 to45 minutes. Core and test code are unchanged."
+  },
+  "limits": [
+    "Finite reviewed studies are not general mathematical proofs.",
+    "Dedicated study desktop form and tensor objectives in study are not included.",
+    "No paid model API was invoked by validation."
+  ]
+}

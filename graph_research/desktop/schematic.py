@@ -94,6 +94,10 @@ class SchematicCanvas(QWidget):
         clear=QPushButton('清除选择');clear.clicked.connect(self.unselect);row.addWidget(clear)
         self.vertex_labels=QCheckBox('顶点标签');self.vertex_labels.toggled.connect(self.redraw);row.addWidget(self.vertex_labels)
         self.selection_text=QLabel();self.selection_text.setWordWrap(True);self.selection_text.setTextFormat(Qt.TextFormat.PlainText);row.addWidget(self.selection_text,1);root.addLayout(row)
+        from .coordinate_labels import CoordinateControls
+        self.coordinate_controls=CoordinateControls(self);self.coordinate_controls.changed.connect(self.redraw);root.addWidget(self.coordinate_controls)
+        from .figure_label import FigureLabelControls
+        self.figure_label_controls=FigureLabelControls(self);self.figure_label_controls.applied.connect(self._set_figure_label);root.addWidget(self.figure_label_controls)
         self.mode.currentIndexChanged.connect(self._mode_changed);self.set_document(self.document)
 
     def current_document(self):
@@ -106,7 +110,8 @@ class SchematicCanvas(QWidget):
     def set_document(self,scene,*,reset_undo=False,fit_view=True):
         if not isinstance(scene,SchematicDocument):scene=SchematicDocument(scene)
         transform=self.view.transform();center=self.view.mapToScene(self.view.viewport().rect().center())
-        self._updating=True;self.vertices={};self.draw_items=[];self.scene.clear();self.document=scene
+        self._updating=True;self.vertices={};self.draw_items=[];self.figure_label_controls.reset_item();self.scene.clear();self.document=scene
+        self.figure_label_controls.load(scene.to_dict()['style'].get('graph_label'))
         if reset_undo:self.undo_stack=[]
         for v in scene.to_dict()['vertices']:
             item=VertexItem(str(v['id']),QPointF(v['xy'][0]*160,-v['xy'][1]*160),self._dragged)
@@ -125,6 +130,17 @@ class SchematicCanvas(QWidget):
         if candidate==previous:return
         self.undo_stack.append(previous);self.undo_stack=self.undo_stack[-100:];self.set_document(candidate,fit_view=False)
 
+    def _set_figure_label(self,value):
+        try:
+            before=self.current_document();data=before.to_dict()
+            if value is None:data['style'].pop('graph_label',None)
+            else:data['style']['graph_label']=value
+            candidate=SchematicDocument(data)
+            if candidate!=before:
+                self.undo_stack.append(before);self.undo_stack=self.undo_stack[-100:];self.document=candidate
+                self.figure_label_controls.load(candidate.to_dict()['style'].get('graph_label'));self.redraw();self.changed.emit(candidate)
+        except ValueError as error:self.error.emit(str(error));self.redraw()
+
     def _mode_changed(self):
         movable=self.mode.currentData()=='move'
         for item in self.vertices.values():item.setFlag(item.GraphicsItemFlag.ItemIsMovable,movable)
@@ -133,6 +149,7 @@ class SchematicCanvas(QWidget):
 
     def unselect(self):
         self.selected=[];self.selected_edges=set();self.selected_path=None;self.selected_core=None;self._delete_target=None
+        self.coordinate_controls.focused=set()
         self._last_hit=None;self._restore_creation_settings();self.selection_text.setText('');self.redraw();self._sync_controls()
 
     def _remember_creation_settings(self,*unused):
@@ -173,6 +190,7 @@ class SchematicCanvas(QWidget):
         point=event.position().toPoint();scene_point=self.view.mapToScene(point);candidates=[]
         tolerance=6/max(self.view.transform().m11(),1e-4)
         for item in self.view.items(QRect(point.x()-6,point.y()-6,13,13)):
+            if item.data(1)=='coordinate-overlay':continue
             target=item
             while target is not None and target.data(0) is None:target=target.parentItem()
             if target is None:continue
@@ -248,7 +266,11 @@ class SchematicCanvas(QWidget):
         if event.button()!=Qt.MouseButton.LeftButton:return
         tag=self._hit_tag(event);mode=self.mode.currentData()
         try:
-            if mode=='move':self._drag_start=self.current_document();return
+            if tag and tag[0]=='graph_label':self._drag_start=None;return
+            if mode=='move':
+                self._drag_start=self.current_document()
+                if tag is None:self.coordinate_controls.focused=set();self.redraw()
+                return
             if mode=='vertex' and tag is None:
                 text=tokens(self.label_input.text()) if self.label_input.text().strip() else []
                 if len(text)>1:raise ValueError('一次填写一个锚点标签。')
@@ -310,7 +332,9 @@ class SchematicCanvas(QWidget):
             color=QColor('#d17d20' if v in self.selected else data['style']['vertex_color']);radius=data['style']['vertex_radius']*160
             item.setRect(-radius,-radius,2*radius,2*radius);g=QRadialGradient(-radius*.3,-radius*.3,radius*1.4);g.setColorAt(0,QColor('white'));g.setColorAt(.35,color);g.setColorAt(1,color.darker(150))
             item.setBrush(QBrush(g));item.setPen(QPen(QColor('#d52929' if affected(['vertex',v]) else 'white'),2));item.caption.setVisible(self.vertex_labels.isChecked())
-        for primitive in primitives(SchematicDocument(data),False):
+        scene=SchematicDocument(data);drawing=primitives(scene,False)
+        for primitive in drawing:
+            if primitive.get('role')=='graph_label':continue
             tag=primitive['tag']
             if primitive['kind']=='circle' and primitive['role']=='anchor':continue
             color=QColor('#ce3434' if affected(tag) else '#dc8a20' if tag[0]=='edge' and tag[1] in self.selected_edges or tag[0]=='path' and tag[1]==self.selected_path or tag[0]=='edge' and tag[1]==self.selected_core else data['style']['line_color'])
@@ -341,6 +365,12 @@ class SchematicCanvas(QWidget):
             bind(item,'tooltip',QGraphicsItem.setToolTip,tip)
             self.scene.addItem(item);self.draw_items.append(item)
         self.undo_button.setEnabled(bool(self.undo_stack))
+        from graph_research.schematics.tikz import _tex_coordinates
+        scene=SchematicDocument(data);positions={v['id']:v['xy'] for v in data['vertices']}
+        self.coordinate_controls.update_items(self.vertices,positions,lambda:_tex_coordinates(scene),self.selected)
+        from graph_research.schematics.geometry import bounds
+        x0,y0,x1,y1=bounds([p for p in drawing if p.get('role')!='graph_label'])
+        self.figure_label_controls.sync(self.scene,data['style'].get('graph_label'),[(x0,y0),(x1,y1)],movable=self.mode.currentData()=='move')
 
     def undo(self):
         if self._delete_target is not None:self.unselect();return

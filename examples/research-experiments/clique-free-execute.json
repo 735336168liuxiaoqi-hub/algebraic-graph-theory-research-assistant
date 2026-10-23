@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "request_id": "experiment-clique-free-execute-v1",
+  "objective": "评价明确候选集合，比较可行候选；不声称全类极值。",
+  "execution": {
+    "mode": "experiment",
+    "experiment": {
+      "operation": "execute",
+      "problem": {
+        "version": 1,
+        "question": "评价明确候选集合，比较可行候选；不声称全类极值。",
+        "intent": "parameterized_extremum",
+        "object": {
+          "type": "simple_graph",
+          "order": {
+            "parameter": "n"
+          }
+        },
+        "parameters": {
+          "n": {
+            "kind": "integer",
+            "role": "explore",
+            "meaning": "order"
+          },
+          "r": {
+            "kind": "integer",
+            "role": "explore",
+            "meaning": "clique_order"
+          },
+          "alpha": {
+            "kind": "real",
+            "role": "explore",
+            "meaning": "alpha"
+          }
+        },
+        "constraints": {
+          "predicate": "clique_free",
+          "arguments": {
+            "r": {
+              "parameter": "r"
+            }
+          }
+        },
+        "objective": {
+          "metric": "alpha_spectral_radius",
+          "direction": "maximize",
+          "arguments": {
+            "alpha": {
+              "parameter": "alpha"
+            }
+          }
+        },
+        "assumptions": [
+          "参数采样范围不等于数学命题的完整范围。",
+          "不预先将K_r-free限制为完全多部图。"
+        ]
+      },
+      "cases": [
+        {
+          "id": "alpha_half",
+          "parameters": {
+            "n": 5,
+            "r": 3,
+            "alpha": "1/2"
+          },
+          "candidates": [
+            {
+              "n": 5,
+              "edges": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  3
+                ],
+                [
+                  3,
+                  4
+                ],
+                [
+                  0,
+                  4
+                ]
+              ]
+            },
+            {
+              "n": 5,
+              "edges": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  0,
+                  3
+                ],
+                [
+                  0,
+                  4
+                ]
+              ]
+            },
+            {
+              "n": 5,
+              "edges": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  0,
+                  2
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "chunk_size": 2,
+      "segment_chunks": 1,
+      "budget": {
+        "max_evaluations": 8,
+        "wall_seconds": 120,
+        "cpu_seconds": 120,
+        "memory_mb": 512
+      }
+    }
+  },
+  "constraints": {
+    "max_model_calls": 0,
+    "max_tool_calls": 4,
+    "allow_extensions": false
+  }
+}

@@ -77,7 +77,7 @@ assert not any(n.startswith(('graph_research.assistant','graph_research.tools','
         self._isolated("""
 from graph_research.tools import ToolRegistry
 r=ToolRegistry()
-assert len(r.tools)==45
+assert len(r.tools)==47
 assert r.call('graph_invariants',{'kind':'path','n':3})['diameter']==2
 assert 'lookup_legacy' not in r.tools
 assert not any(n.startswith('graph_research.assistant') for n in sys.modules)
@@ -102,7 +102,7 @@ assert main()==0
         metadata=tomllib.loads((ROOT/'pyproject.toml').read_text(encoding='utf-8'))['project']
         self.assertEqual(len(metadata['dependencies']),3)
         self.assertTrue(all(not any(optional in name for optional in ('matplotlib','langgraph','httpx','jsonschema')) for name in metadata['dependencies']))
-        self.assertEqual(set(metadata['optional-dependencies']),{'visual','tools','assistant','desktop','mcp','all'})
+        self.assertEqual(set(metadata['optional-dependencies']),{'visual','tools','assistant','desktop','mcp','all','search'})
         self.assertTrue(any(value.startswith('mcp>=') for value in metadata['optional-dependencies']['mcp']))
         self.assertFalse(any(value.startswith('mcp') for value in metadata['dependencies']))
 

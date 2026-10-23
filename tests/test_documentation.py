@@ -18,7 +18,7 @@ from graph_research.extensions import ToolStore
 class DocumentationTests(unittest.TestCase):
     def test_all_native_tools_have_contracts_and_valid_actual_defaults(self):
         registry=ToolRegistry()
-        self.assertEqual(len(registry.tools),45)
+        self.assertEqual(len(registry.tools),47)
         for tool in registry.tools.values():
             with self.subTest(tool=tool.name):
                 doc=tool.documentation
@@ -86,7 +86,7 @@ class DocumentationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary,patch.object(registry,'call',side_effect=AssertionError('Docs must not calculate')):
             paths=export_documentation(registry,temporary)
             catalog=json.loads(Path(paths['tool-catalog.json']).read_text(encoding='utf-8'))
-            self.assertEqual(len(catalog['tools']),45)
+            self.assertEqual(len(catalog['tools']),47)
             self.assertTrue(catalog['conventions'])
             api=json.loads(Path(paths['library-api-index.json']).read_text(encoding='utf-8'))
             self.assertGreater(len(api),100)

@@ -12,6 +12,7 @@ from urllib.parse import quote
 
 TITLES={'combinatorial_plot':'格路径与棋盘绘图','graph_layout':'图布局与坐标调整',
         'graph_counterexample_round':'反例搜索轮次','graph_counterexample_verify':'反例独立核验',
+        'graph_property_scan':'图族性质分批遍历','graph_property_verify':'图性质独立核验',
         'graph_invariants':'图的基本信息','graph_spectrum':'普通图数值谱','generate_hypergraph':'超图构造',
         'weighted_graph_spectrum':'带权图矩阵与谱','graph_recipe':'参数化构图','hypergraph_path_analysis':'超图内部路分析','graph_batch_study':'批量图研究',
         'symbolic_analysis':'符号求和与级数','block_matrix_analysis':'分块与伴随块','graph_class_certificate':'广义线图证书','graph_energy_study':'精确能量比较','research_environment':'可选科研环境',

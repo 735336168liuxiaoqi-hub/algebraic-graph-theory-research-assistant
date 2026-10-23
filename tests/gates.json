@@ -47,7 +47,12 @@
     "test_observability",
     "test_library_entries",
     "test_counterexamples",
-    "test_counterexample_capacity"
+    "test_counterexample_capacity",
+    "test_research_planning",
+    "test_experiment_preparation",
+    "test_experiment_evaluation",
+    "test_experiment_execution",
+    "test_experiment_study"
   ],
   "full": [
     "test_release_candidate",
@@ -96,7 +101,12 @@
     "test_observability",
     "test_library_entries",
     "test_counterexamples",
-    "test_counterexample_capacity"
+    "test_counterexample_capacity",
+    "test_research_planning",
+    "test_experiment_preparation",
+    "test_experiment_evaluation",
+    "test_experiment_execution",
+    "test_experiment_study"
   ],
   "root": [
     "test_workflow"
