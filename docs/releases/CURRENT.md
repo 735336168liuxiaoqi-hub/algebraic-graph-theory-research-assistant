@@ -1,6 +1,6 @@
-# 当前开发源码：0.38.0a1
+# 当前预发布：0.38.0a1
 
-更新日期：2026-10-24。main包含以下开发功能；最近GitHub预发布附件仍为0.37.0a2。本次同步更新源码与文档，不新增Release标签或附件。下载当前功能使用[main源码ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip)。
+更新日期：2026-10-24。当前[Release v0.38.0a1](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a1)提供固定版本源码ZIP、wheel、中英文安装说明、本地测试任务书、校验清单和验证摘要。包含以下功能；0.37.0a2作为历史预发布保留。仍需要Python，CEM另需可选PyTorch；不是独立Windows安装器。
 
 | 当前源码能力 | 入口与边界 |
 | --- | --- |
@@ -21,7 +21,7 @@
 
 以下历史验收只对应各自发布标签，不代表当前main或远端CI结果。
 
-## 最近预发布：0.37.0a2
+## 历史预发布：0.37.0a2
 
 仓库保持私有。0.37.0a2以开发预发布形式提供源码ZIP、wheel、SHA256清单、安装说明及验收记录，见[Release发布页](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.37.0a2)。按[中文指南](../../使用指南.md)或[English guide](../QUICKSTART.md)安装，首次安装仍需要Python及第三方依赖。
 

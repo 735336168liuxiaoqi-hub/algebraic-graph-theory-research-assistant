@@ -2,7 +2,7 @@
   "format": "graph-research-development-validation/1",
   "version": "0.38.0a1",
   "checked_at": "2026-10-24T01:44:04.030457+08:00",
-  "delivery": "main development source; no new GitHub Release created",
+  "delivery": "Local acceptance of 0.38.0a1 source, reused for the v0.38.0a1 prerelease. Artifact-specific verification is recorded in the Release attachment RELEASE_VALIDATION.json.",
   "environment": {
     "python": "3.13.9",
     "platform": "win32"

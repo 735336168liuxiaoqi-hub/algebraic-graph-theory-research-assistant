@@ -1,6 +1,6 @@
 # Algebraic Graph Theory Research Assistant — User Guide
 
-Development source **0.38.0a1**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
+Prerelease **0.38.0a1**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
 
 This Python application provides graph and hypergraph computation, symbolic algebra, interactive drawing and research result management. Use the desktop manually, connect a model for research chat, or expose the same computation tools to a host agent through MCP. SageMath and WSL are not required.
 
@@ -38,23 +38,24 @@ Development source adds [counterexample search and independent verification](COU
 
 Non-uniform hypergraphs can be drawn. Hypergraph tensor-spectrum tools enforce uniformity and their other mathematical conditions. Exact elimination, enumeration and numerical calculations have tool-specific limits; an unresolved or unconverged result is not a proof or a counterexample.
 
-The current main branch includes [model research planning](RESEARCH_PLANNING.md) and [general experiments](EXPERIMENTS.md). The desktop Research experiment switch uses the model planning workflow. The separate prepare/execute/study workflow is available through CLI, Python and MCP; its dedicated desktop form is not yet implemented. The 0.37.0a2 assets below remain an older prerelease.
+The 0.38.0a1 source and wheel include [model research planning](RESEARCH_PLANNING.md) and [general experiments](EXPERIMENTS.md). The desktop Research experiment switch uses the model planning workflow. The separate prepare/execute/study workflow is available through CLI, Python and MCP; its dedicated desktop form is not yet implemented.
 
 ## 2. Download and install
 
 ### Choose a package
 
-For the current **0.38.0a1 development features**, download the [main branch source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip). The **0.37.0a2** assets below are an older, separately validated prerelease and do not contain the new general experiment workflow. No new Release attachment is implied by a main-branch update.
+Download the fixed **0.38.0a1 prerelease** assets below for this guide. The main branch remains available for subsequent development. Older 0.37.0a2 assets do not include the general study workflow.
 
 Both packages include the new counterexample-search tools. Source is also available as a [main branch ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip).
 
-Use the [v0.37.0a2 prerelease page](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.37.0a2). While the repository is private, sign in with an authorized GitHub account.
+Use the [v0.38.0a1 prerelease page](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a1). While the repository is private, sign in with an authorized GitHub account.
 
 | Asset | Intended use |
 | --- | --- |
 | [Current main source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | Current development features, including prepare/execute/study; extract and install using the source instructions |
-| [0.37.0a2 source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.37.0a2/algebraic-graph-theory-research-assistant-0.37.0a2-source-candidate.zip) | Recommended for first-time desktop use; includes the source and launchers |
-| [0.37.0a2 Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.37.0a2/graph_research_assistant-0.37.0a2-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
+| [0.38.0a1 source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a1/algebraic-graph-theory-research-assistant-0.38.0a1-source-candidate.zip) | Recommended for first-time desktop use; includes the source, guides and launchers |
+| [0.38.0a1 Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a1/graph_research_assistant-0.38.0a1-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
+| INSTALL_CN.md / INSTALL_EN.md / LOCAL_TEST_PLAN_zh.md | Standalone installation guides and the local agent test plan |
 | `SHA256SUMS.txt` / `RELEASE_VALIDATION.json` | Checksums and validation evidence; these are not installers |
 
 Expand **Assets** at the bottom of the release page. Download one application package; you do not need both ZIP and wheel. The first installation downloads dependencies. A fully offline new computer needs separately prepared dependency wheels matching its Windows/Python version.
@@ -102,11 +103,11 @@ For editable development, use `python -m pip install -e ".[all]"`. Ordinary use 
 Download the wheel through your browser. From its directory, use the Python environment you selected:
 
 ```powershell
-python -m pip install ".\graph_research_assistant-0.37.0a2-py3-none-any.whl[all]"
+python -m pip install ".\graph_research_assistant-0.38.0a1-py3-none-any.whl[all]"
 python -m graph_research desktop
 ```
 
-A wheel is not a double-click application. pip does not inherit browser authentication, so use the local downloaded file for a private repository. For base library use, omit `[all]`; optional extras are `visual`, `tools`, `desktop`, `assistant` and `mcp`.
+A wheel is not a double-click application. pip does not inherit browser authentication, so use the local downloaded file for a private repository. For base library use, omit `[all]`; optional extras are `visual`, `tools`, `desktop`, `assistant`, `mcp` and `search`. PyTorch is optional and excluded from `[all]`.
 
 ## 3. Local tools — no model API
 

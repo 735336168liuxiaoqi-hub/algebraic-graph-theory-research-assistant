@@ -1,6 +1,6 @@
 # 代数图论科研助手
 
-**Algebraic Graph Theory Research Assistant** · 开发源码 **0.38.0a1** · [MIT](LICENSE) · [English user guide](docs/QUICKSTART.md)
+**Algebraic Graph Theory Research Assistant** · 预发布 **0.38.0a1** · [MIT](LICENSE) · [English user guide](docs/QUICKSTART.md)
 
 面向图与超图科研的Python计算工具、桌面应用和MCP服务。支持谱与符号计算、鼠标绘图、论文图形导出，以及有限预算内的科研搜索。可以独立使用，也可以接入主agent。无需Java、SageMath或WSL；完整桌面和受保护执行目前在Windows验证。
 
@@ -8,8 +8,8 @@
 
 | 下载方式 | 版本与用途 |
 | --- | --- |
-| [main分支源码ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | 当前开发源码，包含下文的通用实验与搜索功能 |
-| [v0.37.0a2预发布附件](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.37.0a2) | 较早的源码运行包和wheel，不包含0.38.0a1新增实验流程 |
+| [v0.38.0a1预发布附件（推荐）](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a1) | 固定版本源码ZIP、wheel、中英文安装说明、校验值和验证摘要，包含通用实验与搜索功能 |
+| [main分支源码ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | 开发主分支，后续可能继续更新；使用时核对版本及核心指纹 |
 
 仓库当前为私有，需要获授权的GitHub账号。解压完整源码ZIP，在包含`pyproject.toml`的目录打开PowerShell，使用64位Python 3.11+，建议3.13：
 
