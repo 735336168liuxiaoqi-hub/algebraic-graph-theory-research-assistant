@@ -8,20 +8,21 @@
 
 | 下载方式 | 版本与用途 |
 | --- | --- |
-| [v0.38.0a1预发布附件（推荐）](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a1) | 固定版本源码ZIP、wheel、中英文安装说明、校验值和验证摘要，包含通用实验与搜索功能 |
-| [main分支源码ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | 开发主分支，后续可能继续更新；使用时核对版本及核心指纹 |
+| [main分支源码ZIP（最新修复）](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | 新安装希望包含最新修复时选择此项；使用时核对版本及核心指纹 |
+| [v0.38.0a1预发布附件](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a1) | 固定发行基线的源码ZIP、wheel及验证记录，不包含main后续修复 |
 
-仓库当前为私有，需要获授权的GitHub账号。解压完整源码ZIP，在包含`pyproject.toml`的目录打开PowerShell，使用64位Python 3.11+，建议3.13：
+仓库当前为私有，需要获授权的GitHub账号。空电脑先按[新电脑安装步骤](使用指南.md#new-pc-setup)下载并安装64位Python 3.13，再解压完整源码ZIP，在包含`pyproject.toml`的目录打开PowerShell：
 
 ```powershell
-python -m venv .venv
+py -3.13 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[all]"
 .\.venv\Scripts\python.exe -m graph_research doctor
+.\.venv\Scripts\python.exe -m pip check
 .\.venv\Scripts\python.exe -m graph_research protect check
 .\.venv\Scripts\python.exe -m graph_research desktop
 ```
 
-首次安装需联网下载依赖。以后可双击`start-desktop.cmd`；同目录`.exe`也是使用Python环境的启动器，需要保留整个项目目录。已有Conda/venv、wheel安装、升级和换电脑见[使用指南](使用指南.md)。CEM另需可选PyTorch；`[all]`不强制安装它。
+首次安装需联网下载依赖，不要求安装Git。以后可双击`start-desktop.cmd`；同目录`.exe`也是使用Python环境的启动器，需要保留整个项目目录。已有Conda/venv、wheel安装、升级和换电脑见[使用指南](使用指南.md)。CEM另需可选CPU PyTorch，安装与导入检查见[CPU配置步骤](使用指南.md#cpu-cem-setup)；`[all]`不强制安装它。
 
 ## 选择使用方式
 

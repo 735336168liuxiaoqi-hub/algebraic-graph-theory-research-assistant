@@ -154,7 +154,7 @@ hypotheses支持：
 
 此命令仅签发真实用户反馈事件，仍需把返回event_id交给resume。结果包增加study-plan-and-decisions.json与study-interpretation.json；逐轮原始结果保存检查点、精英、动作序列和版本。MCP摘要省略权重、检查点和完整结构表；使用detail=full、research_inspect_result或结果包读取。核心／题目／预算／检查点版本或回执改变时阻止恢复。
 
-启用CEM可在当前Python环境安装项目的`search`可选依赖；只需CPU时，按[PyTorch官方安装选择器](https://pytorch.org/get-started/locally/)选Windows／Pip／Python／CPU，再安装本项目。普通桌面、传统搜索和all依赖不强制安装torch。不同PyTorch版本的训练检查点不可混用；同一环境下的连续／恢复一致性已单独验证。
+启用CEM时，先按[使用指南的CPU配置步骤](../使用指南.md#cpu-cem-setup)在实际运行的解释器中安装官方CPU torch，再安装项目的`search`可选依赖；指南列出本轮验证版本2.14.0+cpu及实际导入检查。也可参阅[PyTorch官方安装选择器](https://pytorch.org/get-started/locally/)。普通桌面、传统搜索和all依赖不强制安装torch。不同PyTorch版本的训练检查点不可混用；同一环境下的连续／恢复一致性已单独验证。
 
 ## English
 

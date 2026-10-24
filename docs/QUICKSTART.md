@@ -44,7 +44,7 @@ The 0.38.0a1 source and wheel include [model research planning](RESEARCH_PLANNIN
 
 ### Choose a package
 
-Download the fixed **0.38.0a1 prerelease** assets below for this guide. The main branch remains available for subsequent development. Older 0.37.0a2 assets do not include the general study workflow.
+For a new installation with the latest fixes, download the **main source ZIP**. Fixed **0.38.0a1 prerelease** assets reproduce the published baseline and exclude later main-branch publication/diagnostic fixes. Both currently report 0.38.0a1; record the source and core fingerprint too. Older 0.37.0a2 assets do not include the general study workflow.
 
 Both packages include the new counterexample-search tools. Source is also available as a [main branch ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip).
 
@@ -52,8 +52,8 @@ Use the [v0.38.0a1 prerelease page](https://github.com/735336168liuxiaoqi-hub/al
 
 | Asset | Intended use |
 | --- | --- |
-| [Current main source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | Current development features, including prepare/execute/study; extract and install using the source instructions |
-| [0.38.0a1 source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a1/algebraic-graph-theory-research-assistant-0.38.0a1-source-candidate.zip) | Recommended for first-time desktop use; includes the source, guides and launchers |
+| [Current main source ZIP — latest fixes](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | Recommended for new installations with current fixes; extract and follow the source instructions |
+| [0.38.0a1 source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a1/algebraic-graph-theory-research-assistant-0.38.0a1-source-candidate.zip) | Published baseline with source, guides and launchers; excludes subsequent main-branch fixes |
 | [0.38.0a1 Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a1/graph_research_assistant-0.38.0a1-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
 | INSTALL_CN.md / INSTALL_EN.md / LOCAL_TEST_PLAN_zh.md | Standalone installation guides and the local agent test plan |
 | `SHA256SUMS.txt` / `RELEASE_VALIDATION.json` | Checksums and validation evidence; these are not installers |
@@ -64,21 +64,25 @@ Expand **Assets** at the bottom of the release page. Download one application pa
 
 The complete desktop and protected workflow are validated on Windows. Use **64-bit Python 3.11+**; Python 3.13 is recommended for this release.
 
-1. Extract the whole ZIP. Do not run files inside the archive.
-2. Choose a short, writable path, such as `D:\Research\agt-assistant`.
-3. Open PowerShell in the directory containing `pyproject.toml` and `start-desktop.cmd`.
-4. Run these commands in order:
+1. Sign in to GitHub with an authorized account. On the project page select `main` → **Code** → **Download ZIP**, then extract the whole ZIP. Git is not required. A 404 may indicate missing repository access.
+2. Use a short, writable path such as `C:\Research\agt-assistant`. The actual project directory must contain `pyproject.toml`, `graph_research`, `tools` and `start-desktop.cmd`; do not run inside the archive or move only the executable.
+3. On the [official Python Windows page](https://www.python.org/downloads/windows/), select **Python 3.13.x → Windows installer (64-bit)** for a regular Intel/AMD x64 Windows PC. Use the normal installer rather than an embeddable, source, 32-bit, ARM64 or experimental free-threaded distribution. The local verification baseline was 3.13.9; the website's latest-version button may select another series.
+4. Run the installer, enable **Add python.exe to PATH** and install for the current user. Close old terminals, open PowerShell from Start and check `py -3.13 --version`. If only `python --version` works and reports 3.13.x, use `python` instead of `py -3.13` below. If neither works, resolve installation/PATH first; see the [official Windows guide](https://docs.python.org/3/using/windows.html).
+5. Run the commands below, replacing the directory with your extracted location. Wait for installation to complete and resolve errors before launching. Ordinary use does not require VS Code, Conda or development-test tools.
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install ".[all]"
+Set-Location -LiteralPath 'C:\Research\agt-assistant'
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[all]"
 .\.venv\Scripts\python.exe -m graph_research doctor
 .\.venv\Scripts\python.exe -m pip check
 .\.venv\Scripts\python.exe -m graph_research protect check
 .\.venv\Scripts\python.exe -m graph_research desktop
 ```
 
-If only the Windows `py` launcher is available, use `py -3.13 -m venv .venv` for the first command. No activation or PowerShell execution-policy change is needed. `[all]` installs desktop, plotting, API-chat and MCP dependencies, **excluding optional PyTorch**. Enumeration, random and local search do not need torch. For CEM, use the [CPU dependency instructions](EXPERIMENTS.md#可运行样例) for this same interpreter, then install `".[all,search]"`. The checks should report the intended environment, no dependency conflicts and integrity `ok: true`; they do not request a model.
+No activation or PowerShell execution-policy change is needed. `[all]` installs desktop, plotting, API-chat and MCP dependencies, **excluding optional PyTorch**. Enumeration, random and local search do not need torch. For CEM, follow the CPU instructions below in this same environment. The checks should report the intended environment, no dependency conflicts and integrity `ok: true`; they do not request a model.
+
+`.venv` holds this project's Python and dependencies, not a language model. Use its explicit interpreter path for further installation and diagnostics. A source ZIP does not transfer the old computer's environment or PyTorch installation; recreate them on the new computer. Initial installation needs internet access even for subsequent no-API use.
 
 On later runs, double-click **`start-desktop.cmd`** or **`algebraic graph theory research assistant.exe`** in the same directory. The `.exe` is a launcher using the project's `.venv` and source, not an installer containing Python. Keep the whole directory. Recreate the environment after moving it or transferring it to another computer.
 
@@ -108,6 +112,27 @@ python -m graph_research desktop
 ```
 
 A wheel is not a double-click application. pip does not inherit browser authentication, so use the local downloaded file for a private repository. For base library use, omit `[all]`; optional extras are `visual`, `tools`, `desktop`, `assistant`, `mcp` and `search`. PyTorch is optional and excluded from `[all]`.
+
+### Optional CPU PyTorch for CEM
+
+After source installation, run these commands from the same project directory only if you need CEM learning search:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install "torch==2.14.0+cpu" --index-url https://download.pytorch.org/whl/cpu
+.\.venv\Scripts\python.exe -m pip install -e ".[all,search]"
+.\.venv\Scripts\python.exe -m pip check
+.\.venv\Scripts\python.exe -c "import sys,torch; print(sys.executable); print(torch.__version__); print(torch.__file__); print(torch.tensor([1.,2.])+1); print('CUDA build:',torch.version.cuda)"
+```
+
+The locally verified version is 2.14.0+cpu from the [official CPU source](https://pytorch.org/get-started/locally/). Expect this project's `.venv` paths, `2.14.0+cpu`, `tensor([2., 3.])` and `CUDA build: None`. No GPU, CUDA, torchvision or torchaudio is required. A successful import is required; pip success or a package directory alone is insufficient. Restart the assistant/MCP service and keep the PyTorch version when continuing a CEM checkpoint. CEM currently uses CLI/MCP study workflows; it is not a chat model.
+
+### Confirm installation and choose an entry point
+
+Run the first five-vertex path calculation in section 3: expect 5 vertices, 4 edges and diameter 4. This checks real protected computation; opening a window alone does not verify worker startup.
+
+- Manual local tools: use section 3 without model credentials.
+- Research chat: configure a model service, model ID and local key using section 4. Installing Python does not provide a model service.
+- Host-agent integration: follow section 5. Generate MCP configuration on the new computer so it contains the new interpreter path: `.\.venv\Scripts\python.exe -m graph_research mcp-config --root C:/Research/agt-state --user researcher`. This prints configuration; it does not install/configure the host. Fixed tools and rules studies default to zero internal model calls; CEM additionally needs the dependency above. Verify a P3 diameter task before a longer study.
 
 ## 3. Local tools — no model API
 
