@@ -16,7 +16,7 @@ for a,b in [(0,1),(1,2),(2,3),(3,0),(0,4),(2,4)]:draw.line([points[a],points[b]]
 for x,y in points:draw.ellipse((x-15,y-15,x+15,y+15),fill='#e8fff5')
 out=root/'outputs/desktop-build';out.mkdir(parents=True,exist_ok=True)
 icon=out/'desktop.ico';image.save(icon,format='ICO',sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
-destination=root/'图论科研助手.exe'
+destination=root/'algebraic graph theory research assistant.exe'
 subprocess.run([str(compiler),'/nologo','/target:winexe','/reference:System.Windows.Forms.dll','/win32icon:'+str(icon),
                 '/out:'+str(destination),str(root/'tools/DesktopLauncher.cs')],check=True)
 print(destination)

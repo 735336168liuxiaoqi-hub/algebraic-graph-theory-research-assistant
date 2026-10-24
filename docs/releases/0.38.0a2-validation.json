@@ -1,0 +1,106 @@
+{
+  "format": "graph-research-corrected-release-validation/1",
+  "version": "0.38.0a2",
+  "checked_date": "2026-10-24",
+  "environment": {
+    "python": "3.13.9",
+    "platform": "win32",
+    "optional_cpu_torch": "2.14.0+cpu",
+    "verification_used_existing_dependencies": true,
+    "clean_computer_installation_performed": false
+  },
+  "core": {
+    "ok": true,
+    "manifest_sha256": "3b5c1d072c6cb0b2399ef3fa70f5c1ce35d7b7db156d4d07a4bbd9a61c4869a9",
+    "files_checked": 231
+  },
+  "new_version_targeted_tests": {
+    "tests": 100,
+    "passed": 100,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 92.667,
+    "log_sha256": "718bfe7fbb849e23f0d090858ac8dd1c1c5dc43b9f817789c9016d08274083c7"
+  },
+  "new_version_test_ids_sha256": "39deb91ba8b9920f84c86972b90d21296563291d7a69d6000e91262a87da8349",
+  "earlier_fix_validation": {
+    "distinct_tests": 206,
+    "final_storage_targeted_tests": 54,
+    "scope": "Historical corrected 0.38.0a1 source before this version increment; not rerun as the full product suite."
+  },
+  "installed_wheel": {
+    "version": "0.38.0a2",
+    "native_cases_passed": 9,
+    "core_tool_entries": 47,
+    "kernel_sage_and_external_processes_blocked": true,
+    "installed_recurrence_integer_lattice_and_research_family_verified": true,
+    "installed_graph_replacement_matrix_actions_group_index_and_shared_root_star_verified": true,
+    "installed_nine_research_workflows_and_documented_examples_verified": true,
+    "installed_unified_graph_input_library_canvas_and_execution_bound_mapping_verified": true,
+    "installed_two_click_delete_preview_and_undo_verified": true,
+    "installed_api_graph_versions_reviewed_plan_dependencies_context_and_receipts_verified": true,
+    "installed_claim_evidence_durable_usage_budget_formula_stream_parser_and_acceptance_verified": true,
+    "installed_model_profiles_reasoning_and_native_quick_switch_verified": true,
+    "installed_mcp_official_client_stdio_async_real_calculation_idempotence_and_bundle_verified": true,
+    "installed_field_feedback_endpoint_independent_certificate_summary_and_budgeted_scan_verified": true,
+    "installed_managed_result_center_rename_snapshot_preview_recycle_and_restore_verified": true,
+    "isolated_python_elimination_tool_passed": true,
+    "installed_memory_and_session_verified": true,
+    "installed_os_write_protection_and_recovery_verified": true,
+    "installed_result_bundle_verified": true,
+    "installed_model_onboarding_and_mock_probe_verified": true,
+    "installed_subagent_fixed_task_pause_restart_host_event_replay_verified": true,
+    "installed_batch_case_bindings_budget_outputs_and_bundle_verified": true,
+    "installed_readonly_user_memory_reviewed_experience_and_evidence_verified": true,
+    "installed_persistent_extension_library_external_development_and_versions_verified": true,
+    "installed_deep_mcp_batch_all_exports_verified": true,
+    "installed_phase_timings_and_correlated_diagnostics_verified": true,
+    "installed_standalone_console_without_parent_verified": true,
+    "installed_offline_category_menu_real_calculation_and_bundle_verified": true,
+    "installed_input_guides_tools": 47,
+    "installed_parameter_examples_verified": 266,
+    "installed_verified_result_view_without_reexecution": true,
+    "installed_native_desktop_visible_forms_and_result_view_verified": true,
+    "installed_native_chinese_choices_parameter_values_and_tooltips_verified": true,
+    "installed_paper_camera_selection_context_layers_and_direction_verified": true,
+    "installed_dual_mode_native_chat_tool_result_and_configuration_verified": true
+  },
+  "installed_cem": {
+    "version": "0.38.0a2",
+    "loaded_from_wheel": true,
+    "core_ok": true,
+    "core_manifest_sha256": "3b5c1d072c6cb0b2399ef3fa70f5c1ce35d7b7db156d4d07a4bbd9a61c4869a9",
+    "cem_training_and_protected_restart": true,
+    "candidate_evaluations": 8,
+    "tool_calls": 2,
+    "model_calls": 0,
+    "bundle_verified": true,
+    "precise_invalid_input_rejection": true
+  },
+  "other_checks": [
+    "doctor and package metadata agree",
+    "pip check",
+    "76 pinned dependencies agree",
+    "Ruff",
+    "generated contracts and guides",
+    "core integrity",
+    "publication rights/license gate",
+    "native launcher rebuilt with current guide paths"
+  ],
+  "native_launcher": "Project Python launcher, not a bundled interpreter or Windows installer",
+  "model_requests": {
+    "real_provider_calls": 0,
+    "scripted_model_validation": true
+  },
+  "remote_ci": {
+    "triggered": false,
+    "reason": "User requested no remote CI; publication commit skips CI."
+  },
+  "remaining_limits": [
+    "Original external host standard-library access denial was not reproduced or removed.",
+    "CPU PyTorch is optional and must be installed on the target computer for CEM.",
+    "No new full-suite or clean-machine installation is claimed.",
+    "Finite studies do not establish general theorems."
+  ]
+}

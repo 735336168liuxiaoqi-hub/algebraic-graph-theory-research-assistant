@@ -3,7 +3,7 @@
     "__init__.py": "9d3177517fca9c8ef63f43a4a3e286ea01463b8efcf214b1a882421a3abbab48",
     "__main__.py": "79ee6f134c5c5193377cf9b189cbdcc3e2095e49ba9cec310114441c15a917c4",
     "_lazy.py": "1cf289ba7280bc9b64e809f5af0a4fe847190012a037865569e7cded3c9edf98",
-    "_version.py": "67d081c342c2f916fbc8213a8acf41208e67afba0c1cfad1e91bfcdd6117dc0b",
+    "_version.py": "f0dc3b1644bb93673522ed455b666e2291cb4f599fc53d6d8142a82bbd71b198",
     "agent.py": "10d0d7c353371b13954b8eab782b41e0aa89ef73a41de055cc75dec332db1161",
     "algebra/__init__.py": "61d0e19debc81b108a949b803ec7fb4e14d08c2b56ff4efbd68f5a4245cca5ca",
     "algebra/analysis.py": "43bb61d0c31eb092469a045cb63df13ff0f3695485fc0f68eadac6d74f4d7863",
