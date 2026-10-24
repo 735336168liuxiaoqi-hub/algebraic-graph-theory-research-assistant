@@ -104,11 +104,16 @@ def error_details(error,*,phase=None,identifier=None):
     if isinstance(path,list) and len(path)<=32 and all(type(v) is int or isinstance(v,str) and len(v)<=128 for v in path):detail['field_path']=path
     if isinstance(validation,dict):
         import json
-        allowed={'type','enum','minimum','maximum','pattern','minItems','maxItems','maxLength','required','additionalProperties'}
+        allowed={'type','enum','minimum','maximum','pattern','minItems','maxItems','maxLength','required','additionalProperties','uniqueItems'}
         clean={key:value for key,value in validation.items() if key in allowed}
         try:
             if len(json.dumps(clean,ensure_ascii=False,allow_nan=False))<=2048:detail['validation']=clean
         except (TypeError,ValueError):pass
+    startup=getattr(error,'startup_issue',None) or previous.get('startup')
+    if isinstance(startup,dict):
+        allowed={'code','message','log_excerpt','log_file','next_step'}
+        clean={key:value for key,value in startup.items() if key in allowed and isinstance(value,str) and len(value)<=1000}
+        if clean:detail['startup']=clean
     secondary=getattr(error,'failure_receipt_error',None) or previous.get('failure_receipt_error')
     if isinstance(secondary,dict):detail['failure_receipt_error']={key:secondary[key] for key in ('diagnostic_id','phase','exception_type','errno','winerror') if key in secondary}
     return detail

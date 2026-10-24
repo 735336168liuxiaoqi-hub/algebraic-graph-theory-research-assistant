@@ -6847,7 +6847,7 @@
   },
   {
     "python_api": "graph_research.mcp.runtime.TaskProtocolError",
-    "signature": "(code, message)",
+    "signature": "(code, message, *, field_path=None, validation=None)",
     "docstring": "Inappropriate argument value (of correct type).",
     "documentation_status": "has_docstring",
     "model_callable": false
@@ -6912,6 +6912,13 @@
     "python_api": "graph_research.mcp.runtime.safe_path",
     "signature": "(path, *, root=None)",
     "docstring": "Reject package writes, links/junctions and optional task-root escapes.",
+    "documentation_status": "has_docstring",
+    "model_callable": false
+  },
+  {
+    "python_api": "graph_research.mcp.runtime.schema_protocol_error",
+    "signature": "(error, code, message, *, prefix=())",
+    "docstring": "Select the failed union branch without echoing input values or schema dumps.",
     "documentation_status": "has_docstring",
     "model_callable": false
   },

@@ -1,4 +1,5 @@
 """Primary graph/hypergraph checks and numerical objectives; no search or training."""
+from graph_research.errors import FieldValidationError
 from .research_contract import validate_problem,leaves
 from .execution_contract import bind_parameters,resolve,validate_candidate,digest
 
@@ -13,7 +14,7 @@ def check_supported(problem,parameters):
         k=resolve(problem['object']['uniformity'],parameters)
         if not 2<=k<=128:raise ValueError('一致度支持2..128。')
     if kind!='simple_graph' and metric not in ('distance_spectral_radius','edge_count'):
-        raise ValueError('超图当前仅接入距离矩阵谱与边数，不代用普通图矩阵或邻接张量。')
+        raise FieldValidationError(['objective','metric'],{'enum':['distance_spectral_radius','edge_count']},'超图当前仅接入距离矩阵谱与边数，不代用普通图矩阵或邻接张量。')
     for node,_ in leaves(problem.get('constraints',{'all':[]})):
         if node['predicate'] not in PREDICATES:raise ValueError('该约束没有可执行检查器。')
         if kind!='simple_graph' and node['predicate'] in ('clique_free','matching_number'):

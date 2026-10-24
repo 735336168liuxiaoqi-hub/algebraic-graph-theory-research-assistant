@@ -16,6 +16,16 @@ from graph_research.runtime.diagnostics import environment_report
 
 
 class EnvironmentTests(unittest.TestCase):
+    def test_host_customization_diagnostic_is_read_only_and_never_echoes_env_values(self):
+        with patch.dict('os.environ',{'PYTHONPATH':'PRIVATE_HOST_PATH'}),patch.dict(sys.modules,{'sitecustomize':SimpleNamespace()}):
+            report=environment_report()
+            self.assertEqual(__import__('os').environ['PYTHONPATH'],'PRIVATE_HOST_PATH')
+            self.assertIn('sitecustomize',sys.modules)
+        integration=report['host_integration']
+        self.assertTrue(integration['pythonpath_present']);self.assertTrue(integration['sitecustomize_loaded'])
+        self.assertEqual(integration['protected_execution'],'not_probed')
+        self.assertNotIn('PRIVATE_HOST_PATH',json.dumps(report));self.assertTrue(report['warnings'])
+
     def test_current_interpreter_source_and_installed_metadata_agree(self):
         report=environment_report()
         self.assertTrue(report['ok'],report['issues'])

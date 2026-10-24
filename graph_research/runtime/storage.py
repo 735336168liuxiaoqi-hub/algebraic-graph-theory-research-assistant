@@ -101,6 +101,10 @@ def staged_file(path,*,overwrite=False,root=None):
         def publish():
             safe_path(target,root=root);safe_path(temporary,root=target.parent)
             if overwrite:os.replace(temporary,native)
+            elif os.name=='nt':
+                # Windows rename fails atomically when the destination exists.
+                # It consumes the staged name without a separate cleanup delete.
+                os.rename(temporary,native)
             else:
                 # Exclusive link retains no-clobber semantics on every attempt.
                 os.link(temporary,native)
@@ -108,7 +112,11 @@ def staged_file(path,*,overwrite=False,root=None):
     finally:
         # Best-effort cleanup: an antivirus hold must not mask the real
         # outcome; the runner sweeps leftover staged temps after the worker.
-        try:_sharing_retry(lambda:temporary.unlink(missing_ok=True))
+        # os.replace already consumed this name. Do not submit a deletion of a
+        # nonexistent file: host deletion guards may count even no-op calls.
+        # Real leftover cleanup still goes through the normal guarded API.
+        try:
+            if temporary.exists():_sharing_retry(lambda:temporary.unlink(missing_ok=True))
         except OSError:pass
 
 

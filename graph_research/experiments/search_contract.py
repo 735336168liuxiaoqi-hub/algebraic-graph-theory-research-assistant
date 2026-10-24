@@ -4,7 +4,7 @@ import json
 import math
 import jsonschema
 
-from graph_research.errors import TaskProtocolError
+from graph_research.errors import TaskProtocolError,FieldValidationError,schema_protocol_error
 from .research_contract import obj,NAME,NUMBER,PROBLEM_SCHEMA,validate_problem,leaves
 from .execution_contract import bind_parameters,resolve,digest,EXECUTE_SCHEMA
 
@@ -116,7 +116,12 @@ def compile_study(value):
         spec['hypotheses']=[validate_hypothesis(h,spec['problem']['object']['type']) for h in spec['hypotheses']]
         if len({h['id'] for h in spec['hypotheses']})!=len(spec['hypotheses']):raise ValueError('假设ID重复。')
         return {'spec':spec,'runs':runs,'planned_rounds':len(runs)*spec['rounds'],'planned_evaluations':planned,'request_sha256':digest(spec)}
-    except (ValueError,TypeError,KeyError,jsonschema.ValidationError) as error:
+    except jsonschema.ValidationError as error:
+        raise schema_protocol_error(error,'invalid_experiment_study','study字段无效。') from None
+    except FieldValidationError as error:
+        raise TaskProtocolError('invalid_experiment_study',str(error),field_path=['problem',*error.field_path],validation=error.validation) from None
+    except TaskProtocolError:raise
+    except (ValueError,TypeError,KeyError) as error:
         raise TaskProtocolError('invalid_experiment_study',str(error) if isinstance(error,ValueError) and not isinstance(error,jsonschema.ValidationError) else 'study输入不符合有限研究协议。') from None
 
 

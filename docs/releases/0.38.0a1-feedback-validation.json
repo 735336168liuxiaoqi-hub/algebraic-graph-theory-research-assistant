@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-24",
+  "scope": "Local feedback fixes; targeted regressions, not a full product acceptance run",
+  "unique_test_ids": 206,
+  "executions": 258,
+  "checks": {
+    "ruff": "passed",
+    "generated_documentation": "passed",
+    "pip_check": "passed",
+    "dependency_lock_76": "passed",
+    "git_whitespace": "passed"
+  },
+  "remaining_environment_boundary": "Original external host standard-library denial was not reproduced here; no ACL, sandbox, host shim or process-tree bypass changes. Actual historical log was reclassified read-only.",
+  "real_model_api_calls": 0,
+  "remote_ci_started": false,
+  "format": "graph-research-feedback-validation/1",
+  "version": "0.38.0a1",
+  "core_manifest_sha256": "3935c6bd6d32fa40fea35ebcdc5db51c7002dd41d18b02c5486374234a850a39",
+  "core_files_checked": 231,
+  "groups": [
+    {
+      "source_stage": "first source revision",
+      "tests": 166,
+      "passed": 166,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 235.67,
+      "sha256": "ebc1136fb4c6c14d2cb6cbf3e31f6b0d7f70540238544518a469ea2000b2cd54"
+    },
+    {
+      "source_stage": "first source revision",
+      "tests": 38,
+      "passed": 38,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 27.354,
+      "sha256": "f87f4839427f9d1e465e454470583aa7ed2da0047ca80b527a68de3f42caa537"
+    },
+    {
+      "source_stage": "final source revision",
+      "tests": 54,
+      "passed": 54,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 53.02,
+      "sha256": "c6a42696fef6aab536d732afee80091e490fa655519aeb1b88c01b0d6803cd28"
+    }
+  ],
+  "raw_logs_in_source_distribution": false,
+  "release_assets_updated": false
+}

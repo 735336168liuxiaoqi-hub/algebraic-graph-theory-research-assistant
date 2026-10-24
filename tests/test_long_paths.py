@@ -30,12 +30,12 @@ class StorageDiagnosisTests(unittest.TestCase):
 
     def test_disappearing_created_temporary_retries_io_without_recomputing(self):
         with tempfile.TemporaryDirectory() as tmp:
-            link=os.link;calls=[]
+            name='rename' if os.name=='nt' else 'link';publish_file=getattr(os,name);calls=[]
             def publish(source,target):
                 calls.append(1)
                 if len(calls)==1:Path(source).unlink();raise FileNotFoundError('synthetic temporary disappearance')
-                return link(source,target)
-            with patch('graph_research.runtime.storage.os.link',side_effect=publish):atomic_text(Path(tmp)/'result.txt','same already-computed payload')
+                return publish_file(source,target)
+            with patch('graph_research.runtime.storage.os.'+name,side_effect=publish):atomic_text(Path(tmp)/'result.txt','same already-computed payload')
             self.assertEqual(len(calls),2);self.assertEqual((Path(tmp)/'result.txt').read_text(),'same already-computed payload')
 
     def test_export_io_failures_keep_rows_and_register_only_published_files(self):

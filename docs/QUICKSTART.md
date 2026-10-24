@@ -321,6 +321,9 @@ Historical completed results remain readable. Experiment checkpoints bind the ma
 | Missing Chinese glyphs in figures | Install a suitable font on the target computer and restart; fonts are not downloaded automatically |
 | Missing torch for study | Traditional methods remain usable; install the optional dependency in the actual interpreter for CEM, then restart/reconnect |
 | Study waiting for review/feedback | Use the current interaction/revision and a trusted user event; repeated submit does not authorize execution |
+| Protected startup fails / exit 107 | Read `error_details.startup` and the task's bootstrap-stderr.log. Exit 107 alone does not diagnose a broken environment. If standard-library access is denied, retain diagnostics and check host restrictions; do not disable protection or repeatedly recompute |
+| Self-loop, duplicate edge or out-of-range vertex | Follow `field_path` using zero-based indices. Vertices must be in 0..n−1; reversed endpoints still describe the same undirected edge. Use a new request_id for corrected input |
+| Doctor reports host customization | This reports loaded Python customization without changing it. If actual writes or startup are blocked, keep diagnostics for the host administrator; do not automatically disable its security modules |
 
 After upgrades, restart desktop/reconnect MCP and refresh contracts. Report version/core fingerprint, a small reproducible input and redacted diagnostics to [Issues](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/issues).
 

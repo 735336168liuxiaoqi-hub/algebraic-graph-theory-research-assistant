@@ -6,7 +6,7 @@ import re
 
 import jsonschema
 
-from graph_research.errors import TaskProtocolError  # noqa: F401  (re-export; definition lives in the layer-neutral module)
+from graph_research.errors import TaskProtocolError,schema_protocol_error
 
 PROTOCOL='graph-research-subagent/1'
 IDENTIFIER={'type':'string','pattern':r'^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$'}
@@ -94,14 +94,19 @@ def validate_task(value):
         encoded=canonical(value)
         if len(encoded.encode('utf-8'))>256*1024:raise ValueError()
         jsonschema.validate(value,TASK_SCHEMA)
-    except (ValueError,TypeError,RecursionError,jsonschema.ValidationError):
+    except jsonschema.ValidationError as error:
+        raise schema_protocol_error(error,'invalid_task','任务字段无效。') from None
+    except (ValueError,TypeError,RecursionError):
         raise TaskProtocolError('invalid_task','任务输入不符合协议或超过256KiB；身份、密钥、路径和审批字段不能由任务JSON指定。') from None
     result=json.loads(encoded)
     execution=result['execution'];mode=execution['mode']
     if mode=='experiment':
         if set(execution)!={'mode','experiment'}:raise TaskProtocolError('invalid_experiment','实验准备不混用其他模式或固定步骤。')
         from graph_research.experiments.research_contract import validate_experiment
-        execution['experiment']=validate_experiment(execution['experiment'])
+        try:execution['experiment']=validate_experiment(execution['experiment'])
+        except TaskProtocolError as error:
+            if hasattr(error,'field_path'):error.field_path=['execution','experiment',*error.field_path]
+            raise
         if execution['experiment']['operation'] in ('execute','study') and result.get('definitions'):
             raise TaskProtocolError('unformalized_experiment','definitions中的附加文字须先形式化为problem约束，不能在执行时静默忽略。')
     elif 'experiment' in execution:raise TaskProtocolError('invalid_experiment','experiment参数仅用于对应模式。')

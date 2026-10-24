@@ -565,8 +565,15 @@ class GraphResearchSubagent:
             if operation=='resume':return self.resume(message['task_id'],message['event_id'])
             return getattr(self,operation)(message['task_id'])
         except (jsonschema.ValidationError,ValueError,TypeError,RecursionError) as exc:
-            error=exc if isinstance(exc,TaskProtocolError) else TaskProtocolError('invalid_message','父agent消息格式无效；不能直接传入批准、用户角色或任意执行命令。')
-            return {'protocol':PROTOCOL,'status':'protocol_error','error':{'code':error.code,'message':str(error)}}
+            from graph_research.errors import schema_protocol_error
+            from graph_research.runtime.observability import error_details
+            if isinstance(exc,jsonschema.ValidationError):
+                error=schema_protocol_error(exc,'invalid_message','父agent消息字段无效；不接受自行批准或任意执行命令。')
+            elif isinstance(exc,TaskProtocolError):
+                error=exc
+                if message.get('operation')=='submit' and hasattr(error,'field_path'):error.field_path=['task',*error.field_path]
+            else:error=TaskProtocolError('invalid_message','父agent消息格式无效；不能直接传入批准、用户角色或任意执行命令。')
+            return {'protocol':PROTOCOL,'status':'protocol_error','error':{'code':error.code,'message':str(error),**error_details(error,phase='subagent.request_validation')}}
         except (RuntimeError,OSError):
             return {'protocol':PROTOCOL,'status':'protocol_error','error':{'code':'task_busy_or_host_io_error','message':'任务正在执行或宿主存储暂不可用；请先查询状态，不要换request_id重复提交。'}}
 

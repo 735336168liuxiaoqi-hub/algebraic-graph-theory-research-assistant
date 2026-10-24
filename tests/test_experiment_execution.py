@@ -28,6 +28,43 @@ def advance(parent,portal,response):
 
 
 class ExecutionTests(unittest.TestCase):
+    def test_invalid_candidates_have_precise_paths_without_starting_a_worker(self):
+        from graph_research.mcp.runtime import MCPResearchRuntime,HostConfiguration
+        runtime=MCPResearchRuntime(HostConfiguration(str(self.root/'mcp'),'fields'))
+        prefix=['task','execution','experiment','cases',0,'candidates',0,'edges']
+        variants=[([[0,0]],'self_loop',[0]),([[0,1],[1,0]],'duplicate_edge',[1]),
+                  ([[0,4]],'vertex_out_of_range',[0,1])]
+        with patch.object(engine,'run_worker',side_effect=AssertionError('Invalid input must not compute')):
+            for edges,code,suffix in variants:
+                with self.subTest(code=code):
+                    spec=execution();spec['cases'][0]['candidates']=[{'n':4,'edges':edges}]
+                    for parent in (self.parent,runtime):
+                        response=parent.dispatch({'operation':'submit','task':task(spec)}) if parent is self.parent else parent.call('research_submit',{'task':task(spec)})
+                        self.assertEqual(response['status'],'protocol_error')
+                        self.assertEqual(response['error']['cause_code'],code)
+                        self.assertEqual(response['error']['field_path'],prefix+suffix)
+        self.assertEqual(runtime.list_tasks()['tasks'],[])
+
+    def test_schema_errors_choose_real_operation_branch_and_redact_values(self):
+        from graph_research.mcp.runtime import MCPResearchRuntime,HostConfiguration
+        runtime=MCPResearchRuntime(HostConfiguration(str(self.root/'schema-mcp'),'fields'))
+        spec=execution();spec['cases'][0]['candidates'][0]['edges']=[[-1,1]]
+        for response in (self.parent.dispatch({'operation':'submit','task':task(spec)}),runtime.call('research_submit',{'task':task(spec)})):
+            self.assertEqual(response['error']['field_path'],['task','execution','experiment','cases',0,'candidates',0,'edges',0,0])
+            self.assertEqual(response['error']['validation'],{'minimum':0})
+        request=task();request['constraints']['max_tool_calls']='PRIVATE_SECRET_VALUE'
+        result=self.parent.dispatch({'operation':'submit','task':request})
+        self.assertEqual(result['error']['field_path'],['task','constraints','max_tool_calls'])
+        self.assertNotIn('PRIVATE_SECRET_VALUE',json.dumps(result))
+
+    def test_unsupported_hypergraph_metric_is_an_input_error_with_location(self):
+        spec=execution();spec['problem']=problem('alpha_spectral_radius','hypergraph')
+        spec['problem']['objective']['arguments']={'alpha':'1/2'}
+        response=self.parent.dispatch({'operation':'submit','task':task(spec)})
+        self.assertEqual(response['status'],'protocol_error')
+        self.assertEqual(response['error']['field_path'],['task','execution','experiment','problem','objective','metric'])
+        self.assertIn('distance_spectral_radius',response['error']['validation']['enum'])
+
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.root=Path(self.temp.name)
         self.parent,self.portal=self.create()

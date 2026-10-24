@@ -143,7 +143,25 @@ CPU限制保留内核Job限额，并由宿主按Job累计CPU轮询检查；状�
 
 Python入口另写startup-status.json阶段标记。execution.json保留进程是否创建并分配Job、退出码、阶段和每份最多4KiB的日志尾部；失败时仍保存实际可用的Job资源数据及任务目录。基准失败记录关联execution_directory和startup，便于外部复核。
 
-CPython Windows venv启动器将107用于配置文件打开、读取、home字段或解码错误，见[CPython 3.13.9源码](https://github.com/python/cpython/blob/v3.13.9/PC/venvlauncher.c)。进程退出码不是Win32 API错误码；没有具体启动日志时，只给可能原因，不断言沙箱权限。新回归使用独立副本的坏配置复现107，不修改实际venv配置。
+CPython Windows venv启动器将107用于配置文件打开、读取、home字段或解码错误，见[CPython 3.13.9源码](https://github.com/python/cpython/blob/v3.13.9/PC/venvlauncher.c)。进程退出码不是Win32 API错误码；没有具体启动日志时，不断言虚拟环境损坏或宿主权限问题。新回归使用独立副本的坏配置复现107，不修改实际venv配置。
+
+若原生日志明确包含encodings导入时的PermissionError，返回`cause_code=python_stdlib_access_denied`；日志明确报告pyvenv.cfg问题时才返回`venv_configuration_invalid`。缺少证据时返回`protected_worker_startup_failed`。`error_details.startup`包含固定、脱敏的日志摘要和下一步提示，供CLI、MCP和结果界面直接展示；原日志保留在本地回执中，不把任意stderr内容或完整环境变量回传模型。
+
+固定诊断命令（目标目录必须不存在）：
+
+```powershell
+python -X utf8 tools/diagnose_protected_startup.py --output outputs/startup-check-new
+```
+
+该探针保留相同低完整性及Job限制。宿主拒绝读取Python标准库时，应用不能通过修改权限、进程树外启动或无保护执行自动“修复”；保留诊断并由用户核查宿主策略或在正常可信终端另行验证。正常终端通过不能抹掉原宿主兼容性问题。
+
+`doctor.host_integration`只记录PYTHONPATH是否存在、sitecustomize/usercustomize是否加载，以及保护执行尚未探测的状态，不输出变量值、不禁用宿主模块。原子写入在os.replace成功后不再清理已消失的临时名称；Windows新文件发布使用目标已存在即失败的原子rename，不再硬链接后单独删除临时名称。两者均保留完整文件发布和防覆盖规则，减少正常写入中的无效或多余删除调用；实际残留文件的清理仍通过正常删除接口，删除拒绝不被吞掉或绕过。
+
+## 输入错误定位
+
+子agent JSON与MCP入口保留既有错误状态，并提供`field_path`、`validation`及诊断编号；图语义错误另有`cause_code`。例如重复无向边返回`duplicate_edge`，路径定位到`task.execution.experiment.cases[0].candidates[0].edges[1]`；自环为`self_loop`，越界为`vertex_out_of_range`并给出基于n的允许上限。列表索引从0开始。消息封装错误和候选图字段错误分开验证，拒绝时不启动工作进程或创建计算任务。
+
+Schema的oneOf错误选择实际失败的分支，返回安全的字段说明，不回显完整输入、密钥或Schema转储。修正输入后使用新request_id；既有request_id不能对应改变后的内容。相同规则适用于简单图和一般超图；结构合法但不满足研究约束的候选仍按不可行记录，不变成输入格式错误。
 
 ## 诊断与发布
 

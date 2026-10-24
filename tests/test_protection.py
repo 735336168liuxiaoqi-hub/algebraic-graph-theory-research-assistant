@@ -18,7 +18,7 @@ import zipfile
 
 from graph_research import Hypergraph
 from graph_research.runtime.integrity import CORE,MANIFEST,backup,restore,verify,sha256
-from graph_research.runtime.storage import atomic_text,write_json,read_json,safe_path,exclusive_lock
+from graph_research.runtime.storage import atomic_text,write_json,read_json,safe_path,exclusive_lock,staged_file
 from graph_research.runtime.runner import run_tool,run_worker,TaskLimits
 from graph_research.assistant import ResearchSession,UserMemoryStore
 from graph_research.tools import ToolRegistry
@@ -27,6 +27,44 @@ from tests.test_feature_workflow import ScriptedModel
 
 
 class StorageProtectionTests(unittest.TestCase):
+    def test_consumed_atomic_temps_do_not_count_as_host_deletions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'state.json'
+            with patch.object(Path,'unlink',side_effect=SystemExit('Host deletion policy')) as deletion:
+                for i in range(80):atomic_text(path,json.dumps({'step':i}),overwrite=True)
+            self.assertEqual(json.loads(path.read_text()),{'step':79})
+            deletion.assert_not_called()
+            self.assertEqual(list(Path(tmp).glob('.gr-*')),[])
+
+    def test_real_leftover_cleanup_respects_host_deletion_policy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'export.json'
+            with patch.object(Path,'unlink',side_effect=SystemExit('Host deletion policy')):
+                with self.assertRaises(SystemExit):
+                    with staged_file(path) as temporary:
+                        temporary.write_text('incomplete')
+                        raise ValueError('Producer failed before publication')
+            self.assertFalse(path.exists())
+            self.assertEqual(len(list(Path(tmp).glob('.gr-*'))),1)
+
+    @unittest.skipUnless(os.name=='nt','Windows atomic no-clobber rename')
+    def test_new_exports_need_no_cleanup_deletions_and_keep_complete_content(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(Path,'unlink',side_effect=SystemExit('Host deletion policy')) as deletion:
+                for i in range(80):atomic_text(Path(tmp)/(str(i)+'.json'),json.dumps({'step':i}))
+            deletion.assert_not_called();self.assertEqual(list(Path(tmp).glob('.gr-*')),[])
+            for i in range(80):self.assertEqual(json.loads((Path(tmp)/(str(i)+'.json')).read_text()),{'step':i})
+
+    def test_atomic_publication_cannot_clobber_a_concurrently_created_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'export.json'
+            with self.assertRaises(FileExistsError):
+                with staged_file(path) as temporary:
+                    temporary.write_text('new calculation')
+                    path.write_text('other complete research')
+            self.assertEqual(path.read_text(),'other complete research')
+            self.assertEqual(list(Path(tmp).glob('.gr-*')),[])
+
     @unittest.skipUnless(os.name=='nt','Windows sharing semantics')
     def test_state_publication_retries_only_io_while_a_reader_holds_the_file(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -171,6 +209,36 @@ class StorageProtectionTests(unittest.TestCase):
 
 @unittest.skipUnless(os.name=='nt','Windows OS isolation backend')
 class WindowsExecutionTests(unittest.TestCase):
+    def test_native_stdlib_denial_is_visible_and_never_retried_or_mislabelled(self):
+        from types import SimpleNamespace
+        from graph_research.runtime.runner import WorkerFailure
+        from graph_research.runtime.observability import error_details
+        launches=[]
+        class DeniedBootstrap:
+            startup_phase='running';startup_seconds={};process=SimpleNamespace(pid=1);final_usage={'available':False}
+            def __init__(self,argv,workspace,env,**kwargs):
+                launches.append(argv);kwargs['prepare']()
+                (workspace/'bootstrap-stderr.log').write_text('Fatal Python error: Failed to import encodings module\nPermissionError: [Errno 13] Permission denied: C:/PRIVATE_TOKEN/Lib/encodings/__init__.py\nSECRET_VALUE',encoding='utf-8')
+            def wait(self,*args):return 107
+            def close(self):pass
+        with tempfile.TemporaryDirectory() as tmp,patch('graph_research.runtime.windows.WindowsTask',DeniedBootstrap):
+            with self.assertRaises(WorkerFailure) as caught:
+                run_worker('probe',{'operation':'echo','payload':'never computed'},directory=Path(tmp)/'tasks')
+            error=caught.exception;detail=error_details(error)
+            self.assertEqual(error.phase,'before_worker_entry');self.assertEqual(detail['cause_code'],'python_stdlib_access_denied')
+            self.assertIn('encodings',str(error));self.assertIn('PermissionError',str(error))
+            self.assertNotIn('SECRET_VALUE',str(error));self.assertNotIn('PRIVATE_TOKEN',json.dumps(detail))
+            self.assertNotIn('venv configuration error',str(error))
+            self.assertEqual(len(launches),1);self.assertIn('-I',launches[0])
+            receipt=read_json(Path(error.execution_directory)/'execution.json')[0]
+            self.assertEqual(receipt['status'],'failed');self.assertEqual(receipt['error_details']['startup'],detail['startup'])
+
+    def test_exit_code_alone_never_asserts_a_permission_or_configuration_cause(self):
+        from graph_research.runtime.runner import _startup_issue
+        issue=_startup_issue({'phase':'before_worker_entry','worker_exit_code':107,'logs':{}})
+        self.assertEqual(issue['code'],'protected_worker_startup_failed')
+        self.assertIsNone(_startup_issue({'phase':'worker_reported','logs':{}}))
+
     def test_venv_launcher_error107_is_captured_before_python_entry(self):
         if sys.prefix==sys.base_prefix:self.skipTest('Requires the Windows venv redirector')
         with tempfile.TemporaryDirectory() as tmp:
@@ -185,6 +253,7 @@ class WindowsExecutionTests(unittest.TestCase):
             self.assertEqual(receipt['startup']['phase'],'before_worker_entry')
             self.assertTrue(receipt['startup']['job_assigned'])
             self.assertIn('home',receipt['startup']['logs']['bootstrap-stderr.log']['tail'].lower())
+            self.assertEqual(receipt['error_details']['cause_code'],'venv_configuration_invalid')
             self.assertFalse((task/'result.json').exists())
 
     def test_echo_probe_roundtrip_proves_bootstrap_without_loading_tools(self):

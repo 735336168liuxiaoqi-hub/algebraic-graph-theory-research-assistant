@@ -2,6 +2,14 @@
 
 更新日期：2026-10-24。当前[Release v0.38.0a1](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a1)提供固定版本源码ZIP、wheel、中英文安装说明、本地测试任务书、校验清单和验证摘要。包含以下功能；0.37.0a2作为历史预发布保留。仍需要Python，CEM另需可选PyTorch；不是独立Windows安装器。
 
+## main中的后续修复（2026-10-24）
+
+修复正常保存文件时多余的临时删除调用；Windows新文件发布保留原子写入和并发防覆盖。增强启动日志分类及安全摘要，不再仅凭107推断环境损坏；子agent和MCP对自环、重复边、越界点返回具体字段位置，doctor提供只读宿主定制状态。详细行为见[开发与诊断](../DEVELOPMENT.md)。
+
+分阶段去重206项相关回归均通过，最终存储调整后54项针对性回归通过，包含实际受保护CEM及MCP；不是重新执行整套验收。原宿主标准库访问限制仍需在原环境复验，没有禁用宿主保护。记录见[反馈修复验证摘要](0.38.0a1-feedback-validation.json)，复验可使用[本地验收任务书](../reference/LOCAL_ACCEPTANCE.md)。
+
+这些修复位于main，本次未重建或替换v0.38.0a1 Release附件。旧附件及独立封存运行副本不会自动获得修改；从main更新后重启科研助手／MCP并刷新契约。下文“本地完整检查”及原Release验证JSON仍只描述原发行基线。
+
 | 当前源码能力 | 入口与边界 |
 | --- | --- |
 | 本地工具、API科研对话、MCP | 共用47项内置计算工具；MCP按需发现，13个调度／集成入口 |

@@ -7,7 +7,7 @@ import re
 
 import jsonschema
 
-from graph_research.errors import TaskProtocolError
+from graph_research.errors import TaskProtocolError,schema_protocol_error
 
 
 FORMAT='graph-research-experiment/1'
@@ -103,7 +103,9 @@ def validate_problem(value):
         encoded=json.dumps(value,ensure_ascii=False,allow_nan=False)
         if len(encoded.encode('utf-8'))>32768:_error('实验问题最多32KiB。')
         jsonschema.validate(value,PROBLEM_SCHEMA)
-    except (ValueError,TypeError,jsonschema.ValidationError):_error('实验问题结构不符合协议；请查看experiment_contracts。')
+    except jsonschema.ValidationError as error:
+        raise schema_protocol_error(error,'invalid_experiment','实验问题字段无效。') from None
+    except (ValueError,TypeError):_error('实验问题结构不符合协议；请查看experiment_contracts。')
     result=json.loads(encoded);parameters=result['parameters']
     for name,spec in parameters.items():
         if spec['role']=='fixed':
@@ -167,7 +169,8 @@ def validate_problem(value):
 def validate_prepare(value):
     _bounded(value)
     try:jsonschema.validate(value,PREPARE_SCHEMA)
-    except jsonschema.ValidationError:_error('本阶段仅支持operation=prepare及结构化problem。')
+    except jsonschema.ValidationError as error:
+        raise schema_protocol_error(error,'invalid_experiment','准备实验字段无效。') from None
     result=copy.deepcopy(value);result['problem']=validate_problem(result['problem'])
     return result
 

@@ -24,7 +24,7 @@ from graph_research.assistant.task_control import SubagentLimits
 from graph_research.runtime.runner import TaskLimits
 from graph_research.runtime.storage import safe_path,write_json,read_json,exclusive_lock,io_path,storage_error
 from graph_research.runtime.integrity import IntegrityError
-from graph_research.errors import PathBoundaryError,SessionBusyError
+from graph_research.errors import PathBoundaryError,SessionBusyError,schema_protocol_error
 from graph_research.runtime.evidence import file_hash
 from .contracts import tool_definitions
 from graph_research.runtime.observability import error_details
@@ -223,7 +223,10 @@ class MCPResearchRuntime:
         return self._decorate(self._snapshot(task_id))
 
     def submit(self,task,wait_seconds=0,detail="summary"):
-        request=validate_task(task)
+        try:request=validate_task(task)
+        except TaskProtocolError as error:
+            if hasattr(error,'field_path'):error.field_path=['task',*error.field_path]
+            raise
         model_mode=request['execution']['mode'] in ('agent','research') or (request['execution']['mode']=='counterexample' and request['execution']['counterexample'].get('planner','rules')=='model')
         model_mode=model_mode or request['execution']['mode']=='experiment' and request['execution']['experiment'].get('planner')=='model'
         if model_mode and self.configuration.model_settings is None:
@@ -436,7 +439,9 @@ class MCPResearchRuntime:
             if method=='development':phase+='.'+arguments['operation']
             return getattr(self,method)(**arguments)
         except TaskProtocolError as error:return failed(error,error.code,str(error),retryable=error.code=='mcp_busy')
-        except jsonschema.ValidationError as error:return failed(error,'invalid_arguments','参数不符合MCP工具Schema；不接受身份、密钥、批准或文件路径覆盖。')
+        except jsonschema.ValidationError as error:
+            issue=schema_protocol_error(error,'invalid_arguments','MCP参数字段无效；不接受身份、密钥、批准或文件路径覆盖。')
+            return failed(issue,issue.code,str(issue))
         except IntegrityError as error:
             if not getattr(error,'failure_stage',None):phase='core_verification'
             return failed(error,'core_integrity_failed','核心完整性校验失败；已停止执行，请使用已验证发行版本或由维护者检查变更。不会自动重新封存或重算。')

@@ -64,6 +64,27 @@ def _decode_log(raw):
     return raw.decode('utf-8',errors='replace')
 
 
+def _startup_issue(diagnostics):
+    """Fixed, safe excerpts of native bootstrap failures; no arbitrary log echo.
+
+    Code 107 alone is not a permission or venv diagnosis. Raw bounded tails
+    remain in the local receipt; callers receive only recognized signatures.
+    """
+    if diagnostics.get('phase')!='before_worker_entry':return None
+    tail=diagnostics.get('logs',{}).get('bootstrap-stderr.log',{}).get('tail','').lower()
+    if 'encodings' in tail and 'permissionerror' in tail and ('permission denied' in tail or 'errno 13' in tail):
+        return {'code':'python_stdlib_access_denied','message':'受保护Python在进入计算前无法读取标准库encodings，尚未执行计算。',
+                'log_excerpt':'encodings: PermissionError (permission denied)',
+                'log_file':'bootstrap-stderr.log',
+                'next_step':'使用同一解释器运行tools/diagnose_protected_startup.py并保留报告；核查宿主限制及运行时读取权限。不要降低保护或自动重试。'}
+    if 'pyvenv.cfg' in tail and any(term in tail for term in ('home','read','parse','configuration','no ')):
+        return {'code':'venv_configuration_invalid','message':'Python启动日志报告pyvenv.cfg配置读取或解析失败，尚未执行计算。',
+                'log_excerpt':'pyvenv.cfg: configuration read/parse failure','log_file':'bootstrap-stderr.log',
+                'next_step':'核对当前解释器与pyvenv.cfg；由用户修复或重建目标虚拟环境后再运行，不自动切换解释器。'}
+    return {'code':'protected_worker_startup_failed','message':'受保护进程未进入计算入口，无法仅凭退出码判断原因。',
+            'log_file':'bootstrap-stderr.log','next_step':'查看同一任务回执和启动日志，使用固定启动诊断核对环境；保留保护，不自动重算。'}
+
+
 def _startup_diagnostics(workspace,details):
     """Bounded launcher/worker evidence; never infer permissions from an exit code."""
     result={**details,'phase':'before_worker_entry','logs':{}}
@@ -81,8 +102,10 @@ def _startup_diagnostics(workspace,details):
                 size=io_path(path).stat().st_size;stream.seek(max(0,size-4096));raw=stream.read(4096)
             result['logs'][name]={'tail':_decode_log(raw),'truncated':size>4096,'bytes':size}
         except (OSError,ValueError,UnicodeError):result['logs'][name]={'read_error':True}
-    if result.get('worker_exit_code')==107 and result['phase']=='before_worker_entry':
-        result['exit_hint']='CPython Windows venv launcher uses107 for pyvenv.cfg read/parse errors; inspect bootstrap-stderr.log. This is not a Win32 permission diagnosis.'
+    if result.get('worker_exit_code') and result['phase']=='before_worker_entry':
+        result['issue']=_startup_issue(result)
+        if result.get('worker_exit_code')==107:
+            result['exit_hint']='Exit 107 is not a diagnosis; the native bootstrap log is required to distinguish venv configuration from runtime access failures.'
     return result
 
 
@@ -159,9 +182,8 @@ def _run_worker(kind,request,*,directory,limits,cancel,cancel_file,include_recei
             except OSError:pass
         monitor()
         if not io_path(result_file).is_file():
-            hint='; possible venv configuration error, inspect bootstrap-stderr.log' if code==107 else ''
-            raise WorkerFailure(f'Protected worker exited without a complete result (code {code:#x}){hint}; diagnostics: {workspace / "execution.json"}',
-                                exit_code=code,phase=startup.get('host_phase'))
+            raise WorkerFailure(f'Protected worker exited without a complete result (code {code:#x}); diagnostics: {workspace / "execution.json"}',
+                                exit_code=code)
         with measure('host.result_read'):payload=json.loads(io_path(result_file).read_text(encoding='utf-8'))
         if code or not payload.get('ok'):
             error=payload.get('error',f'Worker failed with exit code {code:#x}')
@@ -204,6 +226,10 @@ def _run_worker(kind,request,*,directory,limits,cancel,cancel_file,include_recei
             # startup-derived phase only fills in when the failure has none.
             if exc.phase is None:exc.phase=diagnostics.get('phase')
             if not exc.logs:exc.logs=diagnostics.get('logs',{})
+            if exc.phase=='before_worker_entry':
+                issue=diagnostics.get('issue') or _startup_issue(diagnostics)
+                exc.startup_issue=issue;exc.error_code=issue['code']
+                exc.args=(str(exc)+' '+issue['message']+' '+issue.get('log_excerpt','')+' '+issue['next_step'],)
         if hasattr(exc,'protected_startup_seconds'):diagnostics['stage_seconds']=exc.protected_startup_seconds
         detail=annotate(exc,phase=_timings.failed_stage or diagnostics.get('phase'),identifier=_identifier)
         exc.execution_directory=str(workspace);exc.startup_diagnostics=diagnostics
