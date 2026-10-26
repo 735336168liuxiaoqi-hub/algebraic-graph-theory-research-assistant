@@ -9,15 +9,12 @@ import re
 import uuid
 from functools import wraps
 from graph_research.runtime.storage import safe_path,write_json,exclusive_lock
+from graph_research.runtime.serialization import legacy_json_fingerprint as digest
 
 import jsonschema
 
 
 CORE=Path(__file__).resolve().parents[1]
-
-
-def digest(value):
-    return hashlib.sha256(json.dumps(value,sort_keys=True,ensure_ascii=False,allow_nan=False).encode()).hexdigest()
 
 
 def core_fingerprint():

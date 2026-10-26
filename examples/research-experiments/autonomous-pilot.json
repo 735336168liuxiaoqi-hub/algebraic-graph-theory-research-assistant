@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "request_id": "autonomous-pilot",
+  "objective": "在固定n=5、alpha=1/4、禁三角图范围内自动进行小规模有限搜索并返回候选证据。",
+  "execution": {
+    "mode": "experiment",
+    "experiment": {
+      "operation": "study",
+      "problem": {
+        "version": 1,
+        "question": "n=5、alpha=1/4、K3-free简单图的有限谱极值试跑",
+        "intent": "parameterized_extremum",
+        "object": {"type": "simple_graph", "order": 5},
+        "parameters": {},
+        "constraints": {"predicate": "clique_free", "arguments": {"r": 3}},
+        "objective": {"metric": "alpha_spectral_radius", "direction": "maximize", "arguments": {"alpha": "1/4"}}
+      },
+      "cases": [{"id": "n5_a025", "parameters": {}}],
+      "methods": ["random", "local"],
+      "seeds": [11],
+      "rounds": 2,
+      "batch_size": 8,
+      "worker_rounds": 1,
+      "segment_rounds": 1,
+      "cpu_threads": 1,
+      "planner": "rules",
+      "adaptive": false,
+      "max_edges": 6,
+      "budget": {"max_evaluations": 32, "wall_seconds": 120, "cpu_seconds": 120, "memory_mb": 1024}
+    }
+  },
+  "constraints": {"max_model_calls": 0, "max_tool_calls": 4, "allow_extensions": false}
+}

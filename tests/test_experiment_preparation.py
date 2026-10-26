@@ -27,7 +27,7 @@ class ExperimentContractTests(unittest.TestCase):
         for name in ('clique-free','hypertree-distance'):
             task=validate_task(sample(name));report=prepare_experiment(task['execution']['experiment'])
             self.assertTrue(report['plan']['cases']);self.assertFalse(report['executed'])
-            self.assertFalse(report['plan']['executable']);self.assertFalse(report['plan']['approved'])
+            self.assertFalse(report['plan']['executable']);self.assertNotIn('approved',report['plan'])
             self.assertFalse(report['plan']['scientific_results']);self.assertFalse(report['claims'])
             jsonschema.validate(task,contracts()['task_input'])
             jsonschema.validate(report['plan'],experiment_contracts()['plan'])
@@ -147,7 +147,9 @@ class ExperimentEntryTests(unittest.TestCase):
             parent,_=create_subagent(folder,user_id='experiment',limits=SubagentLimits(max_model_calls=0,max_tool_calls=0,allow_extensions=False))
             task=sample();task['definitions']=['还需要满足某个未形式化的条件']
             result=parent.submit(task)
-            self.assertEqual(result['summary']['experiment']['plan']['status'],'needs_clarification')
+            issues=result['summary']['experiment']['plan']['issues']
+            self.assertTrue(any(item['code']=='text_definitions' and item['kind']=='notice' for item in issues))
+            self.assertEqual(result['budget']['used'],{'model_calls':0,'tool_calls':0})
 
 
 if __name__=='__main__':unittest.main()

@@ -22,6 +22,7 @@ def features(candidate,kind,detailed=True):
         'maximum_degree_vertices':[v for v,d in enumerate(degrees) if d==max(degrees)],
         'pendant_edges':sum(sum(degrees[v]>1 for v in edge)<=1 for edge in edges)}
     if kind=='simple_graph':
+        result['is_tree']=result.pop('hypertree')
         neighbors=[set() for _ in range(n)]
         for u,v in edges:neighbors[u].add(v);neighbors[v].add(u)
         colors={};bipartite=True
@@ -139,7 +140,7 @@ def analyze(compiled,results,hypotheses=None):
     conjectures=[]
     for case in compiled['spec']['cases']:
         run_ids={r['id'] for r in compiled['runs'] if r['case_id']==case['id']};ss=[s for s in selected if s['run_id'] in run_ids]
-        for property_name in ('regular','hypertree','complete_multipartite','bipartite'):
+        for property_name in ('regular','is_tree','hypertree','complete_multipartite','bipartite'):
             if ss and all(s['features'].get(property_name) is True for s in ss):
                 supporting=[r for r in compiled['runs'] if r['id'] in {s['run_id'] for s in ss}]
                 conjectures.append({'level':'conjecture','case_id':case['id'],'property':property_name,'statement':'Best observed feasible candidates share this property; global extremizers remain unproved.',
@@ -150,3 +151,47 @@ def analyze(compiled,results,hypotheses=None):
         'claims':[{'level':'verified_instance','statement':'Selected candidates satisfy the declared constraints and have independently verified objective enclosures.' if selected else 'No feasible candidate was found in these evaluations; nonexistence is not established.'},
                   {'level':'numerical_observation','statement':'Compare methods/seeds using raw objectives, feasibility, labelled diversity and receipt costs; no method is presumed superior.'}],
         'general_theorem_proved':False,'literature_status':'not_searched','limitations':['Finite parameter cases are not a universal parameter domain.','Heuristic failure is not a proof of nonexistence.','Isomorphism matching is bounded to 12 vertices, 16 edges and 8 representatives; degree histograms alone never establish isomorphism.','Candidate patterns and symbolic quotients of instances are not general extremal proofs.']}
+
+
+def analyze_streamed(compiled, results, rows_factory, hypotheses):
+    """One full evidence pass; retain only counters, distinct hashes and witnesses."""
+    problem=compiled['spec']['problem'];kind=problem['object']['type'];direction=problem['objective']['direction']
+    stats={r['id']:{'evaluated':0,'feasible':0,'seen':set(),'best':None} for r in compiled['runs']}
+    checks={h['id']:{'hypothesis':h,'tested':0,'interval_inconclusive':0,'witnesses':[]} for h in hypotheses if h['type']!='candidate_pattern'}
+    for row in rows_factory():
+        own=stats[row['run_id']];own['evaluated']+=1;own['seen'].add(row['candidate_sha256'])
+        if not row['feasible']:continue
+        own['feasible']+=1;best=own['best']
+        if best is None or (row['objective_estimate']<best['objective_estimate'] if direction=='minimize' else row['objective_estimate']>best['objective_estimate']):
+            own['best']=row
+        for check in checks.values():
+            h=check['hypothesis'];check['tested']+=1
+            if h['type']=='metric_bound':
+                lo,hi=map(Fraction,row['objective_interval']);target=resolve(h['value'],{})
+                contradicted=lo>target if h['relation']=='le' else hi<target
+                check['interval_inconclusive']+=int(not contradicted and not (hi<=target if h['relation']=='le' else lo>=target))
+            else:contradicted=features(row['candidate'],kind,detailed=False)[h['property']]!=h['expected']
+            if contradicted and len(check['witnesses'])<8:
+                check['witnesses'].append({k:row[k] for k in ('run_id','round','candidate_id','candidate','objective_interval')})
+    representatives=[]
+    for run in compiled['runs']:
+        best=stats[run['id']]['best'];previous=next((r for r in reversed(results) if r['run_id']==run['id']),None)
+        if previous:
+            representatives.append({**previous,'rows':[best] if best else []})
+    report=analyze(compiled,representatives,[h for h in hypotheses if h['type']=='candidate_pattern'])
+    for run in report['run_statistics']:
+        own=stats[run['run_id']];best=own['best']
+        run.update(evaluated=own['evaluated'],feasible=own['feasible'],labelled_diversity=len(own['seen']),
+                   feasible_rate=own['feasible']/own['evaluated'] if own['evaluated'] else None,
+                   best_feasible=best['objective_estimate'] if best else None)
+    pattern_checks={c['hypothesis']['id']:c for c in report['hypothesis_checks']}
+    ordered=[]
+    for h in hypotheses:
+        if h['type']=='candidate_pattern':
+            ordered.append(pattern_checks[h['id']]);continue
+        check=checks[h['id']]
+        check.update(status='verified_counterexample' if check['witnesses'] else 'not_refuted_in_tested_samples',proven=False,
+                     meaning='Every feasible evaluation in the receipt-verified streamed archive was checked.')
+        ordered.append(check)
+    report.update(hypothesis_checks=ordered,analysis_complete=True,analysis_scope='all receipt-verified candidate records; bounded retained witnesses')
+    return report

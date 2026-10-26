@@ -190,7 +190,23 @@ class RuntimeTests(unittest.TestCase):
         model=ScriptedModel([{'action':'clarify','questions':['是P3吗？']}])
         runtime=self.runtime(model_settings=ModelSettings('https://example.invalid/v1','mock',auth_required=False).public(),max_model_calls=1)
         parent,portal=create_subagent(self.root,user_id='a',model_factory=lambda:model,limits=runtime.configuration.limits())
-        waiting=parent.submit(agent_task('clarify'));runtime.resume(waiting['task_id'],'b'*32)
+        waiting=parent.submit(agent_task('clarify'))
+        before=runtime.service.record_path(waiting['task_id']).read_bytes()
+        with patch.object(runtime,'_launch',side_effect=AssertionError('Invalid events must not launch a worker')):
+            with self.assertRaises(TaskProtocolError) as caught:runtime.resume(waiting['task_id'],'b'*32)
+        self.assertEqual(caught.exception.code,'event_not_found')
+        self.assertEqual(runtime.service.record_path(waiting['task_id']).read_bytes(),before)
+        self.assertEqual(len(model.contexts),1)
+        self.assertEqual(parent.get(waiting['task_id'])['budget']['used'],{'model_calls':1,'tool_calls':0})
+
+    def test_resume_worker_rechecks_event_after_preflight_race(self):
+        from graph_research.assistant.model_config import ModelSettings
+        model=ScriptedModel([{'action':'clarify','questions':['是P3吗？']}])
+        runtime=self.runtime(model_settings=ModelSettings('https://example.invalid/v1','mock',auth_required=False).public(),max_model_calls=1)
+        parent,_=create_subagent(self.root,user_id='a',model_factory=lambda:model,limits=runtime.configuration.limits())
+        waiting=parent.submit(agent_task('clarify-race'))
+        # Simulate an event becoming invalid after synchronous validation.
+        with patch.object(runtime.parent,'check_resume'):runtime.resume(waiting['task_id'],'b'*32)
         result=self.wait(runtime,waiting['task_id']);self.assertEqual(result['status'],'waiting_for_user')
         self.assertIsNotNone(result['transport']['error']);self.assertEqual(result['budget']['used']['model_calls'],1)
         from graph_research.mcp.server import response_is_error
@@ -251,6 +267,23 @@ class RuntimeTests(unittest.TestCase):
         document=HostConfiguration(str(self.root),'a').public();document['api_key']='PRIVATE'
         with self.assertRaises(ValueError):HostConfiguration.from_public(document)
 
+    def test_configuration_file_is_utf8_preserves_unicode_and_never_overwrites(self):
+        from graph_research.mcp.cli import connection_configuration
+        for format in ('json','codex','dsh'):
+            with tempfile.TemporaryDirectory() as folder:
+                root=Path(folder);target=root/('中文配置 '+format+'.txt');state=root/'state';results=root/'results'
+                args=['--root',str(state),'--user','utf8','--results-root',str(results),'--format',format,'--output',str(target)]
+                with redirect_stdout(io.StringIO()):connection_configuration(args)
+                raw=target.read_bytes();text=raw.decode('utf-8');self.assertFalse(raw.startswith(b'\xef\xbb\xbf'))
+                self.assertFalse(state.exists());self.assertFalse(results.exists())
+                if format=='json':
+                    value=json.loads(text);self.assertEqual(value['command'],str(Path(sys.executable).resolve()))
+                    self.assertNotIn('--review-policy',value['args']);self.assertNotIn('--confirm-experiments',value['args'])
+                elif format=='codex':self.assertEqual(tomllib.loads(text)['mcp_servers']['graph_research']['command'],str(Path(sys.executable).resolve()))
+                else:self.assertIn('@deepseek-ai/dsh-mcp-client',text)
+                with self.assertRaises(FileExistsError):connection_configuration(args)
+                self.assertEqual(target.read_bytes(),raw)
+
     def test_atomic_state_read_race_retries_reads_without_restarting_work(self):
         runtime=self.runtime();parent=runtime.parent
         with patch.object(parent,'get',side_effect=[TaskProtocolError('task_not_found','瞬时读取失败'),{'task_id':'a'*32,'status':'queued','revision':1}]) as get:
@@ -310,6 +343,23 @@ class RuntimeTests(unittest.TestCase):
 
 @unittest.skipUnless(SDK,'Optional official MCP SDK is not installed')
 class SDKTests(unittest.IsolatedAsyncioTestCase):
+    async def test_default_study_runs_directly_over_stdio_without_approval_state(self):
+        from tests.test_experiment_study import study,task
+        parameters=StdioServerParameters(command=sys.executable,args=['-I','-X','utf8','-m','graph_research','mcp',
+            '--root',str(self.root),'--user','autonomous-wire','--results-root',str(self.root/'results'),'--approval-ui','off'])
+        spec=study('random');spec.update(segment_rounds=1,pause_at_checkpoints=False)
+        request=task(spec);request['constraints'].update(max_tool_calls=4);request['constraints'].pop('require_review')
+        async with Client(parameters,mode='legacy',cache=None,read_timeout_seconds=30) as client:
+            catalog=(await client.call_tool('research_catalog',{})).structured_content
+            self.assertFalse(catalog['capabilities']['experiment_preparation']['confirm_experiments'])
+            response=await client.call_tool('research_submit',{'task':request,'wait_seconds':2})
+            result=response.structured_content;deadline=time.monotonic()+45
+            while result.get('transport',{}).get('active') and time.monotonic()<deadline:
+                result=(await client.call_tool('research_get',{'task_id':result['task_id'],'wait_seconds':2})).structured_content
+            self.assertEqual(result['status'],'completed',result.get('error'))
+            self.assertIsNone(result['interaction'])
+            self.assertEqual(result['budget']['used'],{'model_calls':0,'tool_calls':2})
+            self.assertNotIn('approved',result['summary']['experiment'])
     async def asyncSetUp(self):
         self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name)
     async def asyncTearDown(self):self.temp.cleanup()
@@ -318,13 +368,15 @@ class SDKTests(unittest.IsolatedAsyncioTestCase):
         runtime=MCPResearchRuntime(HostConfiguration(str(self.root),'sdk-resume-error'))
         queued=runtime.parent.submit(small_task('sdk-cancelled'),defer=True);stopped=runtime.cancel(queued['task_id'])
         async with Client(create_server(runtime),mode='legacy',cache=None) as client:
-            response=await client.call_tool('research_resume',{'task_id':stopped['task_id'],'event_id':'b'*32})
-            deadline=time.monotonic()+30
-            while response.structured_content.get('transport',{}).get('active') and time.monotonic()<deadline:
-                response=await client.call_tool('research_get',{'task_id':stopped['task_id'],'wait_seconds':1})
+            with patch.object(runtime,'_launch',side_effect=AssertionError('Invalid event must not launch a worker')):
+                response=await client.call_tool('research_resume',{'task_id':stopped['task_id'],'event_id':'b'*32})
             self.assertTrue(response.is_error)
-            result=response.structured_content;self.assertEqual(result['status'],'cancelled')
-            self.assertEqual(result['operation']['error']['code'],'event_not_found')
+            rejected=response.structured_content;self.assertEqual(rejected['status'],'protocol_error')
+            self.assertEqual(rejected['error']['code'],'event_not_found')
+            current=await client.call_tool('research_get',{'task_id':stopped['task_id']})
+            self.assertFalse(current.is_error)
+            result=current.structured_content;self.assertEqual(result['status'],'cancelled')
+            self.assertEqual(result['budget']['used'],{'model_calls':0,'tool_calls':0})
             self.assertEqual(result['interaction'],stopped['interaction']);self.assertEqual(result['revision'],stopped['revision'])
             cancelled=await client.call_tool('research_cancel',{'task_id':stopped['task_id']})
             self.assertFalse(cancelled.is_error)

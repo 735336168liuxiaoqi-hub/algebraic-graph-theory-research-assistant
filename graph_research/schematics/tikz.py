@@ -2,7 +2,7 @@
 from html import escape
 import json
 from pathlib import Path
-from graph_research.rendering.tikz import escape_latex,tex_number
+from graph_research.rendering.tikz import escape_latex,tex_number,_standalone_document
 from graph_research.runtime.storage import atomic_text
 from graph_research.rendering.tex_coordinates import TexCoordinates as _TexCoordinates
 from .document import SchematicDocument
@@ -62,9 +62,7 @@ def to_tikz(scene,*,standalone=False,vertex_labels=False):
     lines.append(r'\end{tikzpicture}');fragment='\n'.join(lines)+'\n'
     if not standalone:return fragment
     chinese=any('\u3400'<=c<='\u9fff' for item in items if item['kind']=='label' for c in item['text'])
-    header=[r'\documentclass[tikz,border=5pt]{standalone}']
-    if chinese:header.append(r'\usepackage[UTF8]{ctex}')
-    return '\n'.join(['% !TeX program = '+('xelatex' if chinese else 'pdflatex'),*header,r'\begin{document}',fragment,r'\end{document}',''])
+    return _standalone_document(fragment,chinese=chinese)
 
 
 def to_svg(scene,*,vertex_labels=False):

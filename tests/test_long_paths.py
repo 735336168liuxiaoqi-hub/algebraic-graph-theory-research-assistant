@@ -171,12 +171,9 @@ class WindowsDeepPathTests(unittest.TestCase):
         self.assertEqual(outside.read_text(),'original');self.assertEqual(file_hash(CORE/'data/tool_docs.json'),before)
 
     def test_prefixed_junction_cannot_escape_the_root(self):
+        from tests.host_fixtures import real_link_or_skip
         outside=self.root/'outside';outside.mkdir();link=self.root/'link'
-        try:link.symlink_to(outside,target_is_directory=True)
-        except OSError:
-            command="New-Item -ItemType Junction -Path '"+str(link).replace("'","''")+"' -Target '"+str(outside).replace("'","''")+"' | Out-Null"
-            created=subprocess.run(['powershell','-NoProfile','-NonInteractive','-Command',command],capture_output=True,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
-            self.assertEqual(created.returncode,0,created.stderr)
+        real_link_or_skip(self,link,outside,directory=True)
         try:
             with self.assertRaises(PathBoundaryError):atomic_text(io_path(link/'escape.txt'),'bad',root=self.root)
             self.assertFalse((outside/'escape.txt').exists())

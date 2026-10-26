@@ -13,6 +13,7 @@ from datetime import datetime,timezone
 from .storage import safe_path,atomic_text,io_path
 from .integrity import assert_integrity,CORE,inventory
 from .observability import Timings,recording,measure,annotate,diagnostic_id,bounded_timings
+from .resources import MAX_WALL_SECONDS,MAX_CPU_SECONDS,MAX_MEMORY_MB,MAX_THREADS
 
 
 @dataclass(frozen=True)
@@ -23,20 +24,21 @@ class TaskLimits:
     max_processes:int=8
     output_bytes:int=4*1024*1024
     artifact_bytes:int=64*1024*1024
+    cpu_threads:int=1
 
     def __post_init__(self):
-        if type(self.wall_seconds) not in (int,float) or not math.isfinite(self.wall_seconds) or not 0<self.wall_seconds<=3600:raise ValueError('Invalid wall-time limit')
-        for name,low,high in [('cpu_seconds',1,3600),('memory_mb',64,4096),('max_processes',1,8),('output_bytes',1024,16*1024*1024),('artifact_bytes',1024,256*1024*1024)]:
+        if type(self.wall_seconds) not in (int,float) or not math.isfinite(self.wall_seconds) or not 0<self.wall_seconds<=MAX_WALL_SECONDS:raise ValueError('Invalid wall-time limit')
+        for name,low,high in [('cpu_seconds',1,MAX_CPU_SECONDS),('memory_mb',64,MAX_MEMORY_MB),('cpu_threads',1,MAX_THREADS),('max_processes',1,8),('output_bytes',1024,16*1024*1024),('artifact_bytes',1024,256*1024*1024)]:
             value=getattr(self,name)
             if type(value) is not int or not low<=value<=high:raise ValueError('Invalid task limit: '+name)
 
 
-def clean_environment(workspace):
+def clean_environment(workspace,cpu_threads=1):
     workspace=Path(workspace)
     result={key:os.environ[key] for key in ('SystemRoot','WINDIR','SYSTEMDRIVE','PATH','PATHEXT') if key in os.environ}
     result.update(PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',PYTHONUTF8='1',
                   PYTHONPATH=str(Path(__file__).resolve().parents[2]),
-                  OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',
+                  OPENBLAS_NUM_THREADS=str(cpu_threads),OMP_NUM_THREADS=str(cpu_threads),MKL_NUM_THREADS=str(cpu_threads),
                   TEMP=str(workspace/'temp'),TMP=str(workspace/'temp'),HOME=str(workspace/'home'),USERPROFILE=str(workspace/'home'),
                   LOCALAPPDATA=str(workspace/'cache'),APPDATA=str(workspace/'config'),MPLCONFIGDIR=str(workspace/'cache'),MPLBACKEND='Agg',
                   RESEARCH_GUARDED_RUN=str(workspace))
@@ -77,6 +79,10 @@ def _startup_issue(diagnostics):
                 'log_excerpt':'encodings: PermissionError (permission denied)',
                 'log_file':'bootstrap-stderr.log',
                 'next_step':'使用同一解释器运行tools/diagnose_protected_startup.py并保留报告；核查宿主限制及运行时读取权限。不要降低保护或自动重试。'}
+    if 'pyvenv.cfg' in tail and any(term in tail for term in ('failed to open','cannot open','could not open','unable to open')):
+        return {'code':'venv_configuration_unreadable','message':'受保护Python启动器无法打开pyvenv.cfg；日志本身不能证明配置内容损坏或中文路径不受支持。',
+                'log_excerpt':'pyvenv.cfg: failed to open','log_file':'bootstrap-stderr.log',
+                'next_step':'对比父进程和固定受保护探针的读取结果。若仅受保护子进程被拒，应核查当前宿主执行上下文；使用已配置的MCP服务时另行验证该入口，不改ACL、不关闭保护或自动重算。'}
     if 'pyvenv.cfg' in tail and any(term in tail for term in ('home','read','parse','configuration','no ')):
         return {'code':'venv_configuration_invalid','message':'Python启动日志报告pyvenv.cfg配置读取或解析失败，尚未执行计算。',
                 'log_excerpt':'pyvenv.cfg: configuration read/parse failure','log_file':'bootstrap-stderr.log',
@@ -165,7 +171,7 @@ def _run_worker(kind,request,*,directory,limits,cancel,cancel_file,include_recei
     startup={'host_phase':'preparing_restrictions','interpreter':sys.executable,'base_interpreter':getattr(sys,'_base_executable',None)}
     try:
         with measure('host.process_startup'):
-            task=WindowsTask(argv,workspace,clean_environment(workspace),memory_mb=limits.memory_mb,cpu_seconds=limits.cpu_seconds,
+            task=WindowsTask(argv,workspace,clean_environment(workspace,limits.cpu_threads),memory_mb=limits.memory_mb,cpu_seconds=limits.cpu_seconds,
                              max_processes=limits.max_processes,prepare=prepare,protected_paths=[CORE,*[CORE/name for name in inventory(CORE)],CORE/'_integrity.json'])
         startup.update(host_phase=task.startup_phase,process_id=task.process.pid,restricted_process_created=True,job_assigned=True)
         with measure('host.worker_wait'):code=task.wait(limits.wall_seconds,cancel,monitor)

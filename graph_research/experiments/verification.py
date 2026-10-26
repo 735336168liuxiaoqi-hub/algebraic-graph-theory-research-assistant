@@ -97,6 +97,29 @@ def matrix_bounds(matrix,vector):
             'collatz_upper':str(upper),'arithmetic':'exact_rational_of_stored_vector'}
 
 
+def tensor_bounds(candidate,alpha,vector):
+    """Exact Collatz enclosure for the declared rational alpha, not its float.
+
+    Rebuild the unweighted H-tensor action directly from raw edges. This does
+    not construct a tensor, invoke a solver or trust the solver's certificate.
+    """
+    n=candidate['n'];edges=candidate['edges'];alpha=Fraction(alpha)
+    if not edges or not 2<=len(edges[0])<=8 or any(len(e)!=len(edges[0]) for e in edges):raise ValueError('Tensor enclosure requires nonempty 2..8 uniform edges')
+    if not 0<=alpha<=1:raise ValueError('Invalid tensor alpha')
+    degrees=[sum(v in e for e in edges) for v in range(n)]
+    if alpha==1:
+        if vector is not None:raise ValueError('Degree endpoint has no positive-vector certificate')
+        bound=str(max(degrees));return {'alpha':str(alpha),'interval':[bound,bound],'arithmetic':'exact_rational_parameter_and_stored_vector'}
+    if not isinstance(vector,list) or len(vector)!=n or any(type(v) not in (int,float) or not math.isfinite(v) or v<=0 for v in vector):raise ValueError('Positive finite tensor certificate vector required')
+    x=list(map(Fraction,vector));adjacency=[Fraction() for _ in range(n)]
+    for edge in edges:
+        product=math.prod(x[v] for v in edge)
+        for v in edge:adjacency[v]+=product/x[v]
+    rank=len(edges[0]);ratios=[alpha*degrees[v]+(1-alpha)*adjacency[v]/x[v]**(rank-1) for v in range(n)]
+    return {'alpha':str(alpha),'interval':[str(min(ratios)),str(max(ratios))],
+            'arithmetic':'exact_rational_parameter_and_stored_vector'}
+
+
 def verify_evaluation(problem,parameters,candidate,result):
     """Rebuild constraints and matrix from raw edges; never trust stored scores."""
     try:
@@ -104,7 +127,9 @@ def verify_evaluation(problem,parameters,candidate,result):
         # Check semantics locally; do not import or reuse the primary evaluator.
         metric=problem['objective']['metric'];kind=problem['object']['type']
         if metric not in {'edge_count','adjacency_spectral_radius','alpha_spectral_radius','distance_spectral_radius'}:raise ValueError('Unsupported metric')
-        if kind!='simple_graph' and (metric not in {'edge_count','distance_spectral_radius'} or any(n['predicate'] in {'clique_free','matching_number'} for n,_ in leaves(problem.get('constraints',{'all':[]})))):raise ValueError('Unsupported hypergraph semantics')
+        tensor=kind in ('uniform_hypergraph','uniform_hypertree') and metric in ('adjacency_spectral_radius','alpha_spectral_radius')
+        if kind!='simple_graph' and ((metric not in {'edge_count','distance_spectral_radius'} and not tensor) or any(n['predicate'] in {'clique_free','matching_number'} for n,_ in leaves(problem.get('constraints',{'all':[]})))):raise ValueError('Unsupported hypergraph semantics')
+        if tensor and not 2<=resolve(problem['object']['uniformity'],parameters)<=8:raise ValueError('Unsupported tensor rank')
         if kind=='simple_graph' and any(n['predicate']=='hypertree' for n,_ in leaves(problem.get('constraints',{'all':[]}))):raise ValueError('Hypertree predicate requires a hypergraph')
         candidate=validate_candidate(candidate,problem['object']['type']);props,_,neighbors=_data(candidate)
         if any(node['predicate']=='matching_number' for node,_ in leaves(problem.get('constraints',{'all':[]}))):props['matching_number']=_matching(neighbors)
@@ -119,7 +144,12 @@ def verify_evaluation(problem,parameters,candidate,result):
         if obj['type']=='uniform_hypertree':valid=valid and props['hypertree']
         constrained=_logic(problem.get('constraints',{'all':[]}),predicate)
         domain=props['connected'] or problem['objective']['metric']!='distance_spectral_radius'
+        if tensor:
+            alpha=resolve(problem['objective'].get('arguments',{}).get('alpha',0),parameters)
+            domain=bool(candidate['edges']) and (alpha==1 or props['connected'])
         feasible=bool(valid and constrained and domain)
+        if kind=='simple_graph':
+            props['is_tree']=props.pop('hypertree');props.pop('uniform')
         passed=(result.get('problem_sha256')==digest(problem) and result.get('parameters')==parameters and result.get('candidate')==candidate
                 and result.get('candidate_sha256')==digest(candidate) and result.get('properties')==props
                 and result.get('mathematical_proof') is False
@@ -130,6 +160,12 @@ def verify_evaluation(problem,parameters,candidate,result):
             if problem['objective']['metric']=='edge_count':
                 expected={'method':'exact_edge_count','interval':[str(props['size']),str(props['size'])]}
                 passed=passed and certificate==expected and result.get('objective_estimate')==props['size']
+            elif tensor:
+                rebuilt=tensor_bounds(candidate,alpha,certificate['vector'])
+                passed=passed and certificate.get('method')=='exact_rational_tensor_collatz' and all(certificate.get(k)==v for k,v in rebuilt.items())
+                estimate=result.get('objective_estimate');passed=passed and type(estimate) in (int,float) and math.isfinite(estimate)
+                lo,hi=map(lambda v:float(Fraction(v)),rebuilt['interval']);tolerance=1e-8*max(1,abs(lo),abs(hi))
+                passed=passed and lo-tolerance<=estimate<=hi+tolerance
             else:
                 rebuilt=matrix_bounds(independent_matrix(problem,parameters,candidate),certificate['vector'])
                 passed=passed and certificate.get('method')=='exact_rational_rayleigh_collatz' and all(certificate.get(k)==v for k,v in rebuilt.items())
@@ -139,7 +175,7 @@ def verify_evaluation(problem,parameters,candidate,result):
             passed=passed and result.get('objective_interval')==certificate['interval']
         else:passed=passed and certificate is None and result.get('objective_estimate') is None and result.get('objective_interval') is None
         return {'passed':bool(passed),'independent':True,'constraints':'set_bfs_union_find_clique_dp',
-                'metric':'exact_count' if problem['objective']['metric']=='edge_count' else 'rational_spectral_enclosure',
+                'metric':'exact_count' if problem['objective']['metric']=='edge_count' else 'rational_tensor_enclosure' if tensor else 'rational_spectral_enclosure',
                 'meaning':'Constraints and enclosure verified; numerical estimate is not a proof of exact eigenvalue or global optimality.'}
     except (ValueError,TypeError,KeyError,IndexError,OverflowError,ZeroDivisionError):
         return {'passed':False,'independent':True,'reason':'invalid_or_inconsistent_evidence'}

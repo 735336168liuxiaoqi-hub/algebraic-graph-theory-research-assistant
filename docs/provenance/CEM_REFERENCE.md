@@ -16,6 +16,8 @@
 | 环境 | torch为可选search依赖，普通功能不依赖torch；无Java/JVM/JPype/JAR/Sage/WSL/CUDA要求 |
 | 运行 | 宿主预算及范围审批、Windows保护进程、分段恢复、回执校验和结构化结果包 |
 
+本地a5借鉴原训练器按代数／批量持续训练的方式，增加worker_rounds多代共用保护进程和同一策略对象；仍独立实现动作重放、微批学习和安全JSON检查点，不复制原程序的完整观察历史数组。完整每代证据流式保存，暂停／结束分析覆盖全部已核验候选；资源档位和上限由用户及宿主授权，而非取消进程保护。
+
 验证只说明列出的环境与样例通过，并不承诺强化学习优于枚举、随机或局部方法。对比应保持候选评价数与时间预算一致，报告独立种子、可行率、原始目标、消耗和结构多样性。
 
 English: the upstream project is an algorithmic reference, not redistributed source. The new implementation uses independent sparse representations, microbatch CPU learning, explicit safe checkpoints and Python-only rewards. No upstream Java bridge, trainer, source file or binary is bundled. Same-budget multi-seed comparisons are required; CEM is not presumed superior.

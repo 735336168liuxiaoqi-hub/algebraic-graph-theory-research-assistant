@@ -29,13 +29,13 @@ def study(method='random',kind='simple_graph'):
     p=problem('edge_count',kind);p['object']['order']=4
     if kind in ('uniform_hypergraph','uniform_hypertree'):p['object'].update(order=7,uniformity=3)
     return {'operation':'study','problem':p,'cases':[{'id':'case1','parameters':{}}],'methods':[method],'seeds':[11],
-        'rounds':2,'batch_size':4,'max_edges':4,'adaptive':False,
+        'rounds':2,'batch_size':4,'max_edges':4,'adaptive':False,'pause_at_checkpoints':True,
         'budget':{'max_evaluations':64,'wall_seconds':120,'cpu_seconds':120,'memory_mb':1024}}
 
 
 def task(spec):
     return {'version':1,'request_id':'study-test','objective':'Test finite reviewed research',
-        'execution':{'mode':'experiment','experiment':spec},'constraints':{'max_model_calls':8 if spec.get('planner')=='model' else 0,'max_tool_calls':16,'allow_extensions':False}}
+        'execution':{'mode':'experiment','experiment':spec},'constraints':{'max_model_calls':8 if spec.get('planner')=='model' else 0,'max_tool_calls':16,'allow_extensions':False,'require_review':True}}
 
 
 def round_args(spec):
@@ -143,6 +143,19 @@ class SearchTests(unittest.TestCase):
 
 
 class StudyEntryTests(unittest.TestCase):
+    def test_action_and_evaluation_limits_have_paths_at_cli_and_mcp_boundaries(self):
+        from graph_research.mcp.runtime import MCPResearchRuntime,HostConfiguration
+        p,_=self.create();runtime=MCPResearchRuntime(HostConfiguration(str(self.root/'fields'),'fields'))
+        action=study('cem');action['problem']['object']['order']=65;action['max_actions']=2048
+        budget=study();budget['budget']['max_evaluations']=7
+        for name,spec,path in [('actions',action,['max_actions']),('evaluations',budget,['budget','max_evaluations'])]:
+            request=task(spec);request['request_id']='field-'+name;request['constraints']['max_tool_calls']=4
+            with self.subTest(name=name),patch.object(engine,'run_worker',side_effect=AssertionError('Input must fail before calculation')):
+                for response in (p.dispatch({'operation':'submit','task':request}),runtime.call('research_submit',{'task':request})):
+                    self.assertEqual(response['status'],'protocol_error')
+                    self.assertEqual(response['error']['field_path'],['task','execution','experiment',*path])
+        self.assertEqual(runtime.list_tasks()['tasks'],[])
+
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.root=Path(self.temp.name)
 
@@ -174,7 +187,9 @@ class StudyEntryTests(unittest.TestCase):
         self.assertIn('resources',model.contexts[0])
         other=task(s);other['request_id']='invalid-model'
         bad=ScriptedModel([{'action':'run','run_id':'run999','reason':'unauthorized'}]);p,u=self.create(bad)
-        result=advance(p,u,p.submit(other));self.assertEqual(result['status'],'waiting_for_user');self.assertEqual(result['budget']['used']['tool_calls'],0)
+        result=advance(p,u,p.submit(other));self.assertEqual(result['status'],'blocked')
+        self.assertIsNone(result['interaction']);self.assertEqual(result['error']['code'],'study_planner_failed')
+        self.assertEqual(result['budget']['used'],{'model_calls':1,'tool_calls':0})
 
     def test_failed_attempt_budget_is_retained_on_retry(self):
         s=study();s['rounds']=1;p,u=self.create();first=p.submit(task(s))

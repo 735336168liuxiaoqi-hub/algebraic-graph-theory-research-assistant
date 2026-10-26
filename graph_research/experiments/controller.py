@@ -37,7 +37,8 @@ def feedback(value,compiled):
 def propose(compiled,results,knobs,focus=()):
     choices=eligible(compiled,results)
     if not choices:return {'action':'stop','reason':'全部授权实例已到达轮数或枚举终点。'}
-    if all((last:=latest(results,r['id'])) and last['diagnostics']['stagnation']>=3 for r in choices):
+    patience=compiled['spec'].get('stagnation_patience',0)
+    if patience and all((last:=latest(results,r['id'])) and last['diagnostics']['stagnation']>=patience for r in choices):
         return {'action':'stop','reason':'连续无训练排序收益；保留结果，未将停滞解释为数学无解。'}
     # Coarse-to-fine selection on the finite, already reviewed alpha grid.
     # This refines scheduling, never silently adds unapproved parameter values.

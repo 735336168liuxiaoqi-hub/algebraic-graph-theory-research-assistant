@@ -62,7 +62,14 @@ def weighted_graph_spectrum(n,edges,directed=False,matrix='A',alpha=0,degree_mod
     hermitian=bool(np.array_equal(a,a.conj().T))
     values,vectors=np.linalg.eigh(a) if hermitian else np.linalg.eig(a)
     order=sorted(range(n),key=lambda i:(-abs(values[i]),-float(values[i].real),-float(values[i].imag)))
-    dominant=order[0];value=values[dominant];vector=vectors[:,dominant]
+    # Ties in |lambda| are common (roots of unity, +-lambda pairs) and floating
+    # point noise must not decide which one is dominant: inside the maximal
+    # modulus the largest real part wins, so the Perron root is reported when
+    # it exists and the residual still belongs to the value that is returned.
+    modulus=np.abs(values);peak=float(modulus.max()) if n else 0.0
+    tied=[i for i in range(n) if modulus[i]>=peak-1e-9*max(1.0,peak)]
+    dominant=max(tied,key=lambda i:(float(values[i].real),float(values[i].imag)))
+    value=values[dominant];vector=vectors[:,dominant]
     scale=max(1.0,float(np.linalg.norm(a)))
     residuals=[float(np.linalg.norm(a@vectors[:,i]-values[i]*vectors[:,i])/(scale*np.linalg.norm(vectors[:,i]))) for i in range(n)]
     result={'order':n,'size':len(canonical),'directed':directed,'hermitian':hermitian,'matrix_type':matrix,

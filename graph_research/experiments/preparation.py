@@ -1,21 +1,21 @@
 """Deterministic experiment preflight. No model, graph search or training runs."""
 import copy
 from fractions import Fraction
-import hashlib
-import json
 import math
 import random
 
 import jsonschema
 
 from .research_contract import FORMAT,PLAN_SCHEMA,validate_prepare,number,leaves
+from graph_research.runtime.serialization import canonical_json as _json, json_fingerprint as _fingerprint
 
 
 _HYPERGRAPHS=['hypergraph','uniform_hypergraph','uniform_hypertree']
 _OBJECTS=['simple_graph',*_HYPERGRAPHS]
+_TENSOR_OBJECTS=['uniform_hypergraph','uniform_hypertree']
 _METRICS={
-    'adjacency_spectral_radius':(['simple_graph'],'adapter_available','graph_research.experiments.adapters'),
-    'alpha_spectral_radius':(['simple_graph'],'adapter_available','graph_research.experiments.adapters'),
+    'adjacency_spectral_radius':(['simple_graph',*_TENSOR_OBJECTS],'adapter_available','graph_research.experiments.adapters'),
+    'alpha_spectral_radius':(['simple_graph',*_TENSOR_OBJECTS],'adapter_available','graph_research.experiments.adapters'),
     'distance_spectral_radius':(_OBJECTS,'adapter_available','graph_research.experiments.adapters'),
     'energy':(['simple_graph'],'library_available','graph_research.workflows.energy'),
     'edge_count':(_OBJECTS,'adapter_available','graph_research.experiments.adapters')}
@@ -43,10 +43,9 @@ def capability_catalog():
         'limits':{'order':128,'simple_graph_edges':1024,'hypertree_edges':128,'hypergraph_edges':128,'incidences':2048,'matching_verification_order':16},
         'dependencies':{'base':['numpy','networkx','sympy'],'learning_optional':['torch'],
                         'external_runtimes_required':[],'training_available':'optional_cpu_torch'},
+        'tensor_domain':{'objects':_TENSOR_OBJECTS,'uniformity':[2,8],'nonempty':True,'connected_below_alpha_one':True,
+                         'alpha_one':'degree_diagonal; disconnected candidates allowed','parameters':'exact rational alpha; positive-vector rational Collatz enclosure'},
         'meaning':'prepare remains a draft; execute evaluates supplied candidates; study searches only a reviewed finite scope. Formal metrics remain separate from training guidance.'}
-
-
-def _json(value):return json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)
 
 
 def _value(value):
@@ -117,17 +116,23 @@ def _necessary(problem,case):
 
 
 def prepare_experiment(request):
-    """Produce an explicitly unapproved draft, never an execution authorization."""
+    """Produce a non-executing draft; execution is a separate task."""
     request=validate_prepare(request);problem=request['problem'];kind=problem['object']['type'];issues=[];capabilities=[]
     def issue(code,kind,message):issues.append({'code':code,'kind':kind,'message':message})
     metric=problem['objective']['metric'];cap=_METRICS.get(metric)
-    if cap is None or kind not in cap[0]:issue('metric_unavailable','capability_gap','目标指标尚未有适用于该对象的已登记实现。')
-    capabilities.append({'kind':'metric','id':metric,'status':cap[1] if cap and kind in cap[0] else 'unsupported'})
+    from difflib import get_close_matches
+    if cap is None:issue('unknown_metric','capability_gap','未登记的指标标识符；请从capability_catalog的metrics选择。')
+    elif kind not in cap[0]:issue('metric_unavailable','capability_gap','目标指标尚未有适用于该对象的已登记实现。')
+    capabilities.append({'kind':'metric','id':metric,'status':'unknown' if cap is None else cap[1] if kind in cap[0] else 'unsupported',
+                         **({'suggestions':get_close_matches(metric,_METRICS,n=3,cutoff=.3)} if cap is None else {})})
     for node,_ in leaves(problem.get('constraints',{'all':[]})):
         predicate=node['predicate'];cap=_PREDICATES.get(predicate)
-        status=cap[1] if cap and kind in cap[0] else 'unsupported'
-        capabilities.append({'kind':'predicate','id':predicate,'status':status})
-        if status in ('unsupported','needs_adapter'):issue('predicate_adapter','capability_gap','约束 '+predicate+' 需要实现或验收独立适配器。')
+        status='unknown' if cap is None else cap[1] if kind in cap[0] else 'unsupported'
+        capabilities.append({'kind':'predicate','id':predicate,'status':status,
+            **({'suggestions':get_close_matches(predicate,_PREDICATES,n=3,cutoff=.3)} if cap is None else {})})
+        if status in ('unknown','unsupported','needs_adapter'):issue('unknown_predicate' if cap is None else 'predicate_adapter','capability_gap','约束 '+predicate+' 尚无适用于该对象的登记检查器。')
+    if kind in _TENSOR_OBJECTS and metric in ('adjacency_spectral_radius','alpha_spectral_radius'):
+        issue('tensor_domain','notice','张量谱评价要求非空、2..8一致超图；alpha<1仅评价连通候选，alpha=1评价度对角端点。不满足谱定义域的候选标记为不可行，不作为求解失败。')
     if problem['intent']=='extremum' and ('order' not in problem['object'] or any(p['meaning']=='order' and p['role']=='explore' for p in problem['parameters'].values())):
         issue('scope_interpretation','clarification','未固定图阶或给出完整有限域，不能直接声明全局最大值；建议明确研究参数化极值函数。')
     if problem['intent']=='counterexample':
@@ -138,7 +143,7 @@ def prepare_experiment(request):
         issue('hypertree_generator','notice','超树构造和搜索会核查最大度及其顶点个数；生成器不保证直接满足这些等式，失败样本不能解释为该类无解。度按关联超边数计算。')
     if kind!='simple_graph' and metric in ('adjacency_spectral_radius','alpha_spectral_radius'):
         issue('matrix_tensor','clarification','普通图矩阵、超图邻接张量与距离矩阵不是同一目标；张量评价尚未接入此工作流。')
-    issue('preparation_only','notice','prepare仅准备草案，不搜索、训练或批准资源。明确候选用execute；有限搜索用study，均须用户确认。')
+    issue('preparation_only','notice','prepare仅准备草案，不搜索、训练或批准资源。明确候选用execute；有限搜索用study，均在宿主授权预算内执行，仅显式要求初审或反馈时暂停。')
     domains={key:_domain(spec) for key,spec in problem['parameters'].items()}
     if any(not values for values in domains.values()):issue('domain_unspecified','clarification','部分参数没有可推导的初始采样值，需要补充含义或提供候选范围。')
     cases=[];seen=set();rng=random.Random(request.get('seed',42));maximum=request.get('max_cases',16)
@@ -165,9 +170,9 @@ def prepare_experiment(request):
         length=order*(order-1)//2
         estimate['legacy_cem_boolean_trajectory_bytes_batch200']=str(200*(length+1)*2*length)
         estimate['cem_estimate_meaning']='Original trainer observation array only; not the memory budget of an implemented backend.'
-    plan={'format':FORMAT,'problem_sha256':hashlib.sha256(_json(problem).encode()).hexdigest(),
+    plan={'format':FORMAT,'problem_sha256':_fingerprint(problem),
           'phase':'preparation','status':'needs_clarification' if clarify else 'capability_gap' if gap else 'draft',
-          'executable':False,'approved':False,'cases':cases,'issues':issues,'estimate':estimate,
+          'executable':False,'cases':cases,'issues':issues,'estimate':estimate,
           'coverage':{'sampling':'bounded_seeded_parameter_sample','proposed_domains':domains,
                       'parameter_combinations':str(total),'rejected_necessary_conditions':rejected,
                       'enumeration_complete':False,'general_theorem_proved':False,

@@ -38,7 +38,7 @@ def create_server(runtime):
     async def list_templates(ctx,params):
         return types.ListResourceTemplatesResult(resource_templates=[
             types.ResourceTemplate(name='已有任务状态',uri_template='graph-research://tasks/{task_id}',mime_type='application/json'),
-            types.ResourceTemplate(name='已登记结果附件',uri_template='graph-research://tasks/{task_id}/artifacts/{index}',mime_type='application/zip')])
+            types.ResourceTemplate(name='已登记结果附件',uri_template='graph-research://tasks/{task_id}/artifacts/{index}')])
 
     async def read_resource(ctx,params):
         uri=str(params.uri)
@@ -49,7 +49,7 @@ def create_server(runtime):
             if result.get('status')=='protocol_error':raise MCPError(-32602,result['error']['message'])
             text=json.dumps(result,ensure_ascii=False,allow_nan=False)
         else:
-            match=re.fullmatch(r'graph-research://tasks/([0-9a-f]{32})/artifacts/([0-9]{1,4})',uri)
+            match=re.fullmatch(r'graph-research://tasks/([0-9a-f]{32})/artifacts/([0-9]{1,5})',uri)
             if not match:raise MCPError(-32602,'资源URI无效；不能读取任意本机路径。')
             try:
                 target,artifact=await asyncio.to_thread(runtime.artifact,match[1],int(match[2]))
@@ -59,7 +59,7 @@ def create_server(runtime):
                 import hashlib
                 if hashlib.sha256(raw).hexdigest()!=artifact['sha256']:raise MCPError(-32602,'附件已变化，拒绝读取。')
             except (TaskProtocolError,OSError):raise MCPError(-32602,'没有可核验的该任务附件。') from None
-            return types.ReadResourceResult(contents=[types.BlobResourceContents(uri=uri,mime_type='application/zip',blob=base64.b64encode(raw).decode('ascii'))])
+            return types.ReadResourceResult(contents=[types.BlobResourceContents(uri=uri,mime_type=artifact.get('mime_type','application/zip'),blob=base64.b64encode(raw).decode('ascii'))])
         return types.ReadResourceResult(contents=[types.TextResourceContents(uri=uri,mime_type='text/plain' if uri.endswith('guide') else 'application/json',text=text)])
 
     return Server('graph-research',version=__version__,instructions=INSTRUCTIONS,on_list_tools=list_tools,on_call_tool=call_tool,
@@ -69,6 +69,32 @@ def create_server(runtime):
 
 async def serve_stdio(runtime):
     from mcp.server.stdio import stdio_server
+    from .user_actions import dispatch_user_actions
+    from .approval_ui import ApprovalNotifier
+    from contextlib import suppress
+
+    notifier=ApprovalNotifier(runtime)
+    async def user_actions():
+        last_error=None
+        while True:
+            try:
+                await asyncio.to_thread(dispatch_user_actions,runtime)
+                await asyncio.to_thread(notifier.notify)
+                last_error=None
+            except Exception as error:
+                # Delivery trouble must not stop MCP requests or echo paths,
+                # task content or credentials into protocol traffic.
+                import logging
+                if last_error!=type(error).__name__:
+                    logging.getLogger(__name__).warning('Native approval delivery unavailable (%s)',type(error).__name__)
+                last_error=type(error).__name__
+            await asyncio.sleep(.5)
+
     server=create_server(runtime)
-    async with stdio_server() as (reader,writer):
-        await server.run(reader,writer,server.create_initialization_options())
+    delivery=asyncio.create_task(user_actions())
+    try:
+        async with stdio_server() as (reader,writer):
+            await server.run(reader,writer,server.create_initialization_options())
+    finally:
+        delivery.cancel()
+        with suppress(asyncio.CancelledError):await delivery

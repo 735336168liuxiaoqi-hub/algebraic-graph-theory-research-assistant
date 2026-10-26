@@ -28,7 +28,7 @@ LOOSE_CYCLE={'n':6,'edges':[[0,1,2],[2,3,4],[0,4,5]]}
 def execution(candidates=None):
     return {'operation':'execute','problem':problem(),
         'cases':[{'id':'sample','parameters':{},'candidates':copy.deepcopy(candidates or [PATH])}],
-        'chunk_size':1,'budget':{'max_evaluations':8,'wall_seconds':120,'cpu_seconds':120,'memory_mb':512}}
+        'chunk_size':1,'pause_at_checkpoints':True,'budget':{'max_evaluations':8,'wall_seconds':120,'cpu_seconds':120,'memory_mb':512}}
 
 
 class EvaluationTests(unittest.TestCase):

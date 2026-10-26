@@ -34,7 +34,7 @@ def score(row,problem,knobs):
 def _tuple(value):return tuple(_tuple(v) for v in value) if isinstance(value,list) else value
 
 
-def run_round(arguments):
+def run_round(arguments,*,policy=None):
     """Host-fixed arguments only; no source code, path or executable accepted."""
     from .search_contract import compile_study
     required={'problem','run','settings','knobs','round','checkpoint','limit'}
@@ -55,10 +55,10 @@ def run_round(arguments):
     reward_version=digest({'problem':a['problem'],'knobs':a['knobs'],'score_version':1})
     previous_reward=checkpoint.get('reward_version');rescored=previous_reward is not None and previous_reward!=reward_version
     # Raw metrics remain immutable. Changing guidance only rescales/reorders cached elites.
-    elites=checkpoint['elites'];rows=[];trajectories=[];domain=run['space'];policy=None
+    elites=checkpoint['elites'];rows=[];trajectories=[];domain=run['space']
     if method=='cem':
         from .neural_search import Policy
-        policy=Policy(domain,run['seed'],checkpoint.get('neural'))
+        if policy is None:policy=Policy(domain,run['seed'],checkpoint.get('neural'),cpu_threads=settings.get('cpu_threads',1))
     total=cardinality(domain) if method=='enumerate' else None
     for index in range(limit):
         if method=='enumerate':

@@ -19,6 +19,11 @@ def result_view(result,detail='summary'):
         if request_mode:
             budget['admission_policy']='execute_until_budget_exhausted' if request_mode=='tools' and not result['summary'].get('fail_fast',False) else 'reject_before_execution' if request_mode in ('tools','scan','batch') else 'runtime_budget_enforced'
     if detail=='full':return result
+    artifacts=result.get('artifacts',[])
+    if len(artifacts)>8:
+        result['artifacts']=artifacts[:8]
+        result.setdefault('summary',{})['artifacts_omitted']=len(artifacts)-8
+        result['summary']['artifacts_location']='research_get(detail=full); scientific_evidence contains complete candidate JSONL'
     experiment=result.get('summary',{}).get('experiment')
     if experiment and 'plan' in experiment:
         plan=experiment['plan'];cases=plan['cases'];plan['cases']=cases[:8];plan['omitted_cases']=max(0,len(cases)-8)
@@ -35,6 +40,10 @@ def result_view(result,detail='summary'):
             experiment['hypothesis_checks']=[{'id':h['hypothesis']['id'],'status':h['status'],'tested':h['tested'],'witness_count':len(h['witnesses'])} for h in interpretation.get('hypothesis_checks',[])]
             experiment['decision_count']=len(experiment.pop('decisions',[]));experiment['feedback_count']=len(experiment.pop('feedback',[]))
         experiment['details_location']='research_get(detail=full), research_inspect_result or experiment-results.json in bundle'
+    if experiment and experiment.get('operation')=='study' and experiment.get('rows_complete') is False and len(result.get('results',[]))>8:
+        calls=result['results'];result['results']=calls[-8:]
+        experiment['result_calls_total']=len(calls);experiment['omitted_result_calls']=len(calls)-8
+        experiment['call_details_location']='research_inspect_result by call_id, research_get(detail=full), or result bundle'
     for entry in result.get('results',[]):
         timing=entry.pop('timings',None)
         if timing:
@@ -63,6 +72,8 @@ def result_view(result,detail='summary'):
                 else:shown[key]=value
             entry['data']=shown
             if omitted:entry['omitted_fields']=omitted;entry['read_more']={'tool':'research_inspect_result','call_id':entry['call_id'],'path':[]}
+        if entry.get('read_more') and result.get('task_id'):
+            entry['read_more']['task_id']=result['task_id']
     batch=result.get('summary',{}).get('batch')
     if batch:
         rows=batch['rows'];steps=batch['steps']

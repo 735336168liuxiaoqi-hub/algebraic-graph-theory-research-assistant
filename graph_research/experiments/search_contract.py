@@ -7,6 +7,7 @@ import jsonschema
 from graph_research.errors import TaskProtocolError,FieldValidationError,schema_protocol_error
 from .research_contract import obj,NAME,NUMBER,PROBLEM_SCHEMA,validate_problem,leaves
 from .execution_contract import bind_parameters,resolve,digest,EXECUTE_SCHEMA
+from graph_research.runtime.resources import MAX_ROUNDS,MAX_BATCH_SIZE,MAX_EVALUATIONS,MAX_THREADS,MAX_SEGMENT_EVALUATIONS
 
 OPERATION='experiment_search'
 CASE_SCHEMA=obj({'id':NAME,'parameters':{'type':'object','maxProperties':16,'additionalProperties':NUMBER}},['id','parameters'])
@@ -14,15 +15,19 @@ KNOBS_SCHEMA=obj({'exploration':{'type':'number','minimum':0.01,'maximum':0.5},
     'elite_fraction':{'type':'number','minimum':0.1,'maximum':0.75},
     'penalty_weight':{'type':'number','minimum':0.1,'maximum':10}})
 HYPOTHESIS_SCHEMA=obj({'id':NAME,'type':{'enum':['metric_bound','universal_structure','candidate_pattern']},
-    'relation':{'enum':['le','ge']},'value':NUMBER,'property':{'enum':['regular','bipartite','complete_multipartite','hypertree']},
+    'relation':{'enum':['le','ge']},'value':NUMBER,'property':{'enum':['regular','bipartite','complete_multipartite','is_tree','hypertree']},
     'expected':{'type':'boolean'},'statement':{'type':'string','maxLength':2000},'source':{'type':'string','maxLength':1000}},['id','type'])
 STUDY_SCHEMA=obj({'operation':{'const':'study'},'problem':PROBLEM_SCHEMA,
     'cases':{'type':'array','minItems':1,'maxItems':8,'items':CASE_SCHEMA},
     'case_limit':{'type':'integer','minimum':1,'maximum':8},
     'methods':{'type':'array','minItems':1,'maxItems':4,'uniqueItems':True,'items':{'enum':['enumerate','random','local','cem']}},
     'seeds':{'type':'array','minItems':1,'maxItems':4,'uniqueItems':True,'items':{'type':'integer','minimum':0,'maximum':2**32-1}},
-    'rounds':{'type':'integer','minimum':1,'maximum':16},'batch_size':{'type':'integer','minimum':2,'maximum':16},
+    'rounds':{'type':'integer','minimum':1,'maximum':MAX_ROUNDS},'batch_size':{'type':'integer','minimum':2,'maximum':MAX_BATCH_SIZE},
+    'worker_rounds':{'type':'integer','minimum':1,'maximum':128,'description':'一个受保护进程连续训练的代数，共用模型与优化状态；每段计一次工具尝试，每段最多4096次候选评价。大研究建议显式配置。'},
+    'cpu_threads':{'type':'integer','minimum':1,'maximum':MAX_THREADS,'description':'CPU数值线程数，不得超过宿主tool_threads；CPU秒按所有线程累计，与墙钟秒分别设置。'},
+    'stagnation_patience':{'type':'integer','minimum':0,'maximum':MAX_ROUNDS,'description':'规则调度的停滞代数阈值；0表示不因停滞提前结束，仍受授权代数、评价数和时间预算限制。'},
     'segment_rounds':{'type':'integer','minimum':1,'maximum':128},'planner':{'enum':['rules','model']},
+    'pause_at_checkpoints':{'type':'boolean','description':'用户明确需要科研反馈时才按segment_rounds暂停；默认false，不是资源审批。'},
     'adaptive':{'type':'boolean'},'knobs':KNOBS_SCHEMA,
     'max_edges':{'type':'integer','minimum':0,'maximum':128},
     'edge_sizes':{'type':'array','minItems':1,'maxItems':16,'uniqueItems':True,'items':{'type':'integer','minimum':2,'maximum':128}},
@@ -46,7 +51,9 @@ def space(problem,parameters,settings):
     k=int(resolve(obj['uniformity'],parameters)) if 'uniformity' in obj else None
     m=int(resolve(requirements['edge_count']['value'],parameters)) if 'edge_count' in requirements else None
     tree=kind=='uniform_hypertree' or 'hypertree' in requirements
-    connected=tree or 'connected' in requirements or problem['objective']['metric']=='distance_spectral_radius'
+    from .adapters import tensor_metric
+    tensor_connected=tensor_metric(problem) and resolve(problem['objective'].get('arguments',{}).get('alpha',0),parameters)<1
+    connected=tree or 'connected' in requirements or problem['objective']['metric']=='distance_spectral_radius' or tensor_connected
     n=int(resolve(obj['order'],parameters)) if 'order' in obj else (1+(k-1)*m if tree and k is not None and m is not None else None)
     if n is None:raise ValueError('搜索需声明图阶参数引用，或由一致超树条件推导阶数；参数可由prepare建议，无需用户预先选值。')
     if not 1<=n<=128:raise ValueError('搜索图阶限1..128。')
@@ -82,6 +89,8 @@ def validate_hypothesis(hypothesis,kind):
     else:
         if set(hypothesis)-{'id','type','property','expected','statement','source'} or not {'property','expected'}<=set(hypothesis):raise ValueError('结构假设需property/expected。')
         if kind!='simple_graph' and hypothesis['property'] in ('bipartite','complete_multipartite'):raise ValueError('普通图的分部性质不能直接代用于超图。')
+        if kind!='simple_graph' and hypothesis['property']=='is_tree':raise ValueError('超图树性使用hypertree，明确指关联图连通无环。')
+        if kind=='simple_graph' and hypothesis['property']=='hypertree':raise ValueError('普通图树性请使用is_tree。')
     return copy.deepcopy(hypothesis)
 
 
@@ -91,8 +100,8 @@ def compile_study(value):
         jsonschema.validate(value,STUDY_SCHEMA)
         spec=json.loads(json.dumps(value,ensure_ascii=False,allow_nan=False));spec['problem']=validate_problem(spec['problem'])
         if spec['problem']['intent']=='counterexample':raise ValueError('请使用明确的hypotheses检验命题；不能把高分直接称为反例。')
-        for key,default in [('case_limit',2),('methods',['random','local']),('seeds',[42]),('rounds',2),('batch_size',8),('segment_rounds',128),
-                            ('planner','rules'),('adaptive',True),('max_edges',128),('max_actions',1024)]:spec.setdefault(key,default)
+        for key,default in [('case_limit',2),('methods',['random','local']),('seeds',[42]),('rounds',2),('batch_size',8),('segment_rounds',128),('worker_rounds',1),('cpu_threads',1),
+                            ('planner','rules'),('adaptive',True),('max_edges',128),('max_actions',1024),('stagnation_patience',0),('pause_at_checkpoints',False)]:spec.setdefault(key,default)
         spec.setdefault('knobs',{});spec['knobs']={**{'exploration':0.1,'elite_fraction':0.25,'penalty_weight':1.0},**spec['knobs']}
         if 'cases' not in spec:
             draft=prepare_experiment({'operation':'prepare','problem':spec['problem'],'max_cases':spec['case_limit'],'seed':spec['seeds'][0]})
@@ -107,15 +116,21 @@ def compile_study(value):
             for method in spec['methods']:
                 if method=='enumerate' and domain['capacity']>20:raise ValueError('精确枚举当前限20个潜在超边／图边位置；改用random/local/cem。')
                 actions=(domain['capacity'] if domain['kind']=='simple_graph' else domain['max_edges']*(max(domain['edge_sizes'],default=0)+1)+1)
-                if method=='cem' and actions>spec['max_actions']:raise ValueError('CEM动作序列超过max_actions；请先缩小试跑范围或改用其他后端。')
+                if method=='cem' and actions>spec['max_actions']:
+                    raise TaskProtocolError('invalid_experiment_study',f'CEM需要{actions}个动作，当前max_actions为{spec["max_actions"]}，协议上限为2048；请缩小试跑范围或改用其他后端。',
+                        field_path=['max_actions'],validation={'maximum':2048})
                 for seed in spec['seeds']:runs.append({'id':'run'+str(len(runs)+1),'case_id':case['id'],'parameters':case['parameters'],'space':domain,'method':method,'seed':seed})
         if len(runs)>32:raise ValueError('一轮study至多32个方法／种子／参数组合。')
         planned=len(runs)*spec['rounds']*spec['batch_size']
-        if planned>spec['budget']['max_evaluations']:raise ValueError('实验计划超过候选评价预算；未执行。')
+        if planned>spec['budget']['max_evaluations']:
+            raise TaskProtocolError('invalid_experiment_study',f'实验计划需要{planned}次候选评价，超过本次预算；未执行计算。',
+                field_path=['budget','max_evaluations'],validation={'minimum':planned,'maximum':MAX_EVALUATIONS})
+        if spec['batch_size']*spec['worker_rounds']>MAX_SEGMENT_EVALUATIONS:
+            raise TaskProtocolError('invalid_experiment_study','单个计算分段最多4096次候选评价，请减小worker_rounds或batch_size。',field_path=['worker_rounds'],validation={'maximum':max(1,MAX_SEGMENT_EVALUATIONS//spec['batch_size'])})
         spec.setdefault('hypotheses',[])
         spec['hypotheses']=[validate_hypothesis(h,spec['problem']['object']['type']) for h in spec['hypotheses']]
         if len({h['id'] for h in spec['hypotheses']})!=len(spec['hypotheses']):raise ValueError('假设ID重复。')
-        return {'spec':spec,'runs':runs,'planned_rounds':len(runs)*spec['rounds'],'planned_evaluations':planned,'request_sha256':digest(spec)}
+        return {'spec':spec,'runs':runs,'planned_rounds':len(runs)*spec['rounds'],'planned_calls':len(runs)*math.ceil(spec['rounds']/spec['worker_rounds']),'planned_evaluations':planned,'request_sha256':digest(spec)}
     except jsonschema.ValidationError as error:
         raise schema_protocol_error(error,'invalid_experiment_study','study字段无效。') from None
     except FieldValidationError as error:

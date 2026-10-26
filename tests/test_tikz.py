@@ -23,6 +23,22 @@ PAIR = r"\((-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)\)"
 
 
 class TikzTests(unittest.TestCase):
+    def test_graph_and_hypergraph_save_preserve_extension_and_no_clobber_rules(self):
+        from graph_research.rendering import tikz
+        for producer,save,obj in [('graph_to_tikz',tikz.save_graph_tikz,nx.path_graph(2)),
+                                  ('hypergraph_to_tikz',tikz.save_hypergraph_tikz,Hypergraph([[0,1,2]]))]:
+            with self.subTest(producer=producer),tempfile.TemporaryDirectory() as folder:
+                path=Path(folder)/'drawing.TeX'
+                path.write_text('existing scientific figure',encoding='utf-8')
+                with self.assertRaises(FileExistsError):save(obj,path)
+                self.assertEqual(path.read_text(encoding='utf-8'),'existing scientific figure')
+                save(obj,path,overwrite=True,standalone=False)
+                self.assertIn(r'\begin{tikzpicture}',path.read_text(encoding='utf-8'))
+                self.assertNotIn(r'\documentclass',path.read_text(encoding='utf-8'))
+                with patch.object(tikz,producer,side_effect=AssertionError('Invalid suffix must fail before rendering')):
+                    with self.assertRaises(ValueError):save(obj,Path(folder)/'invalid.txt')
+                self.assertFalse((Path(folder)/'invalid.txt').exists())
+
     def test_hyperedge_control_points_match_existing_renderer(self):
         h=Hypergraph([[0,1,2],[2,3],[3,4,5,6]],vertices=list(range(8)))
         pos={0:(-2,0),1:(-1,1),2:(0,0),3:(1,0),4:(2,1),5:(3,0),6:(2,-1),7:(0,1.7)}

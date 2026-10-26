@@ -1,5 +1,6 @@
 """Public compatibility and dependency boundaries of functional packages."""
 import ast
+import hashlib
 import inspect
 import json
 from pathlib import Path
@@ -89,6 +90,47 @@ from graph_research.cli import main
 sys.argv=['graph-research','catalog','--detail','index']
 assert main()==0
 """,{'matplotlib','langgraph','httpx','sage'})
+
+    def test_native_approval_state_is_shared_without_importing_gui_or_mcp(self):
+        self._isolated("""
+from graph_research.assistant.approval_state import heartbeat_fresh,compatible_core
+assert heartbeat_fresh({'heartbeat':99},now=100)
+assert compatible_core({},'c'*64)
+assert not any(n.startswith(('PySide6','mcp','graph_research.mcp','graph_research.desktop')) for n in sys.modules)
+""",{'PySide6','mcp','matplotlib','langgraph','httpx'})
+        for name in ('desktop/approval_bridge.py','desktop/task_approvals.py'):
+            tree=ast.parse((ROOT/'graph_research'/name).read_text(encoding='utf-8'))
+            self.assertFalse(any(isinstance(node,ast.ImportFrom) and
+                (node.module or '').startswith('graph_research.mcp') for node in ast.walk(tree)),name)
+
+    def test_shared_json_identities_preserve_existing_compact_and_spaced_formats(self):
+        from graph_research.runtime.serialization import canonical_json,json_fingerprint,legacy_json_fingerprint
+        value={'b':'图','a':[1,-0.0,True,None]}
+        compact='{"a":[1,-0.0,true,null],"b":"图"}'
+        spaced='{"a": [1, -0.0, true, null], "b": "图"}'
+        self.assertEqual(canonical_json(value),compact)
+        self.assertEqual(json_fingerprint(value),hashlib.sha256(compact.encode('utf-8')).hexdigest())
+        self.assertEqual(legacy_json_fingerprint(value),hashlib.sha256(spaced.encode('utf-8')).hexdigest())
+        self.assertNotEqual(json_fingerprint(value),legacy_json_fingerprint(value))
+        from graph_research.assistant import experience,research_objects,task_contract,results,result_cleanup
+        from graph_research.experiments import execution_contract,preparation
+        from graph_research.tools import change_control
+        for function in (experience.canonical,research_objects.canonical,task_contract.canonical,results._canonical,preparation._json):
+            self.assertIs(function,canonical_json)
+        for function in (experience.fingerprint,research_objects.fingerprint,task_contract.digest,execution_contract.digest):
+            self.assertIs(function,json_fingerprint)
+        self.assertIs(change_control.digest,legacy_json_fingerprint)
+        self.assertIs(result_cleanup._json_hash,legacy_json_fingerprint)
+        for number in (float('nan'),float('inf'),-float('inf')):
+            for function in (canonical_json,json_fingerprint,legacy_json_fingerprint):
+                with self.assertRaises(ValueError):function({'number':number})
+
+    def test_shared_json_serialization_requires_only_the_standard_library(self):
+        self._isolated("""
+from graph_research.runtime.serialization import canonical_json,json_fingerprint
+assert canonical_json({'b':2,'a':1})=='{"a":1,"b":2}'
+assert len(json_fingerprint({'a':1}))==64
+""",{'numpy','networkx','sympy','jsonschema','PySide6','mcp','torch','matplotlib','langgraph','httpx'})
 
     def test_functional_sources_have_no_wildcard_exports_or_runtime_method_install(self):
         for directory in ['graphs','hypergraphs','algebra','core','tensors','tools','assistant','rendering','experiments']:

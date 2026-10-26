@@ -50,6 +50,53 @@ class EvidenceResult(unittest.TextTestResult):
         super().stopTest(test)
 
 
+def protected_worker_state():
+    """Probe the low-integrity launcher once and record the verdict.
+
+    A host may broker or deny the creation of a low-integrity child. That is a
+    missing environment capability, not a product defect, so it is recorded
+    explicitly: a run inside such a host is never read as many product failures.
+    """
+    started=time.perf_counter()
+    record={'checked_at':datetime.now(timezone.utc).isoformat(),'platform':os.name,
+            'protection':'windows_low_integrity_and_job'}
+    if os.name!='nt':
+        return {**record,'status':'unsupported','code':'non_windows',
+                'hint':'Protected execution is only verified on Windows; protected cases are not product evidence here.'}
+    import shutil,tempfile
+    code=("import json,sys;from pathlib import Path;"
+          "Path('probe.json').write_text(json.dumps({'executable':sys.executable,'prefix':sys.prefix}),encoding='utf-8')")
+    task=None;directory=None
+    try:
+        from graph_research.runtime.runner import clean_environment
+        from graph_research.runtime.windows import WindowsTask
+        directory=Path(tempfile.mkdtemp(prefix='protected-preflight-'))
+        task=WindowsTask([sys.executable,'-I','-B','-X','utf8','-c',code],directory,clean_environment(directory),
+                         memory_mb=128,cpu_seconds=5)
+        exit_code=task.wait(15)
+        reached=(directory/'probe.json').is_file()
+        record.update(exit_code=exit_code,worker_reached_python=reached,seconds=round(time.perf_counter()-started,3))
+        if exit_code==0 and reached:
+            record.update(status='available',code=None)
+        else:
+            record.update(status='unavailable',
+                          code='venv_configuration_unreadable' if exit_code in (107,0x6b) else 'worker_startup_failed',
+                          hint='A low-integrity child cannot read the venv configuration or standard library in this host context; '
+                               'protected cases cannot be judged here. Run the suite from an ordinary terminal or CI, not a restricted sandbox.')
+    except Exception as error:
+        record.update(status='unavailable',code='probe_failed',error=type(error).__name__+': '+str(error),
+                      host_phase=getattr(error,'protected_startup_phase','unknown'),seconds=round(time.perf_counter()-started,3),
+                      hint='The preflight probe could not create a protected process at all; inspect host_phase before treating protected cases as failures.')
+    finally:
+        if task is not None:
+            try:task.close()
+            except Exception:pass
+        if directory is not None:
+            try:shutil.rmtree(directory,ignore_errors=True)
+            except (Exception,SystemExit):pass
+    return record
+
+
 def main():
     parser=argparse.ArgumentParser(description='统一测试清单与逐项结果，包含已登记根目录测试')
     parser.add_argument('--profile',choices=('fast','full'),default='full')
@@ -75,6 +122,13 @@ def main():
         inventory_path=target
     print(f"Collected {inventory['collected_tests']} tests: tests/={inventory['tests_directory_count']}, root={inventory['root_count']}; IDs SHA256={inventory['test_ids_sha256']}",flush=True)
     if args.collect_only:return 0
+    environment=protected_worker_state()
+    (output/'environment.json').write_text(json.dumps(environment,ensure_ascii=False,indent=2),encoding='utf-8')
+    if environment.get('status')!='available':
+        print(f"受保护worker不可用（{environment.get('status')}/{environment.get('code')}）：本上下文中依赖低完整性启动的用例无法判定，"
+              f"其失败不构成产品缺陷证据；请改在普通终端或CI执行。详见 {output/'environment.json'}",file=sys.stderr,flush=True)
+    else:
+        print(f"Protected worker preflight: available (exit 0, {environment.get('seconds')}s)",flush=True)
     journal=output/'test-progress.jsonl'
     with journal.open('x',encoding='utf-8'):pass
     started=time.perf_counter();result=unittest.TextTestRunner(verbosity=1,resultclass=partial(EvidenceResult,journal=journal)).run(suite)

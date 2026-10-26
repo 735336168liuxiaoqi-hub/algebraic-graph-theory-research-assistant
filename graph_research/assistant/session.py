@@ -7,6 +7,8 @@ from functools import wraps
 from threading import Event
 from datetime import datetime,timezone
 from graph_research.runtime.storage import write_json,read_json,atomic_text,exclusive_lock
+from graph_research.runtime.resources import MAX_SESSION_BYTES
+from graph_research.runtime.serialization import legacy_json_fingerprint as _json_fingerprint
 
 
 def _session_action(fn):
@@ -29,7 +31,7 @@ class ResearchSession:
         manifest=self.directory/'session.json'
         if (self.directory/'.results-cleanup.json').exists():raise ValueError('该会话有未完成的清理，请先在成果中心回收区恢复。')
         recovered=False
-        saved,recovered=read_json(manifest,recover=True) if manifest.is_file() or manifest.with_name('session.json.previous').is_file() else ({},False)
+        saved,recovered=read_json(manifest,recover=True,max_bytes=MAX_SESSION_BYTES) if manifest.is_file() or manifest.with_name('session.json.previous').is_file() else ({},False)
         if saved.get('cleared'):raise ValueError('此会话已清理，请在成果中心的回收区恢复后再打开。')
         tool_directory=tool_directory or saved.get('tool_directory') or Path.cwd()/'tool_packages'
         self.store=ToolStore(tool_directory)
@@ -162,7 +164,7 @@ class ResearchSession:
             from graph_research import __version__
             document={'state':self.state,'turns':[{k:v for k,v in t.items() if k not in ('updated_at','started_at')} for t in self.turns],
                       'research_objects':self.research_objects,'scope':turn,'version':__version__}
-            fingerprint=hashlib.sha256(json.dumps(document,ensure_ascii=False,sort_keys=True,allow_nan=False).encode('utf-8')).hexdigest()
+            fingerprint=_json_fingerprint(document)
             existing=catalog.reusable(self.session_id,fingerprint) if automatic else None
             if existing:
                 self.result_bundle=existing;self.export_error=None;self._save();return existing

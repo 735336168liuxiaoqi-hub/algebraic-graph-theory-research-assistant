@@ -140,7 +140,7 @@ def plot_document(graph,*,ax=None,layout='spring',seed=42,legend=False,title=Non
 
 
 def document_to_tikz(graph,*,standalone=False,normalize=True,size_cm=10):
-    from .tikz import escape_latex,tex_number,_label_offset
+    from .tikz import escape_latex,tex_number,_label_offset,_standalone_document
     from .tex_coordinates import for_paths
     from graph_research.graph_input import figure_label as label_api
     from graph_research.hypergraphs import Hypergraph
@@ -190,9 +190,7 @@ def document_to_tikz(graph,*,standalone=False,normalize=True,size_cm=10):
     lines.append(r'\end{tikzpicture}');fragment='\n'.join(lines)+'\n'
     if not standalone:return fragment
     chinese=any('\u3400'<=c<='\u9fff' for c in ''.join(str(texts.get(v,display_label(v))) for v in graph.vertices)+(label['text'] if label else ''))
-    preamble=['% !TeX program = '+('xelatex' if chinese else 'pdflatex'),r'\documentclass[tikz,border=5pt]{standalone}']
-    if chinese:preamble.append(r'\usepackage[UTF8]{ctex}')
-    return '\n'.join(preamble+[r'\begin{document}',fragment.rstrip(),r'\end{document}',''])
+    return _standalone_document(fragment.rstrip(),chinese=chinese)
 
 
 def save_document_images(graph,*,layout='spring',seed=42,legend=False):

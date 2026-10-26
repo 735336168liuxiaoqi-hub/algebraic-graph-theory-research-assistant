@@ -117,14 +117,10 @@ class StorageProtectionTests(unittest.TestCase):
             with self.assertRaises(ValueError):read_json(path,recover=False)
 
     def test_link_escape_is_rejected(self):
+        from tests.host_fixtures import real_link_or_skip
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);outside=root/'outside';outside.mkdir();link=root/'link'
-            try:link.symlink_to(outside,target_is_directory=True)
-            except OSError:
-                if os.name!='nt':raise
-                command="New-Item -ItemType Junction -Path '"+str(link).replace("'","''")+"' -Target '"+str(outside).replace("'","''")+"' | Out-Null"
-                created=subprocess.run(['powershell','-NoProfile','-NonInteractive','-Command',command],capture_output=True)
-                self.assertEqual(created.returncode,0,created.stderr)
+            real_link_or_skip(self,link,outside,directory=True)
             with self.assertRaises(PermissionError):atomic_text(link/'bad.json','x')
             self.assertFalse((outside/'bad.json').exists())
 
@@ -238,6 +234,13 @@ class WindowsExecutionTests(unittest.TestCase):
         issue=_startup_issue({'phase':'before_worker_entry','worker_exit_code':107,'logs':{}})
         self.assertEqual(issue['code'],'protected_worker_startup_failed')
         self.assertIsNone(_startup_issue({'phase':'worker_reported','logs':{}}))
+
+    def test_launcher_open_failure_has_safe_context_without_guessing_a_corrupt_venv(self):
+        from graph_research.runtime.runner import _startup_issue
+        issue=_startup_issue({'phase':'before_worker_entry','worker_exit_code':107,
+            'logs':{'bootstrap-stderr.log':{'tail':"failed to open 'C:/PRIVATE/??/.venv/pyvenv.cfg': ????"}}})
+        self.assertEqual(issue['code'],'venv_configuration_unreadable')
+        self.assertNotIn('PRIVATE',json.dumps(issue));self.assertIn('MCP',issue['next_step'])
 
     def test_venv_launcher_error107_is_captured_before_python_entry(self):
         if sys.prefix==sys.base_prefix:self.skipTest('Requires the Windows venv redirector')

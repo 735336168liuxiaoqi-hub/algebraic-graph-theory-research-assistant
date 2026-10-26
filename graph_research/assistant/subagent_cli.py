@@ -14,6 +14,8 @@ def main(command,arguments):
         print(json.dumps(contracts(),ensure_ascii=False,indent=2));return 0
     parser=argparse.ArgumentParser(description='本机子agent接口；--root和--user由可信宿主配置，不是网络认证')
     parser.add_argument('--root',required=True);parser.add_argument('--user',required=True)
+    parser.add_argument('--confirm-experiments',action='store_true',help='可选：实验初审一次；反馈暂停由任务单独设置')
+    parser.add_argument('--review-policy',choices=('bounded','always'),default=None,help=argparse.SUPPRESS)
     if command=='subagent':parser.add_argument('--input',help='父agent请求JSON文件；省略时从stdin读取，最多256KiB')
     else:
         parser.add_argument('--task',required=True);parser.add_argument('--interaction',required=True);parser.add_argument('--revision',required=True,type=int)
@@ -21,7 +23,8 @@ def main(command,arguments):
         parser.add_argument('--feedback',help='可信用户的study反馈JSON文件；不接受代码或扩大预算')
         parser.add_argument('--text');parser.add_argument('--assessment');parser.add_argument('--scope');parser.add_argument('--event-id')
     options=parser.parse_args(arguments)
-    parent,portal=create_subagent(options.root,user_id=options.user)
+    from .task_control import SubagentLimits
+    parent,portal=create_subagent(options.root,user_id=options.user,limits=SubagentLimits(confirm_experiments=options.confirm_experiments or options.review_policy=='always'))
     if command=='subagent':
         if options.input:
             with Path(options.input).open('rb') as stream:raw=stream.read(256*1024+1)

@@ -97,7 +97,7 @@ class WindowsTask:
             limit.basic.job_time=int(cpu_seconds*10_000_000)
             limit.basic.processes=max_processes
             limit.process_memory=int(memory_mb*1024*1024)
-            limit.job_memory=int(memory_mb*1.5*1024*1024)
+            limit.job_memory=int(memory_mb*1024*1024)
             self._ok(self.k.SetInformationJobObject(self.job,9,c.byref(limit),c.sizeof(limit)))
             # Block cross-process UI handles, clipboard, desktops and settings.
             ui=w.DWORD(0xff)

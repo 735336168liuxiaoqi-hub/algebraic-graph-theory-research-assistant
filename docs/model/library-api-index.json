@@ -5587,7 +5587,7 @@
   },
   {
     "python_api": "graph_research.assistant.spectral_scan.scan_summary",
-    "signature": "(request, observations)",
+    "signature": "(request, observations, *, required=None)",
     "docstring": "Progress without vectors or repeated edge tables; full data stays on disk.",
     "documentation_status": "has_docstring",
     "model_callable": false
@@ -5868,8 +5868,8 @@
   {
     "python_api": "graph_research.assistant.claims.canonical",
     "signature": "(value)",
-    "docstring": "",
-    "documentation_status": "needs_detail",
+    "docstring": "Sorted, compact UTF-8-compatible JSON text; reject NaN and infinity.",
+    "documentation_status": "has_docstring",
     "model_callable": false
   },
   {
@@ -5994,8 +5994,8 @@
   {
     "python_api": "graph_research.assistant.governance.fingerprint",
     "signature": "(value)",
-    "docstring": "",
-    "documentation_status": "needs_detail",
+    "docstring": "SHA256 of the established compact JSON representation.",
+    "documentation_status": "has_docstring",
     "model_callable": false
   },
   {
@@ -6259,8 +6259,8 @@
   },
   {
     "python_api": "graph_research.assistant.evaluation.TaskLimits",
-    "signature": "(wall_seconds: float = 30, cpu_seconds: int = 30, memory_mb: int = 1024, max_processes: int = 8, output_bytes: int = 4194304, artifact_bytes: int = 67108864) -> None",
-    "docstring": "TaskLimits(wall_seconds: float = 30, cpu_seconds: int = 30, memory_mb: int = 1024, max_processes: int = 8, output_bytes: int = 4194304, artifact_bytes: int = 67108864)",
+    "signature": "(wall_seconds: float = 30, cpu_seconds: int = 30, memory_mb: int = 1024, max_processes: int = 8, output_bytes: int = 4194304, artifact_bytes: int = 67108864, cpu_threads: int = 1) -> None",
+    "docstring": "TaskLimits(wall_seconds: float = 30, cpu_seconds: int = 30, memory_mb: int = 1024, max_processes: int = 8, output_bytes: int = 4194304, artifact_bytes: int = 67108864, cpu_threads: int = 1)",
     "documentation_status": "has_docstring",
     "model_callable": false
   },
@@ -6386,8 +6386,8 @@
   {
     "python_api": "graph_research.assistant.evaluation.fingerprint",
     "signature": "(value)",
-    "docstring": "",
-    "documentation_status": "needs_detail",
+    "docstring": "SHA256 of the established compact JSON representation.",
+    "documentation_status": "has_docstring",
     "model_callable": false
   },
   {
@@ -6651,8 +6651,8 @@
   },
   {
     "python_api": "graph_research.mcp.runtime.HostConfiguration",
-    "signature": "(root: str, user_id: str, max_tool_calls: int = 10, max_model_calls: int = 0, allow_extensions: bool = False, allowed_tools: tuple | None = None, tool_seconds: float = 30, tool_cpu_seconds: int = 30, tool_memory_mb: int = 1024, model_settings: dict | None = None, results_directory: str | None = None, tool_directory: str | None = None, allow_development: bool = False) -> None",
-    "docstring": "HostConfiguration(root: str, user_id: str, max_tool_calls: int = 10, max_model_calls: int = 0, allow_extensions: bool = False, allowed_tools: tuple | None = None, tool_seconds: float = 30, tool_cpu_seconds: int = 30, tool_memory_mb: int = 1024, model_settings: dict | None = None, results_directory: str | None = None, tool_directory: str | None = None, allow_development: bool = False)",
+    "signature": "(root: str, user_id: str, max_tool_calls: int = 10, max_model_calls: int = 0, allow_extensions: bool = False, allowed_tools: tuple | None = None, tool_seconds: float = 30, tool_cpu_seconds: int = 30, tool_memory_mb: int = 1024, tool_threads: int = 1, approval_ui: str = 'auto', model_settings: dict | None = None, results_directory: str | None = None, tool_directory: str | None = None, allow_development: bool = False, confirm_experiments: bool = False) -> None",
+    "docstring": "HostConfiguration(root: str, user_id: str, max_tool_calls: int = 10, max_model_calls: int = 0, allow_extensions: bool = False, allowed_tools: tuple | None = None, tool_seconds: float = 30, tool_cpu_seconds: int = 30, tool_memory_mb: int = 1024, tool_threads: int = 1, approval_ui: str = 'auto', model_settings: dict | None = None, results_directory: str | None = None, tool_directory: str | None = None, allow_development: bool = False, confirm_experiments: bool = False)",
     "documentation_status": "has_docstring",
     "model_callable": false
   },
@@ -6819,8 +6819,8 @@
   },
   {
     "python_api": "graph_research.mcp.runtime.SubagentLimits",
-    "signature": "(max_model_calls: int = 10, max_tool_calls: int = 10, allow_extensions: bool = True, allowed_tools: tuple | None = None, tool_limits: graph_research.runtime.runner.TaskLimits = <factory>) -> None",
-    "docstring": "SubagentLimits(max_model_calls: int = 10, max_tool_calls: int = 10, allow_extensions: bool = True, allowed_tools: tuple | None = None, tool_limits: graph_research.runtime.runner.TaskLimits = <factory>)",
+    "signature": "(max_model_calls: int = 10, max_tool_calls: int = 10, allow_extensions: bool = True, allowed_tools: tuple | None = None, tool_limits: graph_research.runtime.runner.TaskLimits = <factory>, confirm_experiments: bool = False) -> None",
+    "docstring": "SubagentLimits(max_model_calls: int = 10, max_tool_calls: int = 10, allow_extensions: bool = True, allowed_tools: tuple | None = None, tool_limits: graph_research.runtime.runner.TaskLimits = <factory>, confirm_experiments: bool = False)",
     "documentation_status": "has_docstring",
     "model_callable": false
   },
@@ -6840,14 +6840,14 @@
   },
   {
     "python_api": "graph_research.mcp.runtime.TaskLimits",
-    "signature": "(wall_seconds: float = 30, cpu_seconds: int = 30, memory_mb: int = 1024, max_processes: int = 8, output_bytes: int = 4194304, artifact_bytes: int = 67108864) -> None",
-    "docstring": "TaskLimits(wall_seconds: float = 30, cpu_seconds: int = 30, memory_mb: int = 1024, max_processes: int = 8, output_bytes: int = 4194304, artifact_bytes: int = 67108864)",
+    "signature": "(wall_seconds: float = 30, cpu_seconds: int = 30, memory_mb: int = 1024, max_processes: int = 8, output_bytes: int = 4194304, artifact_bytes: int = 67108864, cpu_threads: int = 1) -> None",
+    "docstring": "TaskLimits(wall_seconds: float = 30, cpu_seconds: int = 30, memory_mb: int = 1024, max_processes: int = 8, output_bytes: int = 4194304, artifact_bytes: int = 67108864, cpu_threads: int = 1)",
     "documentation_status": "has_docstring",
     "model_callable": false
   },
   {
     "python_api": "graph_research.mcp.runtime.TaskProtocolError",
-    "signature": "(code, message, *, field_path=None, validation=None)",
+    "signature": "(code, message, *, field_path=None, validation=None, step_id=None)",
     "docstring": "Inappropriate argument value (of correct type).",
     "documentation_status": "has_docstring",
     "model_callable": false
@@ -6855,8 +6855,8 @@
   {
     "python_api": "graph_research.mcp.runtime.canonical",
     "signature": "(value)",
-    "docstring": "",
-    "documentation_status": "needs_detail",
+    "docstring": "Sorted, compact UTF-8-compatible JSON text; reject NaN and infinity.",
+    "documentation_status": "has_docstring",
     "model_callable": false
   },
   {

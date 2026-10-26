@@ -52,7 +52,11 @@
     "test_experiment_preparation",
     "test_experiment_evaluation",
     "test_experiment_execution",
-    "test_experiment_study"
+    "test_experiment_study",
+    "test_task_approvals",
+    "test_research_runtime",
+    "test_approval_lifecycle",
+    "test_feedback_reliability"
   ],
   "full": [
     "test_release_candidate",
@@ -106,7 +110,11 @@
     "test_experiment_preparation",
     "test_experiment_evaluation",
     "test_experiment_execution",
-    "test_experiment_study"
+    "test_experiment_study",
+    "test_task_approvals",
+    "test_research_runtime",
+    "test_approval_lifecycle",
+    "test_feedback_reliability"
   ],
   "root": [
     "test_workflow"

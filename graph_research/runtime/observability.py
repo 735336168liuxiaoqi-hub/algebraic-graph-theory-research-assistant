@@ -94,6 +94,8 @@ def error_details(error,*,phase=None,identifier=None):
         elif isinstance(path,str):detail[field]=len(path.encode('utf-16-le',errors='surrogatepass'))//2
     code=previous.get('cause_code') or getattr(error,'error_code',None) or getattr(error,'code',None)
     if isinstance(code,str) and _NAME.fullmatch(code):detail['cause_code']=code
+    step=previous.get('step_id',getattr(error,'step_id',None))
+    if isinstance(step,str) and re.fullmatch(r'[A-Za-z0-9_.:-]{1,128}',step):detail['step_id']=step
     path=previous.get('field_path',getattr(error,'field_path',None))
     validation=previous.get('validation',getattr(error,'validation',None))
     # jsonschema paths describe the failed field, never serialize its instance

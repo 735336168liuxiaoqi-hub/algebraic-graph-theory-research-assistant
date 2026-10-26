@@ -49,12 +49,16 @@ class HostConfiguration:
     tool_seconds:float=30
     tool_cpu_seconds:int=30
     tool_memory_mb:int=1024
+    tool_threads:int=1
+    approval_ui:str='auto'
     model_settings:dict|None=None
     results_directory:str|None=None
     tool_directory:str|None=None
     allow_development:bool=False
+    confirm_experiments:bool=False
 
     def __post_init__(self):
+        if self.approval_ui not in ('auto','off'):raise ValueError('Invalid native approval mode')
         object.__setattr__(self,'root',str(safe_path(self.root)))
         if self.results_directory is not None:object.__setattr__(self,'results_directory',str(safe_path(self.results_directory)))
         if self.tool_directory is not None:object.__setattr__(self,'tool_directory',str(safe_path(self.tool_directory)))
@@ -68,14 +72,18 @@ class HostConfiguration:
 
     def limits(self):
         return SubagentLimits(max_model_calls=self.max_model_calls,max_tool_calls=self.max_tool_calls,allow_extensions=self.allow_extensions,
-            allowed_tools=self.allowed_tools,tool_limits=TaskLimits(wall_seconds=self.tool_seconds,cpu_seconds=self.tool_cpu_seconds,memory_mb=self.tool_memory_mb))
+            allowed_tools=self.allowed_tools,confirm_experiments=self.confirm_experiments,tool_limits=TaskLimits(wall_seconds=self.tool_seconds,cpu_seconds=self.tool_cpu_seconds,memory_mb=self.tool_memory_mb,cpu_threads=self.tool_threads))
 
     def public(self):return asdict(self)
 
     @classmethod
     def from_public(cls,document):
+        if isinstance(document,dict):
+            document=dict(document);legacy=document.pop('review_policy',None)
+            if legacy not in (None,'always','bounded'):raise ValueError('未支持的旧审阅配置。')
+            document.setdefault('confirm_experiments',legacy=='always')
         fields=set(cls.__dataclass_fields__)
-        if not isinstance(document,dict) or set(document)-fields or fields-{'results_directory','tool_directory','allow_development'}-set(document):raise ValueError('MCP宿主配置含未支持字段。')
+        if not isinstance(document,dict) or set(document)-fields or fields-{'results_directory','tool_directory','allow_development','tool_threads','approval_ui','confirm_experiments'}-set(document):raise ValueError('MCP宿主配置含未支持字段。')
         document=dict(document)
         if document['allowed_tools'] is not None:document['allowed_tools']=tuple(document['allowed_tools'])
         return cls(**document)
@@ -260,6 +268,7 @@ class MCPResearchRuntime:
             if entry and entry[1]['operation']=='resume' and entry[1].get('event_id')==event_id:return self._effect(self._decorate(result),'resume','reused')
             self._ensure_idle()
             if result['status'] in ('queued','running'):raise TaskProtocolError('task_not_paused','任务尚未暂停；请查询或先恢复中断记录。')
+            self.parent.check_resume(task_id,event_id)
             return self._effect(self._launch(task_id,'resume',event_id),'resume','launched',launched=True)
 
     def cancel(self,task_id):
@@ -284,6 +293,7 @@ class MCPResearchRuntime:
             return self._effect(self._decorate(result),'recover','metadata_only')
 
     def catalog(self,name=None,known_hash=None):
+        from .approval_ui import interactive_available
         from graph_research.tools.registry import ToolRegistry
         from graph_research.tools.extensions import ToolStore
         registry=ToolRegistry();ToolStore(self.service.tool_directory).load_into(registry)
@@ -297,12 +307,18 @@ class MCPResearchRuntime:
             if name not in registry.tools:raise TaskProtocolError('tool_not_found','没有此工具；请先查看目录。')
             definition=registry.describe(name);fingerprint=hashlib.sha256(canonical({'version':__version__,'definition':definition}).encode()).hexdigest()
             return {'service':service_info,**({'schema_hash':fingerprint,'unchanged':True} if known_hash==fingerprint else {'tool':definition,'schema_hash':fingerprint})}
+        from graph_research.experiments.preparation import capability_catalog
+        experiment_capabilities=capability_catalog()
         return {'tools':[{'name':d['name'],'description':d['description'],'status':d['status']} for d in registry.catalog() if permitted is None or d['name'] in permitted],
                 'capabilities':{'agent_mode':self.configuration.model_settings is not None,'allow_extensions':self.configuration.allow_extensions,'max_active_jobs':1,'transport':'stdio',
+                                'task_approvals':{'interface':'native_desktop','delivery':'signed_user_outbox','requires_manual_event_id':False,'model_can_approve':False,'automatic_window':self.configuration.approval_ui=='auto','automatic_window_available':self.configuration.approval_ui=='auto' and interactive_available()},
+                                'research_resources':{'profiles':['standard','research'],'memory_scope':'whole_process_tree','time_scope':'active_workers; CPU seconds are summed across threads','persistent_generations':True},
                                 'workflow_modes':['tools','scan','batch','counterexample','experiment']+(['agent','research'] if self.configuration.model_settings is not None else []),
                                 'experiment_preparation':{'phase':7,'operations':['prepare','execute','study'],'search_enabled':True,
                                                           'search_operation':'experiment_search','learning_dependency':'optional_cpu_torch',
-                                                          'evaluation_operation':'experiment_evaluate','review':'trusted_host_continue',
+                                                          'evaluation_operation':'experiment_evaluate','review':'explicit_confirmation_only',
+                                                          'confirm_experiments':self.configuration.confirm_experiments,'checkpoint_pause':'explicit_task_option',
+                                                          **{k:experiment_capabilities[k] for k in ('objects','metrics','predicates','backends','tensor_domain')},
                                                           'contracts_resource':'graph-research://contracts','model_required':False},
                                 'memory':{'read_only':True,'scope':'configured_host_user','experience_review':'trusted_host_only'},
                                 'tool_library':{'persistent':True,'versions':True,'development_without_internal_api':self.configuration.allow_development,'approval':'trusted_host_only'},
@@ -373,7 +389,7 @@ class MCPResearchRuntime:
         except (OSError,ValueError,KeyError,TypeError,sqlite3.Error):raise TaskProtocolError('experience_unavailable','该用户下没有可用的已审阅经验，或记录校验失败；未重算、修改或批准。') from None
 
     def inspect_result(self,task_id,call_id,path=None,offset=0,limit=100):
-        result=self._snapshot(task_id);entry=next((r for r in result['results'] if r['call_id']==call_id),None)
+        result=self._snapshot(task_id);entry=next((r for r in result['results'] if r.get('call_id')==call_id),None)
         if not entry or entry['status']!='success':raise TaskProtocolError('result_unavailable','没有该成功计算记录。')
         if 'data' in entry:value=entry['data']
         else:
@@ -394,7 +410,7 @@ class MCPResearchRuntime:
     def artifact(self,task_id,index):
         result=self._snapshot(task_id)
         if not 0<=index<len(result['artifacts']):raise TaskProtocolError('artifact_not_found','此任务没有该编号的附件。')
-        artifact=result['artifacts'][index];root=self.service.task_dir(task_id) if artifact['kind']=='result_bundle' else self.service.tool_directory
+        artifact=result['artifacts'][index];root=self.service.task_dir(task_id) if artifact['kind'] in ('result_bundle','scientific_evidence') else self.service.tool_directory
         if artifact.get('availability','ready')!='ready':raise TaskProtocolError('artifact_unavailable','成果已清理或移入回收区，可在成果中心恢复。')
         if artifact.get('artifact_id'):
             from graph_research.assistant.result_catalog import ResultCatalog

@@ -22,7 +22,7 @@ def execution_steps(request):
     return steps
 
 
-def scan_summary(request,observations):
+def scan_summary(request,observations,*,required=None):
     """Progress without vectors or repeated edge tables; full data stays on disk."""
     if request['execution']['mode']!='scan':return None
     scan=request['execution']['scan'];rows=[]
@@ -40,4 +40,4 @@ def scan_summary(request,observations):
         rows.append(row)
     return {'points':rows,'completed_points':sum(r['status']!='pending' for r in rows),'total_points':len(rows),
             'successful_points':sum(r['status']=='success' for r in rows),'failed_points':sum(r['status'] in ('failed','unresolved') for r in rows),
-            'required_tool_attempts':len(execution_steps(request)),'accounting':'每个参数点和可选构图分别计一次工具尝试；不是一次批量调用抵扣全部预算。'}
+            'required_tool_attempts':len(execution_steps(request)) if required is None else required,'accounting':'每个参数点和可选构图分别计一次工具尝试；不是一次批量调用抵扣全部预算。'}

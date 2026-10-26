@@ -13,11 +13,11 @@ from .search_space import decisions
 
 
 class Policy:
-    def __init__(self,domain,seed,state=None):
+    def __init__(self,domain,seed,state=None,*,cpu_threads=1):
         try:import torch
         except ImportError:raise ValueError('cem需要可选PyTorch CPU环境；请安装search extra或选择random/local/enumerate。') from None
         self.torch=torch;self.domain=domain
-        torch.set_num_threads(1);torch.use_deterministic_algorithms(True);torch.manual_seed(seed)
+        torch.set_num_threads(cpu_threads);torch.use_deterministic_algorithms(True);torch.manual_seed(seed)
         n=domain['n'];outputs=max(2,n,domain['max_edges']+1,len(domain['edge_sizes']))
         self.model=torch.nn.Sequential(torch.nn.Linear(2*n+4,16),torch.nn.Tanh(),torch.nn.Linear(16,outputs))
         self.velocity={name:torch.zeros_like(p) for name,p in self.model.named_parameters()}

@@ -12,7 +12,7 @@ def _main():
     from graph_research import __version__
     parser.add_argument('--version',action='version',version='图论科研助手 '+__version__)
     parser.add_argument("command",nargs="?",default="demo",
-                        choices=["doctor","demo","catalog","call","ask","resume","mcp","mcp-config","subagent","subagent-user","subagent-schema","connect","desktop","offline","standalone","chat","model","evaluate-api","view","export","verify-results","verify-spectrum","cancel","protect","extend","memory","experience","tool-library","check-model","edit","latex","docs"])
+                        choices=["doctor","demo","catalog","call","ask","resume","mcp","mcp-config","subagent","subagent-user","subagent-schema","connect","desktop","approvals","offline","standalone","chat","model","evaluate-api","view","export","verify-results","verify-spectrum","cancel","protect","extend","memory","experience","tool-library","check-model","edit","latex","docs"])
     args, rest = parser.parse_known_args()
     if args.command=='doctor':
         if rest:parser.error('doctor does not take extra arguments')
@@ -58,6 +58,9 @@ def _main():
     if args.command=='desktop':
         from graph_research.desktop.app import desktop_command
         return desktop_command(rest)
+    if args.command=='approvals':
+        from graph_research.desktop.task_approvals import approvals_command
+        return approvals_command(rest)
     if args.command=='view':
         from graph_research.assistant import ResearchSession
         view=argparse.ArgumentParser(description='打开已记录结果的离线页面，不重新调用模型或计算工具')

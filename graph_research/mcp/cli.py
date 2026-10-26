@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 
 from .runtime import HostConfiguration,MCPResearchRuntime
+from graph_research.runtime.resources import host_profile
 
 
 def parser():
@@ -21,26 +22,34 @@ def parser():
     result.add_argument('--allow-extensions',action='store_true',help='允许提出实验扩展申请；开发仍需真实用户审批')
     result.add_argument('--model-config',help='自主模型规划使用的公开配置；密钥只读环境变量')
     result.add_argument('--max-model-calls',type=int,default=None)
-    result.add_argument('--max-tool-calls',type=int,default=10)
+    result.add_argument('--resource-profile',choices=('standard','research'),default='standard',help='research采用15分钟分段、可用CPU和约75%物理内存的宿主上限；不启动计算')
+    result.add_argument('--approval-ui',choices=('auto','off'),default='auto',help='等待真实用户操作时自动打开／复用原生审批窗口')
+    result.add_argument('--confirm-experiments',action='store_true',help='可选：要求实验先初审一次；检查点反馈由任务pause_at_checkpoints单独设置')
+    result.add_argument('--review-policy',choices=('bounded','always'),default=None,help=argparse.SUPPRESS)
+    result.add_argument('--max-tool-calls',type=int,default=None)
     result.add_argument('--allowed-tool',action='append',help='工具白名单，可重复指定')
-    result.add_argument('--tool-seconds',type=float,default=30)
-    result.add_argument('--tool-cpu-seconds',type=int,default=30)
-    result.add_argument('--tool-memory-mb',type=int,default=1024)
+    result.add_argument('--tool-seconds',type=float,default=None)
+    result.add_argument('--tool-cpu-seconds',type=int,default=None)
+    result.add_argument('--tool-memory-mb',type=int,default=None)
+    result.add_argument('--tool-threads',type=int,default=None)
     return result
 
 
 def configuration(options):
     from graph_research.assistant.result_catalog import ResultPreferences
     settings=None
+    limits=host_profile(options.resource_profile)
+    for key in limits:
+        if getattr(options,key) is not None:limits[key]=getattr(options,key)
     if options.allow_agent:
         from graph_research.assistant.model_config import load_settings
         settings=load_settings(options.model_config).public()
     elif options.model_config or options.allow_extensions or options.max_model_calls not in (None,0):
         raise ValueError('模型配置、模型预算和扩展申请需要先显式启用--allow-agent。')
     return HostConfiguration(root=options.root,user_id=options.user,max_model_calls=(8 if options.allow_agent else 0) if options.max_model_calls is None else options.max_model_calls,
-        max_tool_calls=options.max_tool_calls,allow_extensions=options.allow_extensions,allowed_tools=tuple(options.allowed_tool) if options.allowed_tool else None,
-        tool_seconds=options.tool_seconds,tool_cpu_seconds=options.tool_cpu_seconds,tool_memory_mb=options.tool_memory_mb,model_settings=settings,
-        results_directory=options.results_root or str(ResultPreferences().active),tool_directory=options.tool_dir,allow_development=options.allow_development)
+        max_tool_calls=limits['max_tool_calls'],allow_extensions=options.allow_extensions,allowed_tools=tuple(options.allowed_tool) if options.allowed_tool else None,
+        tool_seconds=limits['tool_seconds'],tool_cpu_seconds=limits['tool_cpu_seconds'],tool_memory_mb=limits['tool_memory_mb'],tool_threads=limits['tool_threads'],approval_ui=options.approval_ui,model_settings=settings,
+        results_directory=options.results_root or str(ResultPreferences().active),tool_directory=options.tool_dir,allow_development=options.allow_development,confirm_experiments=options.confirm_experiments or options.review_policy=='always')
 
 
 def main(arguments):
@@ -58,9 +67,11 @@ def main(arguments):
 def connection_configuration(arguments):
     """Print reviewed snippets only; never edit another application's files."""
     command_parser=parser();command_parser.add_argument('--format',choices=['json','codex','dsh'],default='json')
+    command_parser.add_argument('--output',help='直接以UTF-8写配置文件，不经控制台管道；已有文件不覆盖')
     options=command_parser.parse_args(arguments);host=configuration(options)
     args=['-I','-X','utf8','-m','graph_research','mcp','--root',host.root,'--user',host.user_id,
-          '--max-tool-calls',str(host.max_tool_calls),'--tool-seconds',str(host.tool_seconds),'--tool-cpu-seconds',str(host.tool_cpu_seconds),'--tool-memory-mb',str(host.tool_memory_mb)]
+          '--max-tool-calls',str(host.max_tool_calls),'--tool-seconds',str(host.tool_seconds),'--tool-cpu-seconds',str(host.tool_cpu_seconds),'--tool-memory-mb',str(host.tool_memory_mb),'--tool-threads',str(host.tool_threads),'--approval-ui',host.approval_ui]
+    if host.confirm_experiments:args+=['--confirm-experiments']
     if options.allow_agent:
         args+=['--allow-agent','--max-model-calls',str(host.max_model_calls)]
         if options.model_config:args+=['--model-config',str(Path(options.model_config).resolve())]
@@ -72,10 +83,15 @@ def connection_configuration(arguments):
     command=str(Path(sys.executable).resolve());env_names=[host.model_settings['key_env']] if host.model_settings and host.model_settings['auth_required'] else []
     q=lambda value:json.dumps(value,ensure_ascii=False)
     if options.format=='codex':
-        print('[mcp_servers.graph_research]\ncommand = '+q(command)+'\nargs = '+q(args)+'\nstartup_timeout_sec = 30\ntool_timeout_sec = 30')
-        if env_names:print('env_vars = '+q(env_names))
+        rendered='[mcp_servers.graph_research]\ncommand = '+q(command)+'\nargs = '+q(args)+'\nstartup_timeout_sec = 30\ntool_timeout_sec = 30'
+        if env_names:rendered+='\nenv_vars = '+q(env_names)
     elif options.format=='dsh':
-        print('- id: graph-research\n  name: "@deepseek-ai/dsh-mcp-client"\n  config:\n    serverName: graph_research\n    transport: stdio\n    command: '+q(command)+'\n    args: '+q(args)+'\n    toolCallTimeoutMs: 30000')
-        if env_names:print('    env:\n'+''.join('      '+key+': !!js process.env.'+key+'\n' for key in env_names).rstrip())
-    else:print(json.dumps({'name':'graph_research','transport':'stdio','command':command,'args':args,'forward_environment_names':env_names},ensure_ascii=False,indent=2))
+        rendered='- id: graph-research\n  name: "@deepseek-ai/dsh-mcp-client"\n  config:\n    serverName: graph_research\n    transport: stdio\n    command: '+q(command)+'\n    args: '+q(args)+'\n    toolCallTimeoutMs: 30000'
+        if env_names:rendered+='\n    env:\n'+''.join('      '+key+': !!js process.env.'+key+'\n' for key in env_names).rstrip()
+    else:rendered=json.dumps({'name':'graph_research','transport':'stdio','command':command,'args':args,'forward_environment_names':env_names},ensure_ascii=False,indent=2)
+    if options.output:
+        from graph_research.runtime.storage import atomic_text
+        target=Path(options.output).resolve();atomic_text(target,rendered+'\n')
+        print(json.dumps({'output':str(target),'format':options.format},ensure_ascii=True))
+    else:print(rendered)
     return 0

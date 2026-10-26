@@ -19,7 +19,7 @@ import jsonschema
 def task(spec=None):
     return {'version':1,'request_id':'explicit-collection','objective':'Evaluate a finite explicit collection',
         'execution':{'mode':'experiment','experiment':spec or execution()},
-        'constraints':{'max_model_calls':0,'max_tool_calls':4,'allow_extensions':False}}
+        'constraints':{'max_model_calls':0,'max_tool_calls':4,'allow_extensions':False,'require_review':True}}
 
 
 def advance(parent,portal,response):
@@ -110,7 +110,8 @@ class ExecutionTests(unittest.TestCase):
         resumed=advance(self.parent,self.portal,cancelled)
         self.assertEqual(resumed['interaction']['kind'],'experiment_review')
         self.assertEqual(resumed['budget']['used']['tool_calls'],0)
-        self.assertFalse(resumed['summary']['experiment']['approved'])
+        self.assertNotIn('approved',resumed['summary']['experiment'])
+        self.assertNotIn('experiment_confirmation',self.parent._service.read(first['task_id']))
 
     def test_failure_retry_reserves_both_attempts_no_automatic_retry(self):
         first=self.parent.submit(task())

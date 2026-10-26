@@ -1,15 +1,12 @@
 """Host-owned immutable graph versions; models may reference but never write them."""
 import copy
-import hashlib
-import json
 import re
 
 from graph_research.graph_input import GraphDocument
 from graph_research.graph_input.adapters import graph_patch,validate_bindings,result_graph
+from graph_research.runtime.serialization import canonical_json as canonical, json_fingerprint as fingerprint
 
 
-def canonical(value):return json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)
-def fingerprint(value):return hashlib.sha256(canonical(value).encode('utf-8')).hexdigest()
 def empty_objects():return {'active':None,'versions':[]}
 
 

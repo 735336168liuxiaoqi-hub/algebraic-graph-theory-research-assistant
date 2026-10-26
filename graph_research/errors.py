@@ -7,17 +7,88 @@ assistant.task_contract for compatibility.
 
 
 class TaskProtocolError(ValueError):
-    def __init__(self,code,message,*,field_path=None,validation=None):
+    def __init__(self,code,message,*,field_path=None,validation=None,step_id=None):
         self.code=code
         if field_path is not None:self.field_path=list(field_path)
         if validation is not None:self.validation=validation
+        if step_id is not None:self.step_id=step_id
         super().__init__(message)
+
+
+def _union_branch(error):
+    """Index of the union branch that produced this child error.
+
+    ``schema_path`` begins with the keyword itself ('oneOf'), so the branch
+    index is only available in ``absolute_schema_path``. The innermost union
+    is the one this child belongs to.
+    """
+    path=list(error.absolute_schema_path);index=None
+    for position,part in enumerate(path):
+        if part in ('oneOf','anyOf') and position+1<len(path) and type(path[position+1]) is int:
+            index=path[position+1]
+    return index
+
+
+def _outermost_union(error):
+    """Highest union on the ancestor chain.
+
+    jsonschema.validate reports a leaf chosen by best_match, so the union that
+    actually rejected the input is only reachable through ``parent``. Judging
+    the outermost union first keeps the operation branch authoritative.
+    """
+    node=error;found=None
+    while node is not None:
+        if node.validator in ('oneOf','anyOf'):found=node
+        node=node.parent
+    return found
+
+
+def _inner_union(error,stop):
+    """Innermost union strictly between the selected error and the union above it."""
+    node=error.parent
+    while node is not None and node is not stop:
+        if node.validator in ('oneOf','anyOf'):return node
+        node=node.parent
+    return None
+
+
+def _branch_children(union):
+    """Children of the branch whose explicit discriminator matches the instance."""
+    groups={}
+    for child in union.context:
+        index=_union_branch(child)
+        if index is not None:groups.setdefault(index,[]).append(child)
+    if not groups:return None
+    branches=union.schema.get(union.validator,[])
+    def score(pair):
+        index,children=pair
+        schema=branches[index] if 0<=index<len(branches) else {}
+        matches=mismatches=0
+        if isinstance(union.instance,dict):
+            for name,rule in schema.get('properties',{}).items():
+                if name not in union.instance:continue
+                if 'const' in rule or 'enum' in rule:
+                    accepted=union.instance[name] in rule.get('enum',[rule.get('const')])
+                    matches+=int(accepted);mismatches+=int(not accepted)
+        return mismatches,-matches,len(children)
+    return min(groups.items(),key=score)[1]
 
 
 def schema_protocol_error(error,code,message,*,prefix=()):
     """Select the failed union branch without echoing input values or schema dumps."""
     from jsonschema.exceptions import best_match
-    issue=best_match([error])
+    issue=error if error.validator in ('oneOf','anyOf') else (_outermost_union(error) or error)
+    # Union errors frequently contain several nested failures. Select the
+    # branch matching explicit discriminators (operation/type), rather than
+    # best_match's deliberately conservative parent oneOf error.
+    while issue.validator in ('oneOf','anyOf') and issue.context:
+        children=_branch_children(issue)
+        if not children:break
+        selected=best_match(children)
+        deeper=selected if selected.validator in ('oneOf','anyOf') else _inner_union(selected,issue)
+        if deeper is None:
+            issue=selected;break
+        issue=deeper
     path=[*prefix,*issue.absolute_path]
     # Required property names come from our schema, never from an unknown key.
     if issue.validator=='required' and isinstance(issue.instance,dict):

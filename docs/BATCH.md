@@ -2,6 +2,8 @@
 
 主agent一次提交多组输入和步骤模板，科研助手按依赖执行，统一返回进度、逐步结果和可校验成果包。固定批量计算无需助手另配模型API。原tools、scan、agent入口保留。
 
+完成情况以实际展开步骤和输出路径核验，不再由`partial`状态推断完成。失败或跳过使`computed_outputs_complete=false`；`summary.batch.steps/counts`保留逐步状态，跳过不伪造调用或收费。已有`batch.outputs`继续检查每个案例的路径；顶层`expected_outputs`若为文本，只表示未自动核验的交付意图。简单固定tools入口也可使用`execution.on_error="continue_independent"`，无需为少量独立步骤重复构造批量案例模板。
+
 ## 直接使用
 
 examples/batch_workflow/paths.task.json计算P3/P4的邻接谱，再将矩阵绑定给matrix_analysis求秩，共2案例×2步骤=4次工具尝试。

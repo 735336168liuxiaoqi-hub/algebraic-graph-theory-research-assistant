@@ -34,10 +34,53 @@
       "expected_outputs": {
         "type": "array",
         "maxItems": 32,
+        "description": "文本项仅表达交付意图，不能自动核验；固定步骤可用{name,step,path}声明可核验输出。",
         "items": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 256
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+                },
+                "step": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "path": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 128
+                      },
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100000
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "step",
+                "path"
+              ],
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "execution": {
@@ -53,6 +96,13 @@
               "counterexample",
               "experiment"
             ]
+          },
+          "on_error": {
+            "enum": [
+              "stop",
+              "continue_independent"
+            ],
+            "description": "仅tools模式：失败后停止或继续无依赖的步骤；与预算准入fail_fast分开。"
           },
           "steps": {
             "type": "array",
@@ -1399,28 +1449,32 @@
                     "minimum": 1,
                     "maximum": 256
                   },
+                  "pause_at_checkpoints": {
+                    "type": "boolean",
+                    "description": "明确需要科研反馈时，在segment_chunks个分段后暂停；默认false，与权限审批分开。"
+                  },
                   "budget": {
                     "type": "object",
                     "properties": {
                       "max_evaluations": {
                         "type": "integer",
                         "minimum": 1,
-                        "maximum": 1024
+                        "maximum": 1000000
                       },
                       "wall_seconds": {
                         "type": "number",
                         "minimum": 1,
-                        "maximum": 3600
+                        "maximum": 604800
                       },
                       "cpu_seconds": {
                         "type": "integer",
                         "minimum": 1,
-                        "maximum": 3600
+                        "maximum": 31536000
                       },
                       "memory_mb": {
                         "type": "integer",
                         "minimum": 64,
-                        "maximum": 4096
+                        "maximum": 1048576
                       }
                     },
                     "required": [
@@ -1874,12 +1928,30 @@
                   "rounds": {
                     "type": "integer",
                     "minimum": 1,
-                    "maximum": 16
+                    "maximum": 100000
                   },
                   "batch_size": {
                     "type": "integer",
                     "minimum": 2,
-                    "maximum": 16
+                    "maximum": 4096
+                  },
+                  "worker_rounds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 128,
+                    "description": "一个受保护进程连续训练的代数，共用模型与优化状态；每段计一次工具尝试，每段最多4096次候选评价。大研究建议显式配置。"
+                  },
+                  "cpu_threads": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 128,
+                    "description": "CPU数值线程数，不得超过宿主tool_threads；CPU秒按所有线程累计，与墙钟秒分别设置。"
+                  },
+                  "stagnation_patience": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000,
+                    "description": "规则调度的停滞代数阈值；0表示不因停滞提前结束，仍受授权代数、评价数和时间预算限制。"
                   },
                   "segment_rounds": {
                     "type": "integer",
@@ -1891,6 +1963,10 @@
                       "rules",
                       "model"
                     ]
+                  },
+                  "pause_at_checkpoints": {
+                    "type": "boolean",
+                    "description": "用户明确需要科研反馈时才按segment_rounds暂停；默认false，不是资源审批。"
                   },
                   "adaptive": {
                     "type": "boolean"
@@ -1944,22 +2020,22 @@
                       "max_evaluations": {
                         "type": "integer",
                         "minimum": 1,
-                        "maximum": 1024
+                        "maximum": 1000000
                       },
                       "wall_seconds": {
                         "type": "number",
                         "minimum": 1,
-                        "maximum": 3600
+                        "maximum": 604800
                       },
                       "cpu_seconds": {
                         "type": "integer",
                         "minimum": 1,
-                        "maximum": 3600
+                        "maximum": 31536000
                       },
                       "memory_mb": {
                         "type": "integer",
                         "minimum": 64,
-                        "maximum": 4096
+                        "maximum": 1048576
                       }
                     },
                     "required": [
@@ -2009,6 +2085,7 @@
                             "regular",
                             "bipartite",
                             "complete_multipartite",
+                            "is_tree",
                             "hypertree"
                           ]
                         },
@@ -2058,7 +2135,7 @@
           "max_tool_calls": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 100
+            "maximum": 10000
           },
           "allowed_tools": {
             "type": "array",
@@ -2078,17 +2155,22 @@
               "wall_seconds": {
                 "type": "number",
                 "exclusiveMinimum": 0,
-                "maximum": 300
+                "maximum": 604800
               },
               "cpu_seconds": {
                 "type": "integer",
                 "minimum": 1,
-                "maximum": 300
+                "maximum": 31536000
               },
               "memory_mb": {
                 "type": "integer",
                 "minimum": 64,
-                "maximum": 4096
+                "maximum": 1048576
+              },
+              "cpu_threads": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 128
               },
               "max_processes": {
                 "type": "integer",
@@ -2101,6 +2183,10 @@
           },
           "fail_fast": {
             "type": "boolean"
+          },
+          "require_review": {
+            "type": "boolean",
+            "description": "experiment模式可要求一次初审；不控制检查点反馈，也不能提高宿主资源权限。"
           }
         },
         "required": [],
@@ -2266,10 +2352,53 @@
               "expected_outputs": {
                 "type": "array",
                 "maxItems": 32,
+                "description": "文本项仅表达交付意图，不能自动核验；固定步骤可用{name,step,path}声明可核验输出。",
                 "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 256
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 256
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+                        },
+                        "step": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 128
+                        },
+                        "path": {
+                          "type": "array",
+                          "maxItems": 16,
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 128
+                              },
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 100000
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "step",
+                        "path"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
                 }
               },
               "execution": {
@@ -2285,6 +2414,13 @@
                       "counterexample",
                       "experiment"
                     ]
+                  },
+                  "on_error": {
+                    "enum": [
+                      "stop",
+                      "continue_independent"
+                    ],
+                    "description": "仅tools模式：失败后停止或继续无依赖的步骤；与预算准入fail_fast分开。"
                   },
                   "steps": {
                     "type": "array",
@@ -3631,28 +3767,32 @@
                             "minimum": 1,
                             "maximum": 256
                           },
+                          "pause_at_checkpoints": {
+                            "type": "boolean",
+                            "description": "明确需要科研反馈时，在segment_chunks个分段后暂停；默认false，与权限审批分开。"
+                          },
                           "budget": {
                             "type": "object",
                             "properties": {
                               "max_evaluations": {
                                 "type": "integer",
                                 "minimum": 1,
-                                "maximum": 1024
+                                "maximum": 1000000
                               },
                               "wall_seconds": {
                                 "type": "number",
                                 "minimum": 1,
-                                "maximum": 3600
+                                "maximum": 604800
                               },
                               "cpu_seconds": {
                                 "type": "integer",
                                 "minimum": 1,
-                                "maximum": 3600
+                                "maximum": 31536000
                               },
                               "memory_mb": {
                                 "type": "integer",
                                 "minimum": 64,
-                                "maximum": 4096
+                                "maximum": 1048576
                               }
                             },
                             "required": [
@@ -4106,12 +4246,30 @@
                           "rounds": {
                             "type": "integer",
                             "minimum": 1,
-                            "maximum": 16
+                            "maximum": 100000
                           },
                           "batch_size": {
                             "type": "integer",
                             "minimum": 2,
-                            "maximum": 16
+                            "maximum": 4096
+                          },
+                          "worker_rounds": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 128,
+                            "description": "一个受保护进程连续训练的代数，共用模型与优化状态；每段计一次工具尝试，每段最多4096次候选评价。大研究建议显式配置。"
+                          },
+                          "cpu_threads": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 128,
+                            "description": "CPU数值线程数，不得超过宿主tool_threads；CPU秒按所有线程累计，与墙钟秒分别设置。"
+                          },
+                          "stagnation_patience": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100000,
+                            "description": "规则调度的停滞代数阈值；0表示不因停滞提前结束，仍受授权代数、评价数和时间预算限制。"
                           },
                           "segment_rounds": {
                             "type": "integer",
@@ -4123,6 +4281,10 @@
                               "rules",
                               "model"
                             ]
+                          },
+                          "pause_at_checkpoints": {
+                            "type": "boolean",
+                            "description": "用户明确需要科研反馈时才按segment_rounds暂停；默认false，不是资源审批。"
                           },
                           "adaptive": {
                             "type": "boolean"
@@ -4176,22 +4338,22 @@
                               "max_evaluations": {
                                 "type": "integer",
                                 "minimum": 1,
-                                "maximum": 1024
+                                "maximum": 1000000
                               },
                               "wall_seconds": {
                                 "type": "number",
                                 "minimum": 1,
-                                "maximum": 3600
+                                "maximum": 604800
                               },
                               "cpu_seconds": {
                                 "type": "integer",
                                 "minimum": 1,
-                                "maximum": 3600
+                                "maximum": 31536000
                               },
                               "memory_mb": {
                                 "type": "integer",
                                 "minimum": 64,
-                                "maximum": 4096
+                                "maximum": 1048576
                               }
                             },
                             "required": [
@@ -4241,6 +4403,7 @@
                                     "regular",
                                     "bipartite",
                                     "complete_multipartite",
+                                    "is_tree",
                                     "hypertree"
                                   ]
                                 },
@@ -4290,7 +4453,7 @@
                   "max_tool_calls": {
                     "type": "integer",
                     "minimum": 0,
-                    "maximum": 100
+                    "maximum": 10000
                   },
                   "allowed_tools": {
                     "type": "array",
@@ -4310,17 +4473,22 @@
                       "wall_seconds": {
                         "type": "number",
                         "exclusiveMinimum": 0,
-                        "maximum": 300
+                        "maximum": 604800
                       },
                       "cpu_seconds": {
                         "type": "integer",
                         "minimum": 1,
-                        "maximum": 300
+                        "maximum": 31536000
                       },
                       "memory_mb": {
                         "type": "integer",
                         "minimum": 64,
-                        "maximum": 4096
+                        "maximum": 1048576
+                      },
+                      "cpu_threads": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 128
                       },
                       "max_processes": {
                         "type": "integer",
@@ -4333,6 +4501,10 @@
                   },
                   "fail_fast": {
                     "type": "boolean"
+                  },
+                  "require_review": {
+                    "type": "boolean",
+                    "description": "experiment模式可要求一次初审；不控制检查点反馈，也不能提高宿主资源权限。"
                   }
                 },
                 "required": [],
@@ -4474,10 +4646,53 @@
                 "expected_outputs": {
                   "type": "array",
                   "maxItems": 32,
+                  "description": "文本项仅表达交付意图，不能自动核验；固定步骤可用{name,step,path}声明可核验输出。",
                   "items": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 256
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+                          },
+                          "step": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                          },
+                          "path": {
+                            "type": "array",
+                            "maxItems": 16,
+                            "items": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 128
+                                },
+                                {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 100000
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "step",
+                          "path"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   }
                 },
                 "execution": {
@@ -4493,6 +4708,13 @@
                         "counterexample",
                         "experiment"
                       ]
+                    },
+                    "on_error": {
+                      "enum": [
+                        "stop",
+                        "continue_independent"
+                      ],
+                      "description": "仅tools模式：失败后停止或继续无依赖的步骤；与预算准入fail_fast分开。"
                     },
                     "steps": {
                       "type": "array",
@@ -5839,28 +6061,32 @@
                               "minimum": 1,
                               "maximum": 256
                             },
+                            "pause_at_checkpoints": {
+                              "type": "boolean",
+                              "description": "明确需要科研反馈时，在segment_chunks个分段后暂停；默认false，与权限审批分开。"
+                            },
                             "budget": {
                               "type": "object",
                               "properties": {
                                 "max_evaluations": {
                                   "type": "integer",
                                   "minimum": 1,
-                                  "maximum": 1024
+                                  "maximum": 1000000
                                 },
                                 "wall_seconds": {
                                   "type": "number",
                                   "minimum": 1,
-                                  "maximum": 3600
+                                  "maximum": 604800
                                 },
                                 "cpu_seconds": {
                                   "type": "integer",
                                   "minimum": 1,
-                                  "maximum": 3600
+                                  "maximum": 31536000
                                 },
                                 "memory_mb": {
                                   "type": "integer",
                                   "minimum": 64,
-                                  "maximum": 4096
+                                  "maximum": 1048576
                                 }
                               },
                               "required": [
@@ -6314,12 +6540,30 @@
                             "rounds": {
                               "type": "integer",
                               "minimum": 1,
-                              "maximum": 16
+                              "maximum": 100000
                             },
                             "batch_size": {
                               "type": "integer",
                               "minimum": 2,
-                              "maximum": 16
+                              "maximum": 4096
+                            },
+                            "worker_rounds": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 128,
+                              "description": "一个受保护进程连续训练的代数，共用模型与优化状态；每段计一次工具尝试，每段最多4096次候选评价。大研究建议显式配置。"
+                            },
+                            "cpu_threads": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 128,
+                              "description": "CPU数值线程数，不得超过宿主tool_threads；CPU秒按所有线程累计，与墙钟秒分别设置。"
+                            },
+                            "stagnation_patience": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 100000,
+                              "description": "规则调度的停滞代数阈值；0表示不因停滞提前结束，仍受授权代数、评价数和时间预算限制。"
                             },
                             "segment_rounds": {
                               "type": "integer",
@@ -6331,6 +6575,10 @@
                                 "rules",
                                 "model"
                               ]
+                            },
+                            "pause_at_checkpoints": {
+                              "type": "boolean",
+                              "description": "用户明确需要科研反馈时才按segment_rounds暂停；默认false，不是资源审批。"
                             },
                             "adaptive": {
                               "type": "boolean"
@@ -6384,22 +6632,22 @@
                                 "max_evaluations": {
                                   "type": "integer",
                                   "minimum": 1,
-                                  "maximum": 1024
+                                  "maximum": 1000000
                                 },
                                 "wall_seconds": {
                                   "type": "number",
                                   "minimum": 1,
-                                  "maximum": 3600
+                                  "maximum": 604800
                                 },
                                 "cpu_seconds": {
                                   "type": "integer",
                                   "minimum": 1,
-                                  "maximum": 3600
+                                  "maximum": 31536000
                                 },
                                 "memory_mb": {
                                   "type": "integer",
                                   "minimum": 64,
-                                  "maximum": 4096
+                                  "maximum": 1048576
                                 }
                               },
                               "required": [
@@ -6449,6 +6697,7 @@
                                       "regular",
                                       "bipartite",
                                       "complete_multipartite",
+                                      "is_tree",
                                       "hypertree"
                                     ]
                                   },
@@ -6498,7 +6747,7 @@
                     "max_tool_calls": {
                       "type": "integer",
                       "minimum": 0,
-                      "maximum": 100
+                      "maximum": 10000
                     },
                     "allowed_tools": {
                       "type": "array",
@@ -6518,17 +6767,22 @@
                         "wall_seconds": {
                           "type": "number",
                           "exclusiveMinimum": 0,
-                          "maximum": 300
+                          "maximum": 604800
                         },
                         "cpu_seconds": {
                           "type": "integer",
                           "minimum": 1,
-                          "maximum": 300
+                          "maximum": 31536000
                         },
                         "memory_mb": {
                           "type": "integer",
                           "minimum": 64,
-                          "maximum": 4096
+                          "maximum": 1048576
+                        },
+                        "cpu_threads": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 128
                         },
                         "max_processes": {
                           "type": "integer",
@@ -6541,6 +6795,10 @@
                     },
                     "fail_fast": {
                       "type": "boolean"
+                    },
+                    "require_review": {
+                      "type": "boolean",
+                      "description": "experiment模式可要求一次初审；不控制检查点反馈，也不能提高宿主资源权限。"
                     }
                   },
                   "required": [],
@@ -7414,9 +7672,6 @@
         "executable": {
           "const": false
         },
-        "approved": {
-          "const": false
-        },
         "cases": {
           "type": "array",
           "maxItems": 32,
@@ -7502,7 +7757,6 @@
         "phase",
         "status",
         "executable",
-        "approved",
         "cases",
         "issues",
         "estimate",
@@ -7963,28 +8217,32 @@
           "minimum": 1,
           "maximum": 256
         },
+        "pause_at_checkpoints": {
+          "type": "boolean",
+          "description": "明确需要科研反馈时，在segment_chunks个分段后暂停；默认false，与权限审批分开。"
+        },
         "budget": {
           "type": "object",
           "properties": {
             "max_evaluations": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 1024
+              "maximum": 1000000
             },
             "wall_seconds": {
               "type": "number",
               "minimum": 1,
-              "maximum": 3600
+              "maximum": 604800
             },
             "cpu_seconds": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 3600
+              "maximum": 31536000
             },
             "memory_mb": {
               "type": "integer",
               "minimum": 64,
-              "maximum": 4096
+              "maximum": 1048576
             }
           },
           "required": [
@@ -8467,12 +8725,30 @@
         "rounds": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 16
+          "maximum": 100000
         },
         "batch_size": {
           "type": "integer",
           "minimum": 2,
-          "maximum": 16
+          "maximum": 4096
+        },
+        "worker_rounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128,
+          "description": "一个受保护进程连续训练的代数，共用模型与优化状态；每段计一次工具尝试，每段最多4096次候选评价。大研究建议显式配置。"
+        },
+        "cpu_threads": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128,
+          "description": "CPU数值线程数，不得超过宿主tool_threads；CPU秒按所有线程累计，与墙钟秒分别设置。"
+        },
+        "stagnation_patience": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000,
+          "description": "规则调度的停滞代数阈值；0表示不因停滞提前结束，仍受授权代数、评价数和时间预算限制。"
         },
         "segment_rounds": {
           "type": "integer",
@@ -8484,6 +8760,10 @@
             "rules",
             "model"
           ]
+        },
+        "pause_at_checkpoints": {
+          "type": "boolean",
+          "description": "用户明确需要科研反馈时才按segment_rounds暂停；默认false，不是资源审批。"
         },
         "adaptive": {
           "type": "boolean"
@@ -8537,22 +8817,22 @@
             "max_evaluations": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 1024
+              "maximum": 1000000
             },
             "wall_seconds": {
               "type": "number",
               "minimum": 1,
-              "maximum": 3600
+              "maximum": 604800
             },
             "cpu_seconds": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 3600
+              "maximum": 31536000
             },
             "memory_mb": {
               "type": "integer",
               "minimum": 64,
-              "maximum": 4096
+              "maximum": 1048576
             }
           },
           "required": [
@@ -8602,6 +8882,7 @@
                   "regular",
                   "bipartite",
                   "complete_multipartite",
+                  "is_tree",
                   "hypertree"
                 ]
               },
@@ -8730,6 +9011,7 @@
                       "regular",
                       "bipartite",
                       "complete_multipartite",
+                      "is_tree",
                       "hypertree"
                     ]
                   },
@@ -8834,6 +9116,7 @@
                   "regular",
                   "bipartite",
                   "complete_multipartite",
+                  "is_tree",
                   "hypertree"
                 ]
               },
@@ -8937,6 +9220,7 @@
                   "regular",
                   "bipartite",
                   "complete_multipartite",
+                  "is_tree",
                   "hypertree"
                 ]
               },
@@ -9038,7 +9322,9 @@
         {
           "id": "adjacency_spectral_radius",
           "objects": [
-            "simple_graph"
+            "simple_graph",
+            "uniform_hypergraph",
+            "uniform_hypertree"
           ],
           "status": "adapter_available",
           "source": "graph_research.experiments.adapters"
@@ -9046,7 +9332,9 @@
         {
           "id": "alpha_spectral_radius",
           "objects": [
-            "simple_graph"
+            "simple_graph",
+            "uniform_hypergraph",
+            "uniform_hypertree"
           ],
           "status": "adapter_available",
           "source": "graph_research.experiments.adapters"
@@ -9194,6 +9482,20 @@
         ],
         "external_runtimes_required": [],
         "training_available": "optional_cpu_torch"
+      },
+      "tensor_domain": {
+        "objects": [
+          "uniform_hypergraph",
+          "uniform_hypertree"
+        ],
+        "uniformity": [
+          2,
+          8
+        ],
+        "nonempty": true,
+        "connected_below_alpha_one": true,
+        "alpha_one": "degree_diagonal; disconnected candidates allowed",
+        "parameters": "exact rational alpha; positive-vector rational Collatz enclosure"
       },
       "meaning": "prepare remains a draft; execute evaluates supplied candidates; study searches only a reviewed finite scope. Formal metrics remain separate from training guidance."
     },

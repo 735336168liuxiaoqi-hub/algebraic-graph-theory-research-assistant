@@ -1,11 +1,11 @@
 """Persistent extension versions. Host actions select versions; models only read."""
-import hashlib
 import json
 from pathlib import Path
 import re
 from datetime import datetime,timezone
 
 from graph_research.runtime.storage import safe_path,read_json,write_json,exclusive_lock
+from graph_research.runtime.serialization import legacy_json_fingerprint as _fingerprint
 
 
 NAME=r'[a-z][a-z0-9_]{2,63}'
@@ -15,7 +15,7 @@ PIN=r'[0-9a-f]{64}'
 def package_id(record):
     """Identify code, interface, fixtures and approved descriptive metadata."""
     value={key:record.get(key) for key in ('name','source_sha256','parameters','tests','library_metadata')}
-    return hashlib.sha256(json.dumps(value,ensure_ascii=False,sort_keys=True,allow_nan=False).encode()).hexdigest()
+    return _fingerprint(value)
 
 
 def metadata(value):

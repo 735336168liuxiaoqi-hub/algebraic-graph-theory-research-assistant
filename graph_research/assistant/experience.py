@@ -12,14 +12,7 @@ from datetime import datetime,timezone
 import uuid
 
 from .memory import UserMemoryStore,_user_key,readonly_memory
-
-
-def canonical(value):
-    return json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)
-
-
-def fingerprint(value):
-    return hashlib.sha256(canonical(value).encode('utf-8')).hexdigest()
+from graph_research.runtime.serialization import canonical_json as canonical, json_fingerprint as fingerprint
 
 
 def _id(value):

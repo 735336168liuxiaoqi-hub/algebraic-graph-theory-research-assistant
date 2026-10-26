@@ -100,10 +100,9 @@ class ResultCleanupTests(unittest.TestCase):
         self.assertTrue(Path(move['trash']).exists());self.assertEqual(self.cleanup.list_operations()[0]['state'],'moving')
 
     def test_symlink_in_managed_directory_blocks_cleanup_without_following_it(self):
-        import os
+        from tests.host_fixtures import real_link_or_skip
         session=self.session();directory=session.directory/'views';directory.mkdir();outside=self.root/'outside.txt';outside.write_text('keep')
-        try:os.symlink(outside,directory/'link.txt')
-        except OSError:self.skipTest('Host does not allow unprivileged symlinks')
+        real_link_or_skip(self,directory/'link.txt',outside)
         preview=self.cleanup.preview([session.session_id],'task');self.assertFalse(preview['plans']);self.assertTrue(preview['blocked']);self.assertEqual(outside.read_text(),'keep')
 
 

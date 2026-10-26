@@ -3,18 +3,25 @@ from graph_research.errors import FieldValidationError
 from .research_contract import validate_problem,leaves
 from .execution_contract import bind_parameters,resolve,validate_candidate,digest
 
-METRICS={'adjacency_spectral_radius','alpha_spectral_radius','distance_spectral_radius','edge_count'}
-PREDICATES={'connected','hypertree','clique_free','edge_count','max_degree','max_degree_vertex_count','matching_number'}
+from .preparation import _METRICS,_PREDICATES
+
+METRICS={name for name,(_,status,_) in _METRICS.items() if status=='adapter_available'}
+PREDICATES={name for name,(_,status) in _PREDICATES.items() if status=='adapter_available'}
+
+
+def tensor_metric(problem):
+    return problem['object']['type'] in ('uniform_hypergraph','uniform_hypertree') and problem['objective']['metric'] in ('adjacency_spectral_radius','alpha_spectral_radius')
 
 
 def check_supported(problem,parameters):
     kind=problem['object']['type'];metric=problem['objective']['metric']
+    if metric not in _METRICS:raise FieldValidationError(['objective','metric'],{'enum':list(_METRICS)},'未登记的指标；请先查看能力目录。')
     if metric not in METRICS:raise ValueError('该指标尚未接入可执行评价器。')
+    if kind not in _METRICS[metric][0]:raise FieldValidationError(['objective','metric'],{'enum':[name for name,(objects,status,_) in _METRICS.items() if kind in objects and status=='adapter_available']},'该指标暂不支持当前对象；非一致超图不能使用一致张量谱。')
     if kind in ('uniform_hypergraph','uniform_hypertree'):
         k=resolve(problem['object']['uniformity'],parameters)
-        if not 2<=k<=128:raise ValueError('一致度支持2..128。')
-    if kind!='simple_graph' and metric not in ('distance_spectral_radius','edge_count'):
-        raise FieldValidationError(['objective','metric'],{'enum':['distance_spectral_radius','edge_count']},'超图当前仅接入距离矩阵谱与边数，不代用普通图矩阵或邻接张量。')
+        maximum=8 if tensor_metric(problem) else 128
+        if not 2<=k<=maximum:raise FieldValidationError(['object','uniformity'],{'minimum':2,'maximum':maximum},'一致度超出当前评价和独立证书的范围。')
     for node,_ in leaves(problem.get('constraints',{'all':[]})):
         if node['predicate'] not in PREDICATES:raise ValueError('该约束没有可执行检查器。')
         if kind!='simple_graph' and node['predicate'] in ('clique_free','matching_number'):
@@ -62,8 +69,12 @@ def primary_data(problem,parameters,candidate):
     if kind=='uniform_hypertree':object_valid=object_valid and props['hypertree']
     constrained=evaluate_logic(problem.get('constraints',{'all':[]}),predicate)
     metric=problem['objective']['metric'];domain=connected or metric!='distance_spectral_radius'
+    tensor=tensor_metric(problem)
+    if tensor:
+        alpha=resolve(problem['objective'].get('arguments',{}).get('alpha',0),parameters)
+        domain=bool(edges) and (alpha==1 or connected)
     matrix=None
-    if object_valid and constrained and domain and metric!='edge_count':
+    if object_valid and constrained and domain and metric!='edge_count' and not tensor:
         if metric=='distance_spectral_radius':
             matrix=np.zeros((n,n),dtype=float)
             for u in range(n):
@@ -74,6 +85,8 @@ def primary_data(problem,parameters,candidate):
             if metric=='alpha_spectral_radius':
                 alpha=float(resolve(problem['objective']['arguments']['alpha'],parameters))
                 matrix=(1-alpha)*matrix+alpha*np.diag(degrees)
+    if kind=='simple_graph':
+        props['is_tree']=props.pop('hypertree');props.pop('uniform')
     return props,bool(object_valid),bool(constrained),bool(domain),matrix
 
 
@@ -96,7 +109,7 @@ def _positive_vector(matrix):
 def evaluate_candidate(problem,parameters,candidate):
     """Trusted Python evaluation API; delegated tasks use the protected worker."""
     import numpy as np
-    from .verification import matrix_bounds,verify_evaluation,independent_matrix
+    from .verification import matrix_bounds,tensor_bounds,verify_evaluation,independent_matrix
     problem=validate_problem(problem);parameters=bind_parameters(problem,parameters);check_supported(problem,parameters)
     candidate=validate_candidate(candidate,problem['object']['type'])
     props,valid,constrained,domain,matrix=primary_data(problem,parameters,candidate)
@@ -104,6 +117,13 @@ def evaluate_candidate(problem,parameters,candidate):
     if feasible:
         if problem['objective']['metric']=='edge_count':
             estimate=props['size'];certificate={'method':'exact_edge_count','interval':[str(estimate),str(estimate)]}
+        elif tensor_metric(problem):
+            from graph_research.hypergraphs import Hypergraph
+            alpha=resolve(problem['objective'].get('arguments',{}).get('alpha',0),parameters)
+            solved=Hypergraph(candidate['edges'],vertices=list(range(candidate['n']))).alpha_spectrum(alpha=float(alpha),tolerance=1e-10,method='auto')
+            estimate=solved['rho']
+            certificate={'method':'exact_rational_tensor_collatz','vector':solved['perron_vector'],
+                **tensor_bounds(candidate,alpha,solved['perron_vector'])}
         else:
             estimate=float(np.linalg.eigvalsh(matrix)[-1]);vector=_positive_vector(matrix)
             exact=independent_matrix(problem,parameters,candidate)

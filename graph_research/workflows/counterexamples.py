@@ -192,8 +192,13 @@ def graph_counterexample_verify(reference, candidate, digits=12):
     """Use exact polynomial roots for small graphs, rational spectral bounds above."""
     baseline = _graph(reference)
     other = _graph(candidate)
-    if len(other) != len(baseline) or other.number_of_edges() != baseline.number_of_edges():
-        raise ValueError('Candidate violates fixed n/m constraints')
+    from graph_research.errors import FieldValidationError
+    if len(other) != len(baseline):
+        error=FieldValidationError(['candidate','n'],{'enum':[len(baseline)]},'候选图顶点数须与参照图一致。')
+        error.failure_stage='argument_validation';raise error
+    if other.number_of_edges() != baseline.number_of_edges():
+        error=FieldValidationError(['candidate','edges'],{'minItems':baseline.number_of_edges(),'maxItems':baseline.number_of_edges()},'候选图边数须与参照图一致。')
+        error.failure_stage='argument_validation';raise error
     if type(digits) is not int or not 6 <= digits <= 24:
         raise ValueError('Initial root isolation precision must be 6..24 digits')
     small = len(baseline) <= POLYNOMIAL_ORDER

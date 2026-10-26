@@ -16,6 +16,23 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 
 
+def _result_error(name,result,*,executable,prefix,parent):
+    """Require evidence from this probe, not merely a successful process exit."""
+    if not isinstance(result,dict):return 'probe_result_not_object'
+    def same_path(value,expected):
+        return isinstance(value,str) and bool(value) and Path(value).resolve()==Path(expected).resolve()
+    if name=='selected_interpreter':
+        if result.get('selected_python_reached') is not True:return 'selected_interpreter_not_reached'
+        if not same_path(result.get('executable'),executable):return 'selected_interpreter_mismatch'
+        if not same_path(result.get('prefix'),prefix):return 'selected_environment_mismatch'
+    else:
+        if result.get('readable') is not True or result.get('exists') is not True:return 'configuration_not_readable'
+        if not same_path(result.get('path'),parent['path']):return 'configuration_path_mismatch'
+        if parent.get('readable') is not True or result.get('sha256')!=parent.get('sha256'):
+            return 'configuration_hash_unverified'
+    return None
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--output',type=Path)
     options=parser.parse_args()
@@ -64,14 +81,21 @@ Path('probe.json').write_text(json.dumps(record),encoding='utf-8')
             if task is not None:task.close();row['measurements']=task.final_usage
         row['startup']=_startup_diagnostics(directory,row)
         result=directory/'probe.json'
-        if result.is_file():row['result']=json.loads(result.read_text(encoding='utf-8'))
-        row['startup']['phase']='fixed_probe_completed' if result.is_file() else 'fixed_probe_not_reached'
+        try:
+            row['result']=json.loads(result.read_text(encoding='utf-8'))
+            result_error=_result_error(name,row['result'],executable=executable,prefix=sys.prefix,parent=parent)
+        except FileNotFoundError:result_error='probe_result_missing'
+        except (OSError,ValueError):result_error='probe_result_unreadable_or_invalid'
+        if result_error:row['result_error']=result_error
+        row['startup']['phase']=('fixed_probe_not_reached' if result_error=='probe_result_missing' else
+                                 'fixed_probe_invalid_result' if result_error else 'fixed_probe_completed')
+        row['status']='passed' if row.get('worker_exit_code')==0 and not result_error and 'error' not in row else 'failed'
         records.append(row)
     report={'version':__version__,'selected_interpreter':sys.executable,'base_interpreter':getattr(sys,'_base_executable',None),
             'parent_config':parent,'probes':records,'scope':'Diagnostic only; no permission changes or unprotected execution. Original failure requires same-context evidence.'}
     (output/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-    print(json.dumps({'output':str(output),'probes':[{k:r[k] for k in ('probe','worker_exit_code','result','error') if k in r} for r in records]},ensure_ascii=False,indent=2))
-    return 0 if all(r.get('worker_exit_code')==0 and r.get('result',{}).get('readable',True) for r in records) else 1
+    print(json.dumps({'output':str(output),'probes':[{k:r[k] for k in ('probe','status','worker_exit_code','result','result_error','error') if k in r} for r in records]},ensure_ascii=False,indent=2))
+    return 0 if all(r['status']=='passed' for r in records) else 1
 
 
 if __name__=='__main__':raise SystemExit(main())

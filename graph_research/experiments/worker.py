@@ -12,7 +12,11 @@ def main():
         raise ValueError('Invalid fixed experiment worker request')
     if request['name']==INTERNAL_OPERATION:result=evaluate_chunk(request['arguments'])
     else:
-        from .search_engine import run_round
-        result=run_round(request['arguments'])
+        if 'round_count' in request['arguments']:
+            from .search_segments import run_segment
+            result=run_segment(request['arguments'])
+        else:
+            from .search_engine import run_round
+            result=run_round(request['arguments'])
     print(json.dumps({'ok':True,'result':result,'tool_provenance':{'name':request['name'],'kind':'native_experiment'}},ensure_ascii=False,allow_nan=False))
     return 0

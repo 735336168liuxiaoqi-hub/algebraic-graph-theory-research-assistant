@@ -30,6 +30,27 @@ python -X utf8 tools/checks.py --full --strict-lock
 
 `graphs`、`hypergraphs`、`tensors`和`algebra`存放计算；`rendering`与`schematics`负责图形；`tools`负责工具契约；`desktop`、`assistant`和`mcp`提供入口；`runtime`负责受保护执行与诊断。外部扩展和用户状态不放入基础包。
 
+科研任务相关代码按职责维护：
+
+| 层次 | 主要模块 | 职责 |
+| --- | --- | --- |
+| 预算与隔离 | `runtime/resources.py`、`runner.py`、`windows.py` | 统一资源上限、宿主档位及保护进程；不在界面重复定义额度 |
+| 搜索内核 | `experiments/search_engine.py`、`search_segments.py` | 单代计算、多代共用模型、完整候选证据及独立核验 |
+| 研究编排 | `assistant/experiment_study.py`、`task_control.py` | 计划、预算记账、暂停反馈、检查点恢复 |
+| 审批公共状态 | `assistant/approval_state.py` | 窗口请求、心跳、核心兼容规则；不依赖Qt，不签发事件或启动计算 |
+| 用户审批 | `assistant/task_approvals.py` | 读取任务审阅元数据，处理用户操作并交给原MCP宿主投递 |
+| 入口呈现 | `mcp/approval_ui.py`、`desktop/approval_bridge.py`、`desktop/task_approvals.py` | MCP通知、已有桌面复用及原生表单；共用审批状态协议 |
+
+新增跨入口的审批状态逻辑应放入公共模块，桌面不再导入MCP的窗口实现；公共标记仅用于导航，不能作为执行授权。旧`mcp.approval_ui`辅助函数导入保留兼容，marker文件名和任务字段保持原协议。
+
+`assistant/task_control.py`仅统一宿主硬权限和预算，不再维护always/bounded两套核心模式或另加自动审批阈值。`assistant/experiment.py`是唯一实验入口，建立普通范围/预算账本并仅在显式要求时处理一次真实确认；execute/study引擎只做计算、核验、记账及显式科研检查点。普通账本无approved/approval_event_id/host_authorization，统一版本2身份绑定问题、核心与策略。反馈暂停和资源审批独立。旧参数仅在CLI/配置边界转换，旧核心数据只读，不给新引擎加旧账本分支。
+
+闸门预检将`preflight.json`及保护进程完整目录保存在本轮报告目录。失败时报告具体phase、diagnostic_id和原始日志，不再要求用户重复执行整套测试；入口受阻仍必须如实标为blocked，不能绕过操作系统保护。
+
+跨模块的JSON规范化与内容指纹统一由`runtime/serialization.py`提供。任务、经验、研究对象和实验使用紧凑格式；已有扩展包、成果缓存和清理记录仍保留带空格的历史格式，两者不能互换。旧模块函数名继续可导入，非有限数仍拒绝。TeX完整文档封装及普通图／超图保存共用`rendering/tikz.py`的内部实现，生成几何、标签和精度分别保留原有规则。
+
+去重时先比较真实输入输出和字节格式，不只比较函数名称。兼容入口与可选依赖的延迟导入可以保留薄封装；独立数学核验不合并到被核验的计算算法。维护／恢复脚本需独立运行的逻辑也不强制依赖应用包。
+
 ## 已实施的五项保护
 
 | 保护 | 行为 |
@@ -121,7 +142,7 @@ session = ResearchSession('outputs/my-session', 'tool_packages')
 # 另一宿主线程可以调用session.cancel()；桌面已有停止入口。
 ```
 
-默认每进程内存上限1024MiB，进程树合计1536MiB，最多8个进程、CPU合计30秒、墙钟30秒；单份结果最多4MiB，任务文件总量监控默认64MiB。精确消元默认20秒，扩展单例验收15秒，仍受数学算法自身规模限制。文件总量通过轮询监控，短时间可能超出阈值后被终止，不是文件系统硬配额。
+标准档位默认进程树内存合计1024MiB，单进程也不得超过该额度，最多8个进程、CPU合计30秒、墙钟30秒；单份结果最多4MiB，任务文件总量监控默认64MiB。科研资源档位和显式线程／内存配置见[MCP指南](MCP.md#科研资源配置)，研究总预算与单worker上限分别设置。精确消元默认20秒，扩展单例验收15秒，仍受数学算法自身规模限制。文件总量通过轮询监控，短时间可能超出阈值后被终止，不是文件系统硬配额。
 
 基础Python数学函数和`ToolRegistry.call`仍提供可信宿主的直接计算接口，便于纯Python研究和原有离线实验；直接调用不会自动进入操作系统隔离。应用接入及不确定规模任务优先用`run_tool`。普通用户在编辑器中拖动顶点、导出结果的流程保持一致。
 

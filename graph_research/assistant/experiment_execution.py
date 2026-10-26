@@ -1,4 +1,4 @@
-"""Approved finite experiments with conservative durable attempt accounting."""
+"""Finite candidate execution with durable scope and resource accounting."""
 import copy
 from fractions import Fraction
 import json
@@ -12,7 +12,8 @@ from graph_research.runtime.evidence import file_hash
 from graph_research.runtime.integrity import assert_integrity
 from graph_research.runtime.runner import TaskLimits,run_worker
 from .task_control import TaskControlError
-from graph_research.experiments.execution_contract import compile_execution,INTERNAL_OPERATION,digest
+from .experiment import validate_experiment_identity,experiment_failure_status
+from graph_research.experiments.execution_contract import INTERNAL_OPERATION,digest
 from graph_research.experiments.verification import verify_evaluation
 
 
@@ -56,7 +57,8 @@ def _validate_ledger(ledger,compiled,record,core):
     """Reject corrupted checkpoints before trusting any budget or receipt path."""
     jobs={job['id']:job for job in compiled['jobs']};ids=set()
     try:
-        if ledger['version']!=1 or type(ledger['approved']) is not bool or not isinstance(ledger['attempts'],list):raise ValueError()
+        validate_experiment_identity(ledger,compiled,record,core)
+        if not isinstance(ledger['attempts'],list):raise ValueError()
         if len(ledger['attempts'])!=record['usage']['tool_calls']:raise ValueError()
         for attempt in ledger['attempts']:
             if not isinstance(attempt,dict) or not re.fullmatch('[0-9a-f]{32}',attempt['id']) or attempt['id'] in ids:raise ValueError()
@@ -69,10 +71,8 @@ def _validate_ledger(ledger,compiled,record,core):
             if not attempt['settled'] and (attempt['wall_charge']!=attempt['wall_limit'] or attempt['cpu_charge']!=attempt['cpu_limit']):raise ValueError()
             if attempt.get('receipt_sha256') is not None and not re.fullmatch('[0-9a-f]{64}',attempt['receipt_sha256']):raise ValueError()
             if attempt['settled'] and not attempt.get('receipt_sha256'):raise ValueError()
-        if not ledger['approved'] and (ledger['attempts'] or ledger['approval_event_id'] is not None):raise ValueError()
-        if ledger['approved'] and ledger['approval_event_id'] not in record.get('event_receipts',{}):raise ValueError()
     except (ValueError,TypeError,KeyError):
-        raise TaskProtocolError('experiment_checkpoint_changed','实验账本、资源计数或批准事件无效，拒绝继续。') from None
+        raise TaskProtocolError('experiment_checkpoint_changed','实验账本、资源计数或任务身份无效，拒绝继续。') from None
 
 
 def _settle(attempt,receipt):
@@ -120,7 +120,7 @@ def summarize(compiled,ledger,observations):
                       'selection':'first_verified_feasible_candidate' if direction=='satisfy' else 'numerical_ranking_of_feasible_candidates','selected_no_worse_certified_in_evaluated_set':certified,
                       'candidate_collection_optimum_certified':bool(complete and chosen and certified)})
         rows.extend({'case_id':case['id'],**row} for row in case_rows)
-    return {'phase':3,'scope':'provided_candidate_collection','approved':ledger['approved'],
+    return {'phase':3,'scope':'provided_candidate_collection',
             'jobs_completed':len(success),'jobs_total':len(jobs),'collection_complete':len(success)==len(jobs),
             'evaluations_completed':len(rows),'cases':cases,'rows':rows,'budget':{'limits':ledger['budget'],**_charges(ledger),
             'meaning':'Candidate attempts are reserved before execution and never refunded; missing resource measurements retain conservative reservations. Wall/CPU are active worker usage, not paused time.'},
@@ -129,34 +129,12 @@ def summarize(compiled,ledger,observations):
             'limitations':['Only the explicitly supplied collection was evaluated.','Certified intervals can overlap; numerical ranking alone does not certify the best candidate.','Worker startup/cleanup and resource enforcement may cross a deadline briefly; overrun stops subsequent chunks.']}
 
 
-def run_execution(record,session,save,*,action='start'):
-    request=record['request'];compiled=compile_execution(request['execution']['experiment']);spec=compiled['spec']
+def run_execution(record,session,save,*,compiled,action='start'):
+    spec=compiled['spec']
     with exclusive_lock(session.directory/'.session.lock'):
         core=assert_integrity()['manifest_sha256']
-        if not session.state:
-            session.state={'question':request['objective'],'observations':[],'conversation':[{'role':'user','content':request['objective']}]}
-            session._begin_turn(request['objective'])
-        session.state.setdefault('observations',[])
-        session.state['delegated_task']=session.task_context
-        ledger=record.get('experiment_ledger')
-        if ledger is None:
-            ledger={'version':1,'request_sha256':compiled['request_sha256'],'core_sha256':core,'budget':spec['budget'],
-                    'approved':False,'approval_event_id':None,'attempts':[]}
-            record['experiment_ledger']=ledger;save(record)
-        if ledger['request_sha256']!=compiled['request_sha256'] or ledger['core_sha256']!=core or ledger['budget']!=spec['budget']:
-            raise TaskProtocolError('experiment_scope_changed','实验定义、预算或核心版本改变，请新建任务。')
+        ledger=record['experiment_ledger']
         _validate_ledger(ledger,compiled,record,core)
-        if not ledger['approved']:
-            if action=='continue' and session.state.get('status')=='awaiting_experiment_review' and record.get('active_event'):
-                ledger.update(approved=True,approval_event_id=record['active_event']);save(record)
-            else:
-                session.state.update(status='awaiting_experiment_review',
-                    experiment_review={'problem':spec['problem'],'case_count':len(spec['cases']),'candidate_collection':spec['cases'],'evaluations':compiled['evaluations'],
-                        'chunks':len(compiled['jobs']),'budget':spec['budget'],'scope_sha256':compiled['request_sha256'],
-                        'meaning':'Only evaluate this explicit collection. No CEM, graph generation or theorem proof.'},
-                    answer='请确认本次明确候选集合、分段数量和总预算。确认前不执行计算；如需修改范围，请取消并提交新任务。')
-                session.state['experiment_execution']=summarize(compiled,ledger,session.state['observations'])
-                session._save();session._finalize_output();return
         session.state.update(status='running',answer='正在分段评价明确候选并独立核验。')
         known=_completed(session,compiled)
         # A crash may occur after saving the observation but before settling its ledger.
@@ -218,10 +196,12 @@ def run_execution(record,session,save,*,action='start'):
                     failed=failure_reference(session.directory/'tasks',error)
                     if failed:observation['failed_execution']=failed
                     session.state['observations'].append(observation)
-                    session.state.update(status='execution_error',answer='实验分段中断；评价尝试和资源预留保留。用户选择继续后，仅重试未核验分段，重试另计预算。')
+                    status=experiment_failure_status(error)
+                    session.state.update(status=status,answer='工具尚未开始，当前启动环境被阻断；请agent读取诊断，确认继续不能修复环境。' if status=='blocked' else
+                        '实验分段中断；评价尝试和资源预留保留。仅明确确认重试后重新执行未核验分段，重试另计预算。')
                     persist();session._finalize_output();return
                 processed+=1
-                if processed>=spec['segment_chunks'] and len(known)<len(compiled['jobs']):
+                if spec['pause_at_checkpoints'] and processed>=spec['segment_chunks'] and len(known)<len(compiled['jobs']):
                     session.state.update(status='awaiting_experiment_continue',answer='本段已核验并保存。继续将复用已完成结果，在原累计预算内评价剩余候选。')
                     persist();session._finalize_output();return
             session.state.update(status='experiment_complete',answer='明确候选集合已评价并核验；结果不代表搜索全部图或证明一般极值定理。')

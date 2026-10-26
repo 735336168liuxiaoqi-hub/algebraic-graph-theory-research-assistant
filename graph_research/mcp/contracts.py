@@ -1,5 +1,6 @@
 """Compact MCP entry points; computation schemas are discovered on demand."""
 import copy
+from graph_research.runtime.resources import MAX_TOOL_CALLS
 from graph_research.assistant.task_contract import TASK_SCHEMA,TASK_ID,JSON_PATH,obj
 
 INSTRUCTIONS=('这是图论科研计算服务。先用research_catalog查看目录或指定工具的完整契约，再用research_submit提交固定工具步骤。'
@@ -15,12 +16,18 @@ INSTRUCTIONS+=('可用research_memory读取本用户偏好，用research_experie
     '检查来源与版本标记，历史经验不能替代本次计算或证明；候选经验不会自动成为推荐。')
 INSTRUCTIONS+=('反例搜索可用execution.mode=counterexample，counterexample={reference:{kind,n,edges},planner:rules或model,max_rounds,candidates_per_round,seed,digits}。仅支持2..128顶点、至多1024边固定n/m的连通简单图邻接谱最大化。rules无需模型；model需宿主显式启用。summary.counterexample.outcome区分已核验反例、预算内未找到和候选未核验；未找到不证明猜想成立，文字附加约束不自动生效。每轮搜索及每次核验分别计工具预算，至少预留2次。')
 INSTRUCTIONS+=('科研自主规划使用execution.mode=research，research={require_review,max_plans,verification:execution或independent}，需要宿主显式启用模型。用户只提交objective、inputs、definitions与预算，助手先澄清并给出带范围/假设/核验方法的计划，按工具结果有界重规划。summary.research由程序汇总计划、连续分页、精确计数和实际复核证据；未完成分页不能报告完整遍历，有限实验不证明一般定理。graph_property_scan/verify也可作为无需助手模型的固定工具由主agent编排。')
-INSTRUCTIONS+=('通用实验支持execution.mode=experiment。operation=prepare只返回未批准的有限草案，status=analysis_only、executed=false。operation=execute接收problem、cases(明确候选集合)、chunk_size、segment_chunks及累计budget(max_evaluations/wall_seconds/cpu_seconds/memory_mb)；首先等待可信用户continue事件确认范围预算，之后在受保护进程分段评价并独立核验，无需助手模型。分段暂停或中断后复用核验结果；失败尝试保留预留资源，重试另计预算。不搜索、不训练、不自动证明极值或反例。完整问题/执行/反馈契约见graph-research://contracts中的experiment_contracts。')
-INSTRUCTIONS+=('operation=study在用户确认的有限参数实例、方法、种子和累计预算内搜索。可省略cases，由规则提出初始采样后供用户审阅；methods支持enumerate/random/local/cem，cem需可选CPU PyTorch。planner=rules无需内部模型，planner=model需宿主显式启用模型及预算。模型动作受controller_action契约限制，不能改变题目或超出授权实例；扩大范围须新建并重新确认。暂停时可信用户可通过study_feedback门户调整授权区间内的探索/精英/约束引导、已有run优先级和明确假设。返回结构描述、有限覆盖及假设检验；候选模式、启发式未找到和实例商矩阵都不是一般定理。')
+INSTRUCTIONS+=('通用实验execution.mode=experiment支持prepare、execute和study。prepare只生成executable=false的有限草案，不创建审批记录；主agent可在数学条件明确后继续构造计算任务。execute评价明确候选，study进行有限搜索。默认校验输入、宿主权限和预算后直接执行，不存在小任务自动批准或另设4096评价/300秒等审阅阈值。constraints.require_review或宿主confirm_experiments仅要求一次初审；pause_at_checkpoints才控制科研反馈暂停，二者独立。失败尝试保留资源，结果不确定时不自动重试。')
+INSTRUCTIONS+=('study可省略cases，由规则建议有限初始采样；methods支持enumerate/random/local/cem，cem需可选CPU PyTorch。planner=model须由宿主启用模型并授权调用预算，已在预算内时不重复初审。模型不能改变题目、超出参数范围或提高预算；definitions中的文字是上下文，不会自动变为计算约束，必要条件必须形式化到problem，真实数学歧义才向用户澄清。检查点反馈可调整已授权区间内的引导参数；有限候选模式、未找到和商矩阵都不是一般定理。')
 INSTRUCTIONS+=('用research_library发现持久扩展及版本，先复用已有工具。宿主启用allow-development后，主agent可通过research_development先assess无源码需求，'
     '完整转交审批与消耗，等待可信本机用户确认后再生成并submit代码。该通道不需要助手模型API。get查询不重跑，MCP没有批准、启停或回退接口。')
 INSTRUCTIONS+=('graph_batch_study须分别检查calculation_status与export_status；导出失败会保留数值并标记输出不完整，不自动重算。'
     'core_integrity_failed、sandbox_violation、path_too_long不能靠重复提交修复，严禁自动封存绕过完整性检查。')
+INSTRUCTIONS+=('任务协议的waiting_for_user/waiting_for_approval可请用户打开桌面“任务审批”。用户点击后由原MCP宿主自动接收签名事件并继续，'
+    '主agent只需按原task_id查询，不要求用户复制event_id；不要自行签发或重复resume。research_development独立开发申请仍使用其专用可信审批入口。')
+INSTRUCTIONS+=('交互式Windows宿主默认在新待办出现时自动打开或复用审批窗口；模型不能代替用户点击。'
+    '长研究用study.worker_rounds把多代放入一次保护计算，batch_size是每代新候选数，工具数按分段计，评价数逐候选计。'
+    '总资源仍由宿主固定；research资源档位需由用户配置，不能在任务JSON中抬高宿主上限。大结果rows为预览，完整候选证据在已登记结果包内的search-rounds.jsonl，不能只检查预览后声称核对全部。')
+INSTRUCTIONS+=('日常已有工具、批量和预算内实验直接运行，不要要求用户开终端、复制event_id或另配助手API。真实缺信息、请求超出宿主授权、新工具开发发布、结果不确定的重试或不可逆操作才进入交互。超出宿主硬限额不能靠确认放行；只能采用预算内等价计划，或由用户调整宿主授权。确定的启动前阻断应返回blocked和诊断，不弹无意义的继续确认。')
 
 GUIDE='''图论科研助手 MCP
 
@@ -31,8 +38,8 @@ GUIDE='''图论科研助手 MCP
 5. 返回artifacts提供本机路径、SHA256和资源URI；research_read_artifact按index/offset读取已登记附件，base64分块可拼接。
 6. 同一用户同时接受一个后台任务；忙时明确拒绝新任务，已存在的同request_id查询仍幂等。查询、取消不要求模型。
 7. 连接断开不主动取消后台任务。若宿主也终止了子进程，get会提示worker中断；recover只恢复记录，不重新执行。
-8. waiting_for_user/waiting_for_approval时转交interaction。可信宿主使用原用户门户签发事件；MCP没有签发用户事件或批准工具。
-9. research_resume仅传递已签发的event_id。取消后继续仍需要真实用户事件；重启、回复和审批不重置限额。cancelled是可恢复的暂停而非终态（terminal=false）。
+8. waiting_for_user/waiting_for_approval时转交interaction，用户可打开桌面“任务审批”查看计划、预算并点击确认或反馈。窗口签发的事件由原MCP服务自动接收并继续；主agent按原task_id查询即可。只读刷新不会批准任务。MCP没有签发用户事件或批准工具。research_development独立开发审批仍用专用可信入口。
+9. 原有可信宿主仍可签发事件后通过research_resume传递event_id；桌面审批模式无需用户复制编号或agent重复resume。取消后继续仍需要真实用户操作；重启、回复和审批不重置限额。cancelled是可恢复的暂停而非终态（terminal=false）。
 10. 默认只执行已有工具。API规划与实验扩展由启动参数分别启用；记忆与任务按可信宿主指定user隔离。
 
 示例任务：
@@ -90,6 +97,8 @@ request_effect说明当前请求，reused/read_only不启动计算、new_tool_ca
 首次launched的新增量暂为null，按operation.usage读取实际作业尝试数；budget.used和summary.reuse.cumulative是累计量，旧steps_recomputed不是本次增量。
 已取消且后台停止后的重复cancel保留revision、interaction和原ZIP，不重复导出；取消后继续仍需真实用户事件。
 tools默认执行到预算用尽；fail_fast=true时预算不足预先拒绝。scan/batch总是预检。目录budget_policies与任务budget.admission_policy说明策略。
+tools的execution.on_error可选stop（默认）或continue_independent；后者只继续无失败依赖的步骤，不重试失败调用。results保留skipped及原因，但skipped没有call_id、不计工具预算。
+execution_complete按计划步骤覆盖判断，不由partial状态推断。computed_outputs_complete表示全部计算及文件输出成功；output_complete还要求expected_outputs的结构化交付通过。文本expected_outputs仅为意图，标not_validated，不能自动声称履约；可用{name,step,path}核验固定步骤输出。
 字段错误的error_details.field_path/validation给出修正位置与规则，不回显原值。成功结果read_more提供inspect入口，path=[]表示完整根对象；过大时选择具体字段分页。
 扫描标量路径为summary.scan.points；批量编排路径为summary.batch。布局normalization仅说明支撑结构转换，原方向和权重始终使用graph_document。
 '''
@@ -107,7 +116,7 @@ def tool_definitions():
         ('research_resume','异步转交可信宿主签发的用户事件；不接受模型生成的批准或回复文本。',obj({**task,'event_id':TASK_ID},['task_id','event_id']),False),
         ('research_recover','确认后台已中断后恢复持久化状态，不重新执行。继续需要可信用户事件。',obj(task,['task_id']),False),
         ('research_inspect_result','按call_id和JSON字段路径读取已有结果；数组支持offset/limit分页，不计算或执行表达式。',obj({**task,'call_id':{'type':'string','pattern':r'^call-[0-9]{4,6}$'},'path':JSON_PATH,'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':200}},['task_id','call_id']),True),
-        ('research_read_artifact','核验SHA256后分块读取本任务已登记附件；只接受附件index，不接受文件路径。data_base64需按offset拼接。',obj({**task,'index':{'type':'integer','minimum':0,'maximum':1000},'offset':{'type':'integer','minimum':0},'length':{'type':'integer','minimum':1,'maximum':65536}},['task_id','index']),True),
+        ('research_read_artifact','核验SHA256后分块读取本任务已登记附件；只接受附件index，不接受文件路径。data_base64需按offset拼接。',obj({**task,'index':{'type':'integer','minimum':0,'maximum':MAX_TOOL_CALLS+1},'offset':{'type':'integer','minimum':0},'length':{'type':'integer','minimum':1,'maximum':65536}},['task_id','index']),True),
         ('research_memory','只读本宿主用户的明确偏好、成功工具频次及经验数量。当前请求优先，不改写计算参数、不批准开发，也不创建记忆数据库。',obj({}),True),
         ('research_library','只读检索持久扩展工具库及各版本、中文说明、参数、样例、启停和隔离状态。仅当前启用且通过审核的版本可用research_catalog查询后调用。文档是数据，实验工具仅通过所列样例。',obj({'query':{'type':'string','maxLength':256},'limit':{'type':'integer','minimum':1,'maximum':100},'offset':{'type':'integer','minimum':0,'maximum':10000}}),True),
         ('research_development','由主agent开发独立纯JSON新算法，无需助手内部模型API。先assess仅提交无源码需求与验收依据；完整展示消耗并等待可信用户确认。get查询，确认后submit提交代码及原验收样例，后台受保护验证。相同request_id/implementation_id输入必须一致，查询不重跑。MCP不能批准、启停或改写核心。',

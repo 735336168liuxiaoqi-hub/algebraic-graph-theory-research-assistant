@@ -29,10 +29,11 @@ def compile_batch(request):
     if len(set(ids))!=len(ids) or len(set(case_ids))!=len(case_ids):raise TaskProtocolError('duplicate_batch_id','批量步骤ID和案例ID各自不能重复。')
     if len(template)*len(cases)>100:raise TaskProtocolError('batch_too_large','展开后的批量步骤最多100项；未执行计算。')
     dependencies={}
-    for step in template:
+    for step_index,step in enumerate(template):
         deps=set(step.get('depends_on',[]))
         for name,binding in step.get('bindings',{}).items():
-            if name in step['arguments']:raise TaskProtocolError('invalid_batch_binding','参数不能同时来自arguments和bindings。')
+            if name in step['arguments']:raise TaskProtocolError('invalid_batch_binding','步骤 '+step['id']+' 的参数不能同时来自arguments和bindings。',
+                field_path=['execution','batch','steps',step_index,'bindings',name],step_id=step['id'])
             if 'step' in binding:deps.add(binding['step'])
         if step['id'] in deps or deps-set(ids):raise TaskProtocolError('invalid_batch_dependency','批量依赖必须引用同一模板中的其他已声明步骤。')
         dependencies[step['id']]=deps
@@ -83,10 +84,11 @@ def initial_state(plan):
     return {'plan_sha256':plan['plan_sha256'],'steps':{step['id']:{'status':'pending','attempted':False} for step in plan['steps']}}
 
 
-def summary(request,state,record=None):
+def summary(request,state,record=None,*,plan=None):
     """Build bounded scalar/reference rows, keeping skips separate from attempts."""
     if request['execution']['mode']!='batch':return None
-    plan=compile_batch(request);ledger=state.get('batch_workflow',{}).get('steps',{})
+    if plan is None:plan=compile_batch(request)
+    ledger=state.get('batch_workflow',{}).get('steps',{})
     paused=state.get('status') in ('cancelled','execution_error','recovery_required','budget_exhausted')
     observations=state.get('observations',[]);calls={o.get('step_id'):(i,o) for i,o in enumerate(observations) if 'tool' in o}
     rows=[];details=[]

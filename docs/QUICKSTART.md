@@ -4,7 +4,7 @@ Prerelease **0.38.0a2**, [MIT licensed](../LICENSE). [中文使用指南](../使
 
 This Python application provides graph and hypergraph computation, symbolic algebra, interactive drawing and research result management. Use the desktop manually, connect a model for research chat, or expose the same computation tools to a host agent through MCP. SageMath and WSL are not required.
 
-The experiment workflow supports reviewed finite studies, replaceable traditional searches, optional CPU CEM, bounded scheduling, feedback and hypothesis checks. Rules need no model API; model scheduling is optional. Protected execution, independent metric verification and persistent budgets remain in force. See [Research experiments](EXPERIMENTS.md#english) for examples and limits; the dedicated desktop study UI is a later stage.
+The experiment workflow supports finite studies, traditional searches, optional CPU CEM, bounded scheduling, feedback and hypothesis checks. Rules need no model API; model scheduling is optional. Local development version **0.38.0a10** runs within host budgets by default, with initial confirmation and checkpoint feedback requested separately. It checks planned-step coverage, reports skipped steps, validates explicit output paths and supports adjacency/alpha tensor objectives for uniform hypergraphs. Protected execution, independent verification and persistent budgets remain in force. Published download assets remain a2 until a new release. See [Research experiments](EXPERIMENTS.md#english).
 
 The desktop supports **Simplified Chinese and English**. Open **语言 / Language** at the top and select **English** or **简体中文**. This guide retains Chinese labels alongside English meanings so it also works when the interface is in Chinese.
 
@@ -224,6 +224,26 @@ For terminal use, run `python -m graph_research connect`. Configuration commands
 
 ## 5. MCP delegation from a host agent
 
+Local a9 defaults CLI, MCP and Python to direct execution after input, permission and budget checks. There is no ordinary-task approved flag or automatic-approval certificate. Limits remain enforced; model planning within an already authorized model budget does not trigger another review. Real mathematical ambiguity, new-tool development, uncertain retries and irreversible actions remain interactive.
+
+Use --confirm-experiments or task constraints.require_review only for an explicitly requested one-time review. Use experiment pause_at_checkpoints separately for scientific feedback; segment intervals alone do not pause. Old review-policy flags are entry adapters, not a second engine mode. Save connection snippets using mcp-config --output for direct UTF-8 output.
+
+**Local a9 opens Task approvals automatically for a new pending interaction on an interactive Windows host.** It first reuses an already open user-session desktop and selects the correct task; otherwise the persistent MCP service launches a compact window with its fixed root/user. No extra terminal command, manual Connect click or event-ID copy is needed. Review the plan and click to confirm. If guidance fields or a feedback note were edited, the single primary button becomes **Apply feedback and continue** and sends those edits; reset only discards the edits and does not execute. The parent agent keeps querying the original task ID. Restart the updated MCP connection and desktop before testing, using new tasks; old-core checkpoints are read-only.
+
+Pending tasks are shown by default, with title/request/task-ID search and an optional history view. An unknown user produces a clear error without creating an empty user namespace; user is the MCP user string, not the storage hash. Native callbacks are queued to the GUI thread and retain their thread objects until exit. Qt/native diagnostics go to `~/.graph_research/logs/desktop.log`, with a TEMP fallback if needed. MCP launch diagnostics are stored under the user's `mcp/approval-ui-bootstrap.log`.
+
+The window only signs after a human click; refresh is read-only. It keeps host limits and identity, rejects stale confirmations, and never retries failed computations automatically. It supports MCP task-protocol reviews, answers and approvals; independent CLI jobs and `research_development` requests retain their dedicated trusted interfaces. Closing the window does not cancel an already confirmed task. See [MCP details](MCP.md#桌面任务审批).
+
+Manual fallback remains `python -m graph_research approvals --root D:/Research/mcp-state --user researcher`. Native UI requires desktop dependencies; headless/offscreen hosts do not auto-open it. A host may forcibly reclaim GUI children: no breakaway/detached/WMI workaround is used. A normally launched, already open user-session desktop can receive later approval requests without an agent launching a new GUI for every task. Same-interaction polling never repeatedly opens windows after a normal user close; one bounded UI-only reopen is allowed after an unexpected exit, never a calculation retry.
+
+### Long research and resource profiles
+
+Generate an opt-in research host configuration with `python -m graph_research mcp-config --root D:/Research/agt-state --user researcher --resource-profile research`. It allows1000 worker calls,900 wall seconds per segment, a configurable numerical thread count (normally logical CPUs minus one, capped at128), corresponding cumulative CPU seconds, and about75% physical RAM capped at64GiB. The profile does not allocate memory, start training or raise model-API budgets. Explicit old30-second/1024MiB arguments still override the profile; remove or update those values, then restart the MCP connection. Custom ceilings use `--tool-seconds`, `--tool-cpu-seconds`, `--tool-memory-mb`, `--tool-threads` and `--max-tool-calls`.
+
+In a study, rounds count generations per run, batch_size counts fresh candidates per generation, and worker_rounds groups generations into one protected process. For example200×1000 with worker_rounds=20 means200000 evaluations and50 worker calls. A segment is bounded to4096 evaluations. segment_rounds controls feedback intervals only when pause_at_checkpoints=true; otherwise worker segments continue automatically. Memory covers the complete process tree; CPU seconds accumulate across threads. Actual mathematical size/action limits remain separate.
+
+Complete per-generation evidence is streamed to receipt-pinned JSONL attachments. Inline rows are previews; final/pause analysis scans the full evidence. Recovery uses completed segments only; interrupted in-flight segments retain charges and require user-confirmed retries. The aggregate ZIP remains bounded at256MiB/4096 files; when it cannot export, output_complete=false and independently registered scientific_evidence attachments remain readable. See the [research-scale example](../examples/research-experiments/cem-research-study.json); review its large budget before approving. Large-budget declarations are not proof that an hours-long or full-memory stress test passed.
+
 ### Configure this computer
 
 Use the application's interpreter and short, writable state/result directories outside the installed package:
@@ -273,7 +293,12 @@ See [MCP](MCP.md), [batch workflows](BATCH.md) and [host protocol](reference/SUB
 
 General and uniform hypergraphs may contain cycles; hypertrees are optional constraints. Current hypergraph study objectives are distance spectral radius and edge count. Existing tensor tools have separate uniformity and verification requirements.
 
-Start a model-free example from the main source directory:
+For an MCP-hosted study, submit the corresponding `clique-free-study.json` task body and confirm in **Task approvals**, then keep querying the same task ID. No manual event-ID transfer is needed.
+
+<details>
+<summary>Advanced: standalone CLI and compatible event interface</summary>
+
+Start a model-free standalone CLI example from the source directory; this entry retains its original trusted-user interface:
 
 ```powershell
 .\.venv\Scripts\python.exe -X utf8 -m graph_research subagent --root D:/Research/study-state --user researcher --input examples/research-experiments/clique-free-study-request.json
@@ -296,6 +321,8 @@ Copy `host_user_event.event_id` into resume.json:
 ```
 
 At segment pauses, the trusted user may continue or provide study-feedback within the approved guidance intervals. Only the trusted host issues events; the parent passes the event ID. Repeating submit or adding approved=true cannot authorize execution. For MCP, submit the corresponding `clique-free-study.json` task body; `*-request.json` files are CLI dispatch envelopes.
+
+</details>
 
 Other examples cover cyclic hypergraphs, hypertrees and optional CPU CEM. Scheduling/refinement stays inside the reviewed finite grid; expanding the mathematical scope or budget requires a new review. Bundles preserve raw objectives separately from training guidance, verified instances, checkpoints, structural observations, hypothesis witnesses and proof gaps. CEM is not presumed faster or better than traditional searches. See [general experiments](EXPERIMENTS.md) for settings, feedback and limits.
 

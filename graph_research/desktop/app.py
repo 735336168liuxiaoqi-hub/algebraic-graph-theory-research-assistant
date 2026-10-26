@@ -811,6 +811,8 @@ class DesktopWindow(QMainWindow):
 
 
 def desktop_command(arguments):
+    from .native_diagnostics import install
+    install()
     parser=argparse.ArgumentParser(description='独立桌面科研助手：本地工具、参数表单、计算及结果，无需浏览器')
     parser.add_argument('--workspace',default='outputs/desktop');parser.add_argument('--session');parser.add_argument('--tool-dir')
     parser.add_argument('--language',choices=('zh','en'),help='Desktop language; defaults to the saved selection')

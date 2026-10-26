@@ -27,7 +27,7 @@ def seal_hint(root):
               '确认改动已审查后请运行 tools/seal_release.py 重新封存，并在提交信息中注明。',flush=True)
 
 
-def preflight(root):
+def preflight(root,report_directory=None):
     """Run one real protected computation before the suite.
 
     A host that cannot start protected workers (restricted token, broken venv
@@ -37,25 +37,37 @@ def preflight(root):
     failures (integrity mismatch, wrong result) propagate as exit 1.
     """
     print('Checking: protected worker preflight',flush=True)
-    workspace=Path(tempfile.mkdtemp(prefix='gate-preflight-'))
+    workspace=Path(tempfile.mkdtemp(prefix='gate-preflight-',dir=report_directory))
+    evidence={'workspace':str(workspace),'python':sys.executable,'parent_pid':os.getpid(),
+              'status':'running','command':'graph_invariants(path, n=3)','protected_execution':True}
+    def record():
+        if report_directory is not None:
+            (Path(report_directory)/'preflight.json').write_text(json.dumps(evidence,ensure_ascii=False,indent=2),encoding='utf-8')
+    record()
     try:
         from graph_research.runtime.runner import run_tool,WorkerFailure
         result=run_tool('graph_invariants',{'kind':'path','n':3},workspace/'tools',directory=workspace/'runs')
         if not isinstance(result,dict) or result.get('size')!=2:raise RuntimeError('Preflight returned an unexpected result: '+repr(result))
+        evidence.update(status='passed',result=result);record()
     except Exception as exc:
         # worker_reported means the protected process started fine and the tool
         # itself failed — a real failure, not an environment blockage.
         environmental=hasattr(exc,'protected_startup_phase') or \
             (isinstance(exc,WorkerFailure) and getattr(exc,'phase',None)!='worker_reported')
-        if not environmental:raise
         diagnostics=getattr(exc,'startup_diagnostics',{}) or {}
+        evidence.update(status='environment_blocked' if environmental else 'failed',
+                        exception_type=type(exc).__name__,phase=getattr(exc,'phase',None),
+                        diagnostic_id=getattr(exc,'diagnostic_id',None),diagnostics=diagnostics)
+        record()
+        print('Preflight evidence:',str(workspace),flush=True)
+        if not environmental:raise
         for name,entry in diagnostics.get('logs',{}).items():
             tail=entry.get('tail') if isinstance(entry,dict) else None
             if tail:print(f'--- {name} ---\n{tail}',flush=True)
         print('Preflight blocked: 受保护工作进程在当前宿主无法启动（常见于受限令牌或损坏的 venv 启动器），'
               '继续跑测试只会产生同一根因的噪音。请在普通终端或 CI 环境运行闸门。',flush=True)
         raise SystemExit(2)
-    shutil.rmtree(workspace,ignore_errors=True)
+    if report_directory is None:shutil.rmtree(workspace,ignore_errors=True)
 
 
 def gate_modules(root):
@@ -101,7 +113,7 @@ def main():
     try:
         seal_hint(root);gate_modules(root)
         execute(['tools/run_test_suite.py','--profile',profile,'--collect-only','--output',str(report)])
-        summary['phase']='protected_preflight';save();preflight(root)
+        summary['phase']='protected_preflight';save();preflight(root,report)
         for arguments in commands:
             summary['phase']=arguments[0];execute(arguments)
         if (root/'.git').exists():subprocess.run(['git','diff','--check'],cwd=root,check=True)
@@ -113,6 +125,7 @@ def main():
     finally:
         summary['seconds']=time.perf_counter()-started
         summary['artifacts']=[p.name for p in report.glob('*.json') if p!=summary_path]
+        if (report/'preflight.json').exists():summary['preflight']=json.loads((report/'preflight.json').read_text(encoding='utf-8'))
         save()
     print('All checks passed'+(' (full suite)' if options.full else ' (fast regressions)'))
 

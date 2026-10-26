@@ -12,6 +12,7 @@ import sqlite3
 from pathlib import Path
 import uuid
 import time
+from threading import Lock
 
 import jsonschema
 
@@ -21,6 +22,7 @@ from graph_research.runtime.evidence import file_hash
 from .host_events import HostEventStore
 from .task_contract import PROTOCOL,RESULT_SCHEMA,TaskProtocolError,canonical,digest,check_id,validate_task,dispatch_schema
 from .task_control import SubagentLimits,TaskExecutionControl,TaskControlError
+from graph_research.runtime.resources import MAX_SESSION_BYTES
 
 TERMINAL={'completed','partial','analysis_only','failed','blocked','budget_exhausted','rejected','cleared'}
 
@@ -39,15 +41,23 @@ class _Service:
         self.tool_directory=external_directory(tool_directory or self.directory/'tool_packages')
         self.memory_directory=external_directory(memory_directory or self.root/'memory');self.pricing=pricing;self.model_factory=model_factory
         self.limits=limits or SubagentLimits()
-        self.events=HostEventStore(self.root,self.owner_key,event_ttl)
+        if type(event_ttl) is not int or not 1<=event_ttl<=86400:raise ValueError('Event TTL must be1..86400 seconds')
+        self._events=None;self._event_ttl=event_ttl;self._event_lock=Lock()
         self.results_directory=external_directory(results_directory) if results_directory else None
+
+    @property
+    def events(self):
+        if self._events is None:
+            with self._event_lock:
+                if self._events is None:self._events=HostEventStore(self.root,self.owner_key,self._event_ttl)
+        return self._events
 
     def task_dir(self,task_id):return safe_path(self.directory/'tasks'/check_id(task_id),root=self.directory)
     def record_path(self,task_id):return self.task_dir(task_id)/'task.json'
     def task_lock(self,task_id):return exclusive_lock(self.task_dir(task_id)/'.task.lock')
 
     def read(self,task_id):
-        try:record,_=read_json(self.record_path(task_id),max_bytes=2*1024*1024)
+        try:record,_=read_json(self.record_path(task_id),max_bytes=16*1024*1024)
         except (OSError,ValueError):raise TaskProtocolError('task_not_found','当前用户下没有该任务，或任务记录损坏。') from None
         if record.get('owner_key')!=self.owner_key or record.get('task_id')!=task_id:raise TaskProtocolError('task_not_found','当前用户下没有该任务。')
         return record
@@ -62,6 +72,29 @@ class _Service:
 
     def check_host_policy(self,record):
         if not self.limits.accepts(record['policy']):raise TaskProtocolError('host_policy_changed','宿主已收紧执行策略；此任务不能沿用旧权限继续，请重新委派。')
+
+    def resume_event(self,record,event_id):
+        """Shared read-only preflight; resume repeats it under the task lock."""
+        if record['status']=='cleared':raise TaskProtocolError('task_cleared','任务已清理，请在成果中心恢复，不能自动继续。')
+        if (self.task_dir(record['task_id'])/'session/.results-cleanup.json').exists():raise TaskProtocolError('cleanup_in_progress','任务正在清理或需要恢复清理记录。')
+        replay=record['event_receipts'].get(event_id)
+        if replay:
+            if replay['state']=='complete':
+                path=safe_path(self.task_dir(record['task_id'])/replay['path'],root=self.task_dir(record['task_id']))
+                if file_hash(path)!=replay['sha256']:raise TaskProtocolError('response_corrupted','事件对应的返回快照已损坏。')
+            return None
+        self.check_host_policy(record)
+        event=self.events.read(event_id);pending=record.get('pending')
+        if event['task_id']!=record['task_id'] or event['request_sha256']!=record['request_sha256']:raise TaskProtocolError('event_scope_mismatch','用户操作属于另一个任务或另一份输入。')
+        if not pending or event['revision']!=record['revision'] or event['interaction_id']!=pending['interaction_id']:
+            raise TaskProtocolError('stale_interaction','任务已变化，旧回复或旧批准不能继续使用；请重新获取当前交互。')
+        kind=event['kind'];payload=event['payload']
+        if kind not in pending['host_actions']:raise TaskProtocolError('event_not_allowed','当前状态不能使用这类用户操作。')
+        if kind in ('approve','reject') and (payload.get('assessment_id')!=pending['assessment_id'] or payload.get('scope_sha256')!=pending['scope_sha256']):
+            raise TaskProtocolError('approval_scope_mismatch','批准范围或评估ID不一致。')
+        if kind=='approve' and record['usage']['model_calls']>=record['policy']['max_model_calls']:
+            raise TaskProtocolError('task_budget_exhausted','任务模型预算已用尽，批准不能增加预算；请重新委派。')
+        return event
 
     def context(self,record):
         request=record['request']
@@ -78,7 +111,7 @@ class _Service:
     def snapshot_state(self,record):
         path=self.task_dir(record['task_id'])/'session/session.json'
         if not path.is_file():return {},None,None
-        document,_=read_json(safe_path(path),recover=True)
+        document,_=read_json(safe_path(path),recover=True,max_bytes=MAX_SESSION_BYTES)
         exports=document.get('exports',{})
         return document.get('state',{}),exports.get('latest'),exports.get('error')
 
@@ -95,7 +128,7 @@ class _Service:
                 'next_actions':['get','restore_in_results_center','submit_new_task'],'updated_at':record['updated_at']}
         if session is None:state,bundle,export_error=self.snapshot_state(record)
         else:state,bundle,export_error=session.state,session.result_bundle,session.export_error
-        results=[];inline_bytes=0
+        results=[];inline_bytes=0;scientific=[]
         for index,item in enumerate(state.get('observations',[])):
             if 'tool' not in item:continue
             entry={'call_id':f'call-{index+1:04d}','step_id':item.get('step_id'),'tool':item['tool'],'arguments':item.get('arguments',{}),
@@ -110,6 +143,14 @@ class _Service:
                     receipt,_=read_json(receipt_path,max_bytes=1024*1024);entry['measurements']=receipt.get('measurements',{'available':False})
                     if receipt.get('diagnostic_id'):entry['diagnostic_id']=receipt['diagnostic_id']
                     if receipt.get('timings'):entry['timings']=receipt['timings']
+                    archive=data.get('rows_archive') if isinstance(data,dict) else None
+                    if archive and item['tool']=='experiment_search':
+                        pinned=next((a for a in receipt.get('artifacts',[]) if a.get('path')=='outputs/search-rounds.jsonl'),None)
+                        if not pinned or archive.get('path')!=pinned['path'] or archive.get('sha256')!=pinned['sha256'] or archive.get('bytes')!=pinned['bytes']:
+                            raise TaskProtocolError('study_evidence_changed','候选证据附件与固定回执不一致。')
+                        target=safe_path(receipt_path.parent/pinned['path'],root=self.task_dir(record['task_id'])/'session/tasks')
+                        scientific.append({'kind':'scientific_evidence','call_id':entry['call_id'],'path':str(target),
+                            'sha256':pinned['sha256'],'bytes':pinned['bytes'],'mime_type':'application/x-ndjson'})
                 entry['verification']={'level':'host_recorded_execution','receipt_sha256':execution.get('receipt_sha256'),
                                        'meaning':'记录了实际计算；不构成一般数学证明。'}
                 if size+inline_bytes<=1024*1024:entry['data']=data;inline_bytes+=size
@@ -138,18 +179,22 @@ class _Service:
         from .results import export_issues
         missing_exports=export_issues(observations)
         if missing_exports:warnings.append('批量计算已返回原始数值，但部分文件导出未完成；请查看export_status/export_errors，不自动重新计算。')
-        if record['request']['execution']['mode']=='batch':
+        mode=record['request']['execution']['mode'];fixed_plan=None;compiled_batch=None
+        if mode=='batch':
             from .batch_workflow import compile_batch
-            budget['required_tool_attempts']=len(compile_batch(record['request'])['steps'])
-        if record['request']['execution']['mode']=='tools':
+            compiled_batch=compile_batch(record['request']);fixed_plan=compiled_batch['steps']
+        elif mode in ('tools','scan'):
             from .spectral_scan import execution_steps
-            required=len(execution_steps(record['request']))
-            budget['required_tool_attempts']=required
+            fixed_plan=execution_steps(record['request'])
+        if fixed_plan is not None:budget['required_tool_attempts']=len(fixed_plan)
+        if mode=='tools':
+            required=len(fixed_plan)
             if required>policy['max_tool_calls']:
                 warnings.append(f"固定步骤共需{required}次工具尝试，超过预算{policy['max_tool_calls']}；"
                                 "将执行到预算用尽为止，超出步骤不会执行。如需整体拒绝，请在constraints中设置fail_fast=true。")
         if bundle:artifacts.append({'kind':'result_bundle','path':bundle['archive'],'sha256':bundle['sha256'],'summary':bundle['summary'],
             **{k:bundle[k] for k in ('artifact_id','result_id','result_name','project','results_root','availability') if k in bundle}})
+        artifacts.extend(scientific)
         if export_error:warnings.append('计算记录已保留，结果包未完成：'+str(export_error))
         extension=state.get('extension_installed')
         if extension:
@@ -169,19 +214,30 @@ class _Service:
                              'claims':state.get('audited_claims',[]),'reused_calculations':reused,
                              'reuse':{'task_reused':replays,'steps_reused':reused,
                                       'steps_recomputed':sum(1 for o in observations if 'tool' in o and not o.get('reused_execution'))},
-                             'execution_complete':record['status'] in ('completed','partial','analysis_only'), 'mathematical_proof':False,
+                             'execution_complete':record['status'] in ('completed','analysis_only') and failures==0, 'mathematical_proof':False,
                              'phase':record.get('phase',record['status']),'metrics':record.get('metrics',{}),
                              'experience_collection':record.get('experience_collection'),
-                             'output_complete':not missing_exports and failures==0,'export_failures':missing_exports,
+                             'output_complete':not missing_exports and failures==0 and not export_error,'export_failures':missing_exports,
+                             'scientific_evidence_files':len(scientific),
                              'main_agent_token_usage':None,'main_agent_usage_status':'not_supplied_by_trusted_host'},
                   'interaction':pending,'budget':budget,'artifacts':artifacts,'error':record.get('error'),
                   'warnings':warnings,'next_actions':actions,'updated_at':record['updated_at']}
         from .spectral_scan import scan_summary
-        scan=scan_summary(record['request'],state.get('observations',[]))
+        scan=scan_summary(record['request'],state.get('observations',[]),required=len(fixed_plan) if fixed_plan is not None else None)
         if scan is not None:response['summary']['scan']=scan
         from .batch_workflow import summary as batch_summary
-        batch=batch_summary(record['request'],state,record)
+        batch=batch_summary(record['request'],state,record,plan=compiled_batch)
         if batch is not None:response['summary']['batch']=batch
+        from .task_outcomes import fixed_outcomes,expected_outputs
+        coverage,unexecuted=fixed_outcomes(record['request'],results,record['status'],batch,state.get('step_skips'),plan=fixed_plan)
+        if coverage is not None:
+            response['summary']['steps']=coverage
+            response['summary']['execution_complete']=coverage['execution_complete']
+            response['results'].extend(unexecuted)
+            if unexecuted:warnings.append(f'有{len(unexecuted)}个计划步骤没有计算结果；已逐步标记原因，未计入工具调用。')
+        delivery=expected_outputs(record['request'],state,terminal=record['status'] not in ('queued','running','waiting_for_user','waiting_for_approval'));response['summary']['expected_outputs']=delivery
+        if delivery['status']=='not_validated':warnings.append('expected_outputs含文本交付意图，尚未核验；固定步骤可使用{name,step,path}，或batch.outputs声明可核验输出。')
+        if delivery['status']=='missing':warnings.append('存在不可用的结构化交付，请查看summary.expected_outputs.checks。')
         from .counterexample import summary as counterexample_summary
         search=counterexample_summary(state)
         if search is not None:response['summary']['counterexample']=search
@@ -192,11 +248,16 @@ class _Service:
         if state.get('experiment_preparation') is not None:
             response['summary']['experiment']=copy.deepcopy(state['experiment_preparation'])
             response['summary'].update(preparation_complete=True,execution_complete=False,
-                                       output_complete=bool(bundle) and not export_error)
+                                       output_complete=False,output_scope='preparation',preparation_output_complete=bool(bundle) and not export_error)
         if state.get('experiment_execution') is not None:
             experiment=copy.deepcopy(state['experiment_execution']);response['summary']['experiment']=experiment
             response['summary']['execution_complete']=experiment.get('study_complete',experiment['collection_complete'])
             response['budget']['experiment']=experiment['budget']
+        summary=response['summary']
+        successful_plan=coverage['all_succeeded'] if coverage else failures==0
+        if batch is not None:successful_plan=successful_plan and batch['all_outputs_available']
+        summary['computed_outputs_complete']=bool(summary['execution_complete'] and successful_plan and not missing_exports and not export_error)
+        summary['output_complete']=summary['computed_outputs_complete'] and delivery['complete']
         jsonschema.validate(response,RESULT_SCHEMA)
         return self.resolve_artifacts(record,response)
 
@@ -204,7 +265,7 @@ class _Service:
         result=copy.deepcopy(response);session_directory=self.task_dir(record['task_id'])/'session';root=self.results_directory
         manifest=session_directory/'session.json'
         if manifest.is_file():
-            document,_=read_json(manifest,max_bytes=16*1024*1024);root=document.get('exports',{}).get('results_root') or root
+            document,_=read_json(manifest,max_bytes=MAX_SESSION_BYTES);root=document.get('exports',{}).get('results_root') or root
         if not root:return result
         from .result_catalog import resolve_bundle
         for artifact in result.get('artifacts',[]):
@@ -233,10 +294,13 @@ class _Service:
                  'approval_or_budget_required':'blocked','assessment_failed':'failed','extension_failed':'failed','awaiting_assessment':'blocked'}
         mapping.update(counterexample_complete='completed',counterexample_unverified='partial')
         mapping.update(research_complete='completed',research_partial='partial')
-        mapping.update(experiment_complete='completed',awaiting_experiment_review='waiting_for_user',awaiting_experiment_continue='waiting_for_user')
+        mapping.update(experiment_complete='completed',experiment_scope_proposal='analysis_only',awaiting_experiment_review='waiting_for_user',awaiting_experiment_continue='waiting_for_user')
         status=mapping.get(raw,'partial' if failed and successful else 'failed' if failed else 'completed' if successful or state.get('extension_installed') else 'analysis_only')
+        if status in ('completed','analysis_only') and state.get('step_skips'):status='partial' if successful else 'failed'
         if session.export_error and successful and status=='completed':status='partial'
         if raw=='experiment_complete' and failed:status='partial'
+        from .task_outcomes import expected_outputs
+        if status=='completed' and expected_outputs(record['request'],state)['status']=='missing':status='partial'
         record['status']=status;record['phase']='finished' if status in TERMINAL else status;record['pending']=None
         control_error=state.get('control_error')
         if control_error:record['error']={**control_error,'retryable':False}
@@ -253,7 +317,7 @@ class _Service:
             if raw in ('awaiting_experiment_review','awaiting_experiment_continue'):
                 record['pending']={'kind':'experiment_review' if raw=='awaiting_experiment_review' else 'experiment_continue',
                     'interaction_id':uuid.uuid4().hex,'host_actions':['continue'],
-                    'plan':copy.deepcopy(state.get('experiment_review',{})),'message':state['answer'],
+                    'plan':copy.deepcopy(state.get('experiment_plan',state.get('experiment_review',{}))),'message':state['answer'],
                     'requires_trusted_user_event':True}
                 if raw=='awaiting_experiment_continue' and record['request']['execution']['experiment']['operation']=='study':
                     record['pending']['host_actions'].append('study_feedback')
@@ -320,15 +384,8 @@ class _Service:
                     session.state={'question':record['request']['objective'],'conversation':[]};session._begin_turn(record['request']['objective'])
                 raise InterruptedError('Task cancelled before execution')
             if record['request']['execution']['mode']=='experiment':
-                if record['request']['execution']['experiment']['operation']=='prepare':
-                    from .experiment import run_preparation
-                    run_preparation(record,session)
-                elif record['request']['execution']['experiment']['operation']=='study':
-                    from .experiment_study import run_study
-                    run_study(record,session,self.save,self.model,action=action,payload=payload)
-                else:
-                    from .experiment_execution import run_execution
-                    run_execution(record,session,self.save,action=action)
+                from .experiment import run_experiment
+                run_experiment(record,session,self.save,self.model,action=action,payload=payload)
             elif record['request']['execution']['mode']=='counterexample':
                 from .counterexample import run_search
                 run_search(record,session,self.save,self.model,explicit_continue=action=='continue')
@@ -382,8 +439,18 @@ class _Service:
             registry=session._registry();known={}
             from .spectral_scan import execution_steps
             scanning=record['request']['execution']['mode']=='scan'
+            continuing=record['request']['execution'].get('on_error','stop')=='continue_independent'
             for index,step in enumerate(execution_steps(record['request'])):
+                failed=next((o for o in session.state['observations'] if o.get('step_id')==step['id'] and o.get('ok') is False),None)
+                if failed:
+                    if continuing or scanning and record['request']['execution']['scan'].get('continue_on_error',True):continue
+                    break
+                unavailable=[b['step'] for b in step.get('bindings',{}).values() if 'step' in b and b['step'] not in known]
+                if unavailable and continuing:
+                    session.state.setdefault('step_skips',{})[step['id']]='dependency_not_successful: '+','.join(unavailable)
+                    session._save();continue
                 args=copy.deepcopy(step['arguments'])
+                binding_failed=False
                 for parameter,binding in step.get('bindings',{}).items():
                     if 'input' in binding:value=record['request']['inputs'];path=binding['input']
                     else:
@@ -394,15 +461,16 @@ class _Service:
                             if isinstance(value,dict) and isinstance(component,str):value=value[component]
                             elif isinstance(value,list) and type(component) is int:value=value[component]
                             else:raise TaskProtocolError('invalid_binding','绑定路径只能读取JSON对象键或列表索引。')
-                    except (KeyError,IndexError):raise TaskProtocolError('binding_unavailable','前序结果中没有所需的参数绑定路径。') from None
+                    except (KeyError,IndexError):
+                        if continuing:
+                            session.state.setdefault('step_skips',{})[step['id']]='binding_path_unavailable'
+                            session._save();binding_failed=True;break
+                        raise TaskProtocolError('binding_unavailable','前序结果中没有所需的参数绑定路径。') from None
                     args[parameter]=copy.deepcopy(value)
+                if binding_failed:continue
                 for candidate in step.get('_warm_candidates',[]):
                     if candidate in known and known[candidate].get('perron_vector') is not None:
                         args['initial_vector']=copy.deepcopy(known[candidate]['perron_vector']);break
-                failed=next((o for o in session.state['observations'] if o.get('step_id')==step['id'] and o.get('ok') is False),None)
-                if scanning and failed:
-                    if not record['request']['execution']['scan'].get('continue_on_error',True):break
-                    continue
                 previous=next((o for o in session.state.get('observations',[]) if o.get('step_id')==step['id'] and o.get('ok') is True),None)
                 if previous is not None:
                     if previous['tool']!=step['tool'] or canonical(previous['arguments'])!=canonical(args):raise TaskProtocolError('saved_step_changed','保存的步骤与当前固定任务不一致。')
@@ -432,10 +500,15 @@ class _Service:
                 record.pop('inflight_step',None);self.save(record)
                 if not observation['ok']:
                     session.state.update(status='tool_execution_failed',answer='固定步骤执行失败，已保留前序结果；未自动重试。')
+                    if continuing:continue
                     if scanning and step['id']!='scan-graph' and record['request']['execution']['scan'].get('continue_on_error',True):continue
                     break
                 known[step['id']]=observation['result'];record['cursor']=index+1;self.save(record)
-            else:session.state.update(status='tool_results_available',answer='固定计算步骤已完成，结果及执行回执已保存。')
+            else:
+                failed=any(o.get('ok') is False for o in session.state['observations'])
+                skipped=bool(session.state.get('step_skips'))
+                session.state.update(status='tool_execution_failed' if failed or skipped else 'tool_results_available',
+                    answer='固定步骤处理结束；存在失败或跳过步骤，请查看逐步状态，未自动重试。' if failed or skipped else '固定计算步骤已完成，结果及执行回执已保存。')
             session._save();session._finalize_output()
 
 
@@ -490,31 +563,24 @@ class GraphResearchSubagent:
 
     def get(self,task_id):return self._service.result(self._service.read(check_id(task_id)))
 
+    def check_resume(self,task_id,event_id):
+        """Validate without starting a worker, consuming an event or changing budget."""
+        service=self._service;task_id=check_id(task_id);event_id=check_id(event_id)
+        with service.task_lock(task_id):service.resume_event(service.read(task_id),event_id)
+
     def resume(self,task_id,event_id,*,preserve_cancel=False):
         service=self._service;task_id=check_id(task_id);event_id=check_id(event_id)
         with service.task_lock(task_id):
             record=service.read(task_id)
-            if record['status']=='cleared':raise TaskProtocolError('task_cleared','任务已清理，请在成果中心恢复，不能自动继续。')
-            if (service.task_dir(task_id)/'session/.results-cleanup.json').exists():raise TaskProtocolError('cleanup_in_progress','任务正在清理或需要恢复清理记录。')
+            event=service.resume_event(record,event_id)
             replay=record['event_receipts'].get(event_id)
             if replay:
                 if replay['state']!='complete':return service.result(record)
                 path=safe_path(service.task_dir(task_id)/replay['path'],root=service.task_dir(task_id))
-                if file_hash(path)!=replay['sha256']:raise TaskProtocolError('response_corrupted','事件对应的返回快照已损坏。')
                 return service.resolve_artifacts(record,read_json(path)[0])
-            service.check_host_policy(record)
-            event=service.events.read(event_id)
             pending=record.get('pending')
-            if event['task_id']!=task_id or event['request_sha256']!=record['request_sha256']:raise TaskProtocolError('event_scope_mismatch','用户操作属于另一个任务或另一份输入。')
-            if not pending or event['revision']!=record['revision'] or event['interaction_id']!=pending['interaction_id']:
-                raise TaskProtocolError('stale_interaction','任务已变化，旧回复或旧批准不能继续使用；请重新获取当前交互。')
             kind=event['kind'];payload=event['payload']
-            if kind not in pending['host_actions']:raise TaskProtocolError('event_not_allowed','当前状态不能使用这类用户操作。')
-            if kind in ('approve','reject'):
-                if payload.get('assessment_id')!=pending['assessment_id'] or payload.get('scope_sha256')!=pending['scope_sha256']:
-                    raise TaskProtocolError('approval_scope_mismatch','批准范围或评估ID不一致。')
             if kind=='approve':
-                if record['usage']['model_calls']>=record['policy']['max_model_calls']:raise TaskProtocolError('task_budget_exhausted','任务模型预算已用尽，批准不能增加预算；请重新委派。')
                 record['approved_tools'].append(pending['assessment']['request']['name'])
             record['event_receipts'][event_id]={'state':'in_progress'};record['active_event']=event_id
             return service.drive(record,kind,payload,preserve_cancel=preserve_cancel)
@@ -526,7 +592,9 @@ class GraphResearchSubagent:
         from graph_research.runtime.storage import atomic_text
         atomic_text(session_path/'.cancel','cancel',overwrite=True)
         if record['status']=='running':
-            response=service.build_result(record);response['warnings'].append('已请求取消；远程模型请求可能需等待返回或网络超时。');return response
+            response=service.build_result(record)
+            response['warnings'].append('已请求取消；正在等待当前本地计算停止。' if record['policy']['max_model_calls']==0 else '已请求取消；正在等待当前执行停止，进行中的模型请求可能需等待返回或网络超时。')
+            return response
         try:
             with service.task_lock(task_id):
                 record=service.read(task_id)

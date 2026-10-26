@@ -32,6 +32,14 @@ def tex_number(value):
     return "0" if value==0 else np.format_float_positional(value,unique=True,trim="-")
 
 
+def _standalone_document(fragment,*,chinese=False):
+    """Wrap already-rendered source; callers retain their own label detection."""
+    preamble=['% !TeX program = '+('xelatex' if chinese else 'pdflatex'),
+              r'\documentclass[tikz,border=5pt]{standalone}']
+    if chinese:preamble.append(r'\usepackage[UTF8]{ctex}')
+    return '\n'.join(preamble+[r'\begin{document}',fragment,r'\end{document}',''])
+
+
 def _label_offset(h, positions, v):
     neighbors = list(dict.fromkeys(u for e in h.Edges if v in e for u in e if u!=v))
     if not neighbors:
@@ -128,23 +136,23 @@ def hypergraph_to_tikz(h, *, pos=None, standalone=False, vertex_labels=True,
         return fragment
     text = "".join(str(labels.get(v,display_label(v))) for v in h.Vertices) if vertex_labels is not False else ""
     chinese = bool(re.search(r"[\u3400-\u9fff\uf900-\ufaff]",text))
-    preamble = ["% !TeX program = "+("xelatex" if chinese else "pdflatex"),
-                r"\documentclass[tikz,border=5pt]{standalone}"]
-    if chinese:
-        preamble.append(r"\usepackage[UTF8]{ctex}")
-    return "\n".join(preamble+[r"\begin{document}",fragment.rstrip(),r"\end{document}",""])
+    return _standalone_document(fragment.rstrip(),chinese=chinese)
+
+
+def _save_tikz(producer,graph,path,standalone,options):
+    from graph_research.runtime.storage import atomic_text
+    overwrite=options.pop('overwrite',False)
+    path=Path(path)
+    if path.suffix.lower()!='.tex':
+        raise ValueError('TikZ output must use the .tex extension')
+    code=producer(graph,standalone=standalone,**options)
+    atomic_text(path,code,overwrite=overwrite)
+    return path.resolve()
 
 
 @timed('artifact_export')
 def save_hypergraph_tikz(h, path, *, standalone=True, **options):
-    from graph_research.runtime.storage import atomic_text
-    overwrite=options.pop('overwrite',False)
-    path = Path(path)
-    if path.suffix.lower()!=".tex":
-        raise ValueError("TikZ output must use the .tex extension")
-    code = hypergraph_to_tikz(h,standalone=standalone,**options)
-    atomic_text(path,code,overwrite=overwrite)
-    return path.resolve()
+    return _save_tikz(hypergraph_to_tikz,h,path,standalone,options)
 
 
 def graph_to_tikz(graph, *, pos=None, **options):
@@ -177,14 +185,7 @@ def graph_to_tikz(graph, *, pos=None, **options):
 
 @timed('artifact_export')
 def save_graph_tikz(graph,path,*,standalone=True,**options):
-    from graph_research.runtime.storage import atomic_text
-    overwrite=options.pop('overwrite',False)
-    path = Path(path)
-    if path.suffix.lower()!=".tex":
-        raise ValueError("TikZ output must use the .tex extension")
-    code = graph_to_tikz(graph,standalone=standalone,**options)
-    atomic_text(path,code,overwrite=overwrite)
-    return path.resolve()
+    return _save_tikz(graph_to_tikz,graph,path,standalone,options)
 
 
 def _tikz_tool_export(edges,vertices=None,positions=None,edge_labels=False,vertex_labels=True,seed=42,simple=False,graph_document=None):

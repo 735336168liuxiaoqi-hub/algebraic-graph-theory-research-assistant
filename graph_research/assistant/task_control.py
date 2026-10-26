@@ -3,6 +3,7 @@ from dataclasses import dataclass,field,asdict
 
 from graph_research.runtime.runner import TaskLimits
 from .task_contract import TaskProtocolError
+from graph_research.runtime.resources import MAX_TOOL_CALLS
 
 
 class TaskControlError(RuntimeError):
@@ -17,10 +18,12 @@ class SubagentLimits:
     allow_extensions:bool=True
     allowed_tools:tuple|None=None
     tool_limits:TaskLimits=field(default_factory=TaskLimits)
+    confirm_experiments:bool=False
 
     def __post_init__(self):
+        if type(self.confirm_experiments) is not bool:raise ValueError('confirm_experiments must be boolean')
         if type(self.max_model_calls) is not int or not 0<=self.max_model_calls<=40:raise ValueError('Invalid host model-call ceiling')
-        if type(self.max_tool_calls) is not int or not 0<=self.max_tool_calls<=100:raise ValueError('Invalid host tool-call ceiling')
+        if type(self.max_tool_calls) is not int or not 0<=self.max_tool_calls<=MAX_TOOL_CALLS:raise ValueError('Invalid host tool-call ceiling')
         if type(self.allow_extensions) is not bool:raise ValueError('allow_extensions must be boolean')
         if self.allowed_tools is not None and (not isinstance(self.allowed_tools,tuple) or any(not isinstance(n,str) for n in self.allowed_tools)):raise ValueError('Host allowed_tools must be a tuple or None')
 
@@ -32,7 +35,8 @@ class SubagentLimits:
                 'max_tool_calls':constraints.get('max_tool_calls',self.max_tool_calls),
                 'allow_extensions':constraints.get('allow_extensions',self.allow_extensions),
                 'allowed_tools':constraints.get('allowed_tools',list(self.allowed_tools) if self.allowed_tools is not None else None),
-                'tool_limits':asdict(self.tool_limits)}
+                'tool_limits':asdict(self.tool_limits),
+                'confirm_experiments':self.confirm_experiments or constraints.get('require_review',False)}
         for key in ('max_model_calls','max_tool_calls'):
             if policy[key]>getattr(self,key):raise TaskProtocolError('host_limit_exceeded','请求不能提高宿主的调用预算。')
         if policy['allow_extensions'] and not self.allow_extensions:raise TaskProtocolError('host_limit_exceeded','宿主不允许开发扩展。')
@@ -45,9 +49,10 @@ class SubagentLimits:
         if task['execution']['mode']=='experiment' and task['execution']['experiment']['operation']=='study':
             from graph_research.experiments.search_contract import compile_study,OPERATION
             study=compile_study(task['execution']['experiment'])
-            if study['planned_rounds']>policy['max_tool_calls']:raise TaskProtocolError('study_budget_insufficient','搜索轮数超过宿主工具预算，未执行。')
+            if study['planned_calls']>policy['max_tool_calls']:raise TaskProtocolError('study_budget_insufficient','搜索分段超过宿主工具预算，未执行。')
             if study['spec']['planner']=='model' and policy['max_model_calls']<1:raise TaskProtocolError('study_model_disabled','模型规划需要宿主启用模型预算；可选择rules。')
             if study['spec']['budget']['memory_mb']>policy['tool_limits']['memory_mb']:raise TaskProtocolError('host_limit_exceeded','研究内存超过宿主上限。')
+            if study['spec']['cpu_threads']>policy['tool_limits']['cpu_threads']:raise TaskProtocolError('host_limit_exceeded','研究线程数超过宿主上限。')
             if policy['allowed_tools'] is not None and OPERATION not in policy['allowed_tools']:raise TaskProtocolError('tool_not_permitted','宿主白名单未包含experiment_search内部搜索操作。')
             if 'cem' in study['spec']['methods']:
                 from importlib.util import find_spec
@@ -83,6 +88,8 @@ class SubagentLimits:
         return policy
 
     def accepts(self,policy):
+        confirm=policy.get('confirm_experiments',True)
+        if type(confirm) is not bool or self.confirm_experiments and not confirm:return False
         if policy['max_model_calls']>self.max_model_calls or policy['max_tool_calls']>self.max_tool_calls:return False
         if policy['allow_extensions'] and not self.allow_extensions:return False
         if self.allowed_tools is not None and (policy['allowed_tools'] is None or not set(policy['allowed_tools'])<=set(self.allowed_tools)):return False

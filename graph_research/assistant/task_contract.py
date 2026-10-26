@@ -1,12 +1,13 @@
 """Versioned JSON contracts for a local graph-computation subagent."""
 import copy
-import hashlib
 import json
 import re
 
 import jsonschema
 
 from graph_research.errors import TaskProtocolError,schema_protocol_error
+from graph_research.runtime.resources import MAX_WALL_SECONDS,MAX_CPU_SECONDS,MAX_MEMORY_MB,MAX_THREADS,MAX_TOOL_CALLS
+from graph_research.runtime.serialization import canonical_json as canonical, json_fingerprint as digest
 
 PROTOCOL='graph-research-subagent/1'
 IDENTIFIER={'type':'string','pattern':r'^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$'}
@@ -19,17 +20,19 @@ def obj(properties,required=()):
 
 
 TOOL_LIMITS=obj({
-    'wall_seconds':{'type':'number','exclusiveMinimum':0,'maximum':300},
-    'cpu_seconds':{'type':'integer','minimum':1,'maximum':300},
-    'memory_mb':{'type':'integer','minimum':64,'maximum':4096},
+    'wall_seconds':{'type':'number','exclusiveMinimum':0,'maximum':MAX_WALL_SECONDS},
+    'cpu_seconds':{'type':'integer','minimum':1,'maximum':MAX_CPU_SECONDS},
+    'memory_mb':{'type':'integer','minimum':64,'maximum':MAX_MEMORY_MB},
+    'cpu_threads':{'type':'integer','minimum':1,'maximum':MAX_THREADS},
     'max_processes':{'type':'integer','minimum':1,'maximum':8},
 })
 POLICY_SCHEMA=obj({
     'max_model_calls':{'type':'integer','minimum':0,'maximum':40},
-    'max_tool_calls':{'type':'integer','minimum':0,'maximum':100},
+    'max_tool_calls':{'type':'integer','minimum':0,'maximum':MAX_TOOL_CALLS},
     'allowed_tools':{'type':'array','maxItems':128,'uniqueItems':True,'items':{'type':'string','pattern':r'^[a-z][a-z0-9_]{0,63}$'}},
     'allow_extensions':{'type':'boolean'},'tool_limits':TOOL_LIMITS,
     'fail_fast':{'type':'boolean'},
+    'require_review':{'type':'boolean','description':'experiment模式可要求一次初审；不控制检查点反馈，也不能提高宿主资源权限。'},
 })
 JSON_PATH={'type':'array','maxItems':16,'items':{'anyOf':[{'type':'string','minLength':1,'maxLength':128},{'type':'integer','minimum':0,'maximum':100000}]}}
 BINDING={'oneOf':[obj({'step':IDENTIFIER,'path':JSON_PATH},['step','path']),obj({'input':JSON_PATH},['input'])]}
@@ -64,8 +67,9 @@ from graph_research.experiments.research_contract import operation_schema as _ex
 TASK_SCHEMA=obj({
     'version':{'const':1},'request_id':IDENTIFIER,'parent_task_id':IDENTIFIER,'objective':TEXT,
     'inputs':{'type':'object'},'definitions':{'type':'array','maxItems':32,'items':{'type':'string','minLength':1,'maxLength':2000}},
-    'expected_outputs':{'type':'array','maxItems':32,'items':{'type':'string','minLength':1,'maxLength':256}},
-    'execution':obj({'mode':{'enum':['agent','research','tools','scan','batch','counterexample','experiment']},'steps':{'type':'array','minItems':1,'maxItems':100,'items':STEP_SCHEMA},'scan':SCAN_SCHEMA,'batch':BATCH_SCHEMA,'counterexample':_counterexample_schema(),'research':_research_schema(obj),'experiment':_experiment_schema()},['mode']),
+    'expected_outputs':{'type':'array','maxItems':32,'description':'文本项仅表达交付意图，不能自动核验；固定步骤可用{name,step,path}声明可核验输出。','items':{'oneOf':[
+        {'type':'string','minLength':1,'maxLength':256},obj({'name':IDENTIFIER,'step':{'type':'string','minLength':1,'maxLength':128},'path':JSON_PATH},['name','step','path'])]}},
+    'execution':obj({'mode':{'enum':['agent','research','tools','scan','batch','counterexample','experiment']},'on_error':{'enum':['stop','continue_independent'],'description':'仅tools模式：失败后停止或继续无依赖的步骤；与预算准入fail_fast分开。'},'steps':{'type':'array','minItems':1,'maxItems':100,'items':STEP_SCHEMA},'scan':SCAN_SCHEMA,'batch':BATCH_SCHEMA,'counterexample':_counterexample_schema(),'research':_research_schema(obj),'experiment':_experiment_schema()},['mode']),
     'constraints':POLICY_SCHEMA,
 },['version','request_id','objective','execution'])
 
@@ -81,14 +85,6 @@ RESULT_SCHEMA=obj({
 },['protocol','task_id','request_id','parent_task_id','revision','status','terminal','answer','summary','results','interaction','budget','artifacts','error','warnings','next_actions','updated_at'])
 
 
-def canonical(value):
-    return json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)
-
-
-def digest(value):
-    return hashlib.sha256(canonical(value).encode('utf-8')).hexdigest()
-
-
 def validate_task(value):
     try:
         encoded=canonical(value)
@@ -100,6 +96,7 @@ def validate_task(value):
         raise TaskProtocolError('invalid_task','任务输入不符合协议或超过256KiB；身份、密钥、路径和审批字段不能由任务JSON指定。') from None
     result=json.loads(encoded)
     execution=result['execution'];mode=execution['mode']
+    if 'on_error' in execution and mode!='tools':raise TaskProtocolError('invalid_task','execution.on_error仅用于tools；batch使用batch.on_error，scan使用scan.continue_on_error。',field_path=['execution','on_error'])
     if mode=='experiment':
         if set(execution)!={'mode','experiment'}:raise TaskProtocolError('invalid_experiment','实验准备不混用其他模式或固定步骤。')
         from graph_research.experiments.research_contract import validate_experiment
@@ -141,6 +138,15 @@ def validate_task(value):
             if 'step' in binding and binding['step'] not in known:raise TaskProtocolError('invalid_task','参数绑定只能引用前面已经声明的步骤。')
         known.add(step['id'])
     result.setdefault('inputs',{});result.setdefault('definitions',[]);result.setdefault('expected_outputs',[]);result.setdefault('constraints',{})
+    explicit=[(i,o) for i,o in enumerate(result['expected_outputs']) if isinstance(o,dict)]
+    if explicit:
+        if mode not in ('tools','scan','batch'):raise TaskProtocolError('invalid_expected_output','结构化交付仅用于固定tools/scan/batch步骤。',field_path=['expected_outputs'])
+        from .spectral_scan import execution_steps
+        ids={s['id'] for s in execution_steps(result)};names=set()
+        for i,output in explicit:
+            if output['name'] in names:raise TaskProtocolError('invalid_expected_output','结构化交付名称不能重复。',field_path=['expected_outputs',i,'name'])
+            names.add(output['name'])
+            if output['step'] not in ids:raise TaskProtocolError('invalid_expected_output','交付引用了未声明的步骤。',field_path=['expected_outputs',i,'step'])
     return result
 
 

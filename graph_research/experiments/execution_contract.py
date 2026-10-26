@@ -1,11 +1,12 @@
 """Explicit finite candidate collections; prepare is never converted to execute."""
-import hashlib
 import json
 
 import jsonschema
 
 from graph_research.errors import TaskProtocolError,FieldValidationError,schema_protocol_error
 from .research_contract import obj,NAME,NUMBER,PROBLEM_SCHEMA,validate_problem,number,leaves
+from graph_research.runtime.resources import MAX_EVALUATIONS,MAX_WALL_SECONDS,MAX_CPU_SECONDS,MAX_MEMORY_MB
+from graph_research.runtime.serialization import json_fingerprint as digest
 
 
 INTERNAL_OPERATION='experiment_evaluate'
@@ -18,15 +19,12 @@ EXECUTE_SCHEMA=obj({'operation':{'const':'execute'},'problem':PROBLEM_SCHEMA,
     'cases':{'type':'array','minItems':1,'maxItems':32,'items':CASE_SCHEMA},
     'chunk_size':{'type':'integer','minimum':1,'maximum':16},
     'segment_chunks':{'type':'integer','minimum':1,'maximum':256},
-    'budget':obj({'max_evaluations':{'type':'integer','minimum':1,'maximum':1024},
-                  'wall_seconds':{'type':'number','minimum':1,'maximum':3600},
-                  'cpu_seconds':{'type':'integer','minimum':1,'maximum':3600},
-                  'memory_mb':{'type':'integer','minimum':64,'maximum':4096}},
+    'pause_at_checkpoints':{'type':'boolean','description':'明确需要科研反馈时，在segment_chunks个分段后暂停；默认false，与权限审批分开。'},
+    'budget':obj({'max_evaluations':{'type':'integer','minimum':1,'maximum':MAX_EVALUATIONS},
+                  'wall_seconds':{'type':'number','minimum':1,'maximum':MAX_WALL_SECONDS},
+                  'cpu_seconds':{'type':'integer','minimum':1,'maximum':MAX_CPU_SECONDS},
+                  'memory_mb':{'type':'integer','minimum':64,'maximum':MAX_MEMORY_MB}},
                  ['max_evaluations','wall_seconds','cpu_seconds','memory_mb'])},['operation','problem','cases','budget'])
-
-
-def digest(value):
-    return hashlib.sha256(json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
 
 
 def resolve(value,parameters):return number(parameters[value['parameter']]) if isinstance(value,dict) else number(value)
@@ -101,7 +99,7 @@ def validate_execute(value):
                 raise ValueError('独立匹配数核验目前限16顶点。')
         if count>256:raise ValueError('一次执行至多256个明确候选。')
         if count>result['budget']['max_evaluations']:raise ValueError('候选数超过本次评价预算，未执行计算。')
-        result.setdefault('chunk_size',4);result.setdefault('segment_chunks',256)
+        result.setdefault('chunk_size',4);result.setdefault('segment_chunks',256);result.setdefault('pause_at_checkpoints',False)
         return result
     except jsonschema.ValidationError as error:
         raise schema_protocol_error(error,'invalid_experiment_execution','实验执行字段无效。') from None

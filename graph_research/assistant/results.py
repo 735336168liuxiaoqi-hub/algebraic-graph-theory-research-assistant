@@ -21,6 +21,7 @@ import zipfile
 from graph_research.runtime.evidence import file_hash,environment_info
 from graph_research.runtime.storage import safe_path,staged_file,atomic_text,io_path
 from graph_research.runtime.observability import timed
+from graph_research.runtime.serialization import canonical_json as _canonical
 
 MAX_BYTES=256*1024*1024
 MAX_FILE_BYTES=64*1024*1024
@@ -44,10 +45,6 @@ LABELS={'batch_complete':'批量工作流已完成','batch_partial':'批量工�
 
 def _json(value):
     return json.dumps(value,ensure_ascii=False,indent=2,allow_nan=False).encode('utf-8')
-
-
-def _canonical(value):
-    return json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)
 
 
 def export_issues(observations):

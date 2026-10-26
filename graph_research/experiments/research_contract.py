@@ -46,14 +46,14 @@ PREPARE_SCHEMA=obj({'operation':{'const':'prepare'},'problem':PROBLEM_SCHEMA,
     'max_cases':{'type':'integer','minimum':1,'maximum':32},'seed':{'type':'integer','minimum':0,'maximum':2**32-1}},['operation','problem'])
 PLAN_SCHEMA=obj({'format':{'const':FORMAT},'problem_sha256':{'type':'string','pattern':'^[0-9a-f]{64}$'},
     'phase':{'const':'preparation'},'status':{'enum':['draft','needs_clarification','capability_gap']},
-    'executable':{'const':False},'approved':{'const':False},
+    'executable':{'const':False},
     'cases':{'type':'array','maxItems':32,'items':obj({'id':NAME,'parameters':{'type':'object'},
         'derived':{'type':'object'},'feasibility':{'const':'necessary_conditions_only'}},['id','parameters','derived','feasibility'])},
     'issues':{'type':'array','items':obj({'code':NAME,'kind':{'enum':['clarification','capability_gap','notice']},
         'message':{'type':'string'}},['code','kind','message'])},
     'estimate':{'type':'object'},'coverage':{'type':'object'},'capabilities':{'type':'array','items':{'type':'object'}},
     'next_steps':{'type':'array','items':{'type':'string'}},'scientific_results':{'const':False}},
-    ['format','problem_sha256','phase','status','executable','approved','cases','issues','estimate','coverage','capabilities','next_steps','scientific_results'])
+    ['format','problem_sha256','phase','status','executable','cases','issues','estimate','coverage','capabilities','next_steps','scientific_results'])
 FEEDBACK_SCHEMA=obj({'case_id':NAME,'status':{'enum':['planned','running','completed','failed','cancelled','interrupted']},
     'evaluations':{'type':'integer','minimum':0},'feasible_candidates':{'type':'integer','minimum':0},
     'objective_value':{'type':['number','null']},'reward_version':{'type':['string','null'],'maxLength':128},
@@ -64,7 +64,7 @@ CLAIM_SCHEMA=obj({'id':NAME,'statement':{'type':'string','minLength':1,'maxLengt
     'limitations':{'type':'array','items':{'type':'string','maxLength':1000}}},['id','statement','level','scope','evidence_ids','limitations'])
 
 
-def _error(message):raise TaskProtocolError('invalid_experiment',message)
+def _error(message,path=None):raise TaskProtocolError('invalid_experiment',message,field_path=path)
 
 
 def number(value):
@@ -134,24 +134,29 @@ def validate_problem(value):
     if len(predicates)>32:_error('约束最多32个叶节点。')
     signatures={'connected':set(),'hypertree':set(),'clique_free':{'r'},'edge_count':{'value'},'max_degree':{'value'},
                 'max_degree_vertex_count':{'value'},'matching_number':{'value'}}
-    def typed(value,meaning):
+    def typed(value,meaning,label=None,path=None):
+        prefix='' if label is None else label+'：'
         if isinstance(value,dict):
-            if parameters[value['parameter']]['meaning']!=meaning:_error('参数含义与引用位置不一致：'+meaning)
+            if parameters[value['parameter']]['meaning']!=meaning:_error(prefix+'参数含义与引用位置不一致：'+meaning,path)
         else:
             v=number(value)
             if meaning=='alpha':
-                if not 0<=v<=1:_error('alpha须在[0,1]内。')
+                if not 0<=v<=1:_error(prefix+'alpha须在[0,1]内。',path)
             elif v.denominator!=1 or v<0 or (meaning in ('order','uniformity','max_degree_vertices','clique_order') and v<1) or (meaning in ('uniformity','clique_order') and v<2):
-                _error('计数、阶数或一致度数值无效。')
+                _error(prefix+'计数、阶数或一致度数值无效。',path)
     for key,meaning in [('order','order'),('uniformity','uniformity')]:
-        if key in result['object']:typed(result['object'][key],meaning)
-    if result['object']['type']=='simple_graph' and 'uniformity' in result['object']:_error('普通图不另行指定超边一致度。')
+        if key in result['object']:typed(result['object'][key],meaning,key,['object',key])
+    if result['object']['type']=='simple_graph' and 'uniformity' in result['object']:_error('普通图不另行指定超边一致度。',['object','uniformity'])
     for predicate,_ in predicates:
         name=predicate['predicate'];args=predicate.get('arguments',{})
-        if name in signatures and set(args)!=signatures[name]:_error('已有约束的参数名称不符合契约。')
+        if name in signatures and set(args)!=signatures[name]:
+            expected=sorted(signatures[name])
+            _error(f'约束 {name} 的参数须为 {expected or "无参数"}，实际为 {sorted(args)}。',['constraints'])
         meaning={'clique_free':'clique_order','edge_count':'size','max_degree':'max_degree',
                  'max_degree_vertex_count':'max_degree_vertices','matching_number':'matching_number'}.get(name)
-        if meaning:typed(args['r' if name=='clique_free' else 'value'],meaning)
+        if meaning:
+            key='r' if name=='clique_free' else 'value'
+            typed(args[key],meaning,f'约束 {name}.{key}',['constraints',key])
     metric=result['objective']['metric'];arguments=result['objective'].get('arguments',{})
     if metric=='alpha_spectral_radius':
         if set(arguments)!={'alpha'}:_error('alpha_spectral_radius需明确alpha参数。')

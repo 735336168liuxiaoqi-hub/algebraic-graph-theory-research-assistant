@@ -6,7 +6,6 @@ resumption after a crash; restore never executes calculations or resets usage.
 from contextlib import ExitStack
 import copy
 from datetime import datetime,timezone
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -17,6 +16,7 @@ import uuid
 
 from graph_research.runtime.storage import safe_path,read_json,write_json,exclusive_lock
 from graph_research.runtime.evidence import file_hash
+from graph_research.runtime.serialization import legacy_json_fingerprint as _json_hash
 
 BUSY={'running','awaiting_plan','awaiting_clarification','awaiting_approval','awaiting_assessment'}
 
@@ -38,9 +38,6 @@ def _inventory(path,root):
             items.append({'path':relative,'bytes':after.st_size,'sha256':digest})
         else:raise ValueError('不能清理特殊文件。')
     return sorted(items,key=lambda item:item['path'])
-
-
-def _json_hash(value):return hashlib.sha256(json.dumps(value,ensure_ascii=False,sort_keys=True,allow_nan=False).encode('utf-8')).hexdigest()
 
 
 class ResultCleanup:
