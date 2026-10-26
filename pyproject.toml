@@ -7,7 +7,7 @@ name = "graph-research-assistant"
 dynamic = ["version"]
 description = "Algebraic Graph Theory Research Assistant: graph and hypergraph spectra, symbolic computation and visualization"
 requires-python = ">=3.11"
-license = "MIT"
+license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE.md"]
 readme = "README.md"
 dependencies = ["numpy>=1.26,<3", "networkx>=3.2,<4", "sympy>=1.14,<2"]

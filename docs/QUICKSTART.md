@@ -1,6 +1,6 @@
 # Algebraic Graph Theory Research Assistant — User Guide
 
-Prerelease **0.38.0a2**, [MIT licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
+Prerelease **0.38.0a2**, [Apache-2.0 licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
 
 This Python application provides graph and hypergraph computation, symbolic algebra, interactive drawing and research result management. Use the desktop manually, connect a model for research chat, or expose the same computation tools to a host agent through MCP. SageMath and WSL are not required.
 

@@ -2,7 +2,7 @@
   "format": "algebraic-graph-theory-release-rights/1",
   "status": "cleared",
   "public_release_allowed": true,
-  "project_license": "MIT",
+  "project_license": "Apache-2.0",
   "project_name": "Algebraic Graph Theory Research Assistant",
   "intended_repository_name": "algebraic-graph-theory-research-assistant",
   "confirmed_by_owner": true,
@@ -13,9 +13,9 @@
       "redistribution_license": "MIT"
     }
   ],
-  "decision": "Prepare and publish the reviewed source under MIT, retaining original attribution, provenance records and dependency notices.",
-  "confirmation_date": "2026-10-20",
-  "confirmation_basis": "Project owner confirmed authorization to publish the supplied code and adaptations, and explicitly selected MIT when permitted to choose the license.",
+  "decision": "Prepare and publish the reviewed source under the Apache License 2.0, retaining original attribution, the upstream MIT terms recorded for supplied files, provenance records and dependency notices.",
+  "confirmation_date": "2026-10-26",
+  "confirmation_basis": "The project owner confirmed authorization to publish the supplied code and adaptations on 2026-10-20 and initially selected MIT when permitted to choose a license. On 2026-10-26 the owner selected the Apache License 2.0 for the project as a whole. The supplied Sage files keep their recorded MIT redistribution terms and original attribution; the project-wide Apache-2.0 grant does not remove them.",
   "repository_url": "https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant",
   "distribution_scope": "Retained release functionality and corresponding provenance only; removed optional combinatorial implementations/excerpts are not distributed.",
   "repository_visibility": "private"
