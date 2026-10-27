@@ -1,19 +1,19 @@
 # 代数图论科研助手
 
-**Algebraic Graph Theory Research Assistant** · 预发布 **0.38.0a2** · [Apache-2.0](LICENSE) · [English user guide](docs/QUICKSTART.md)
+**Algebraic Graph Theory Research Assistant** · 预发布 **0.38.0a10** · [Apache-2.0](LICENSE) · [English user guide](docs/QUICKSTART.md)
 
 面向图与超图科研的Python计算工具、桌面应用和MCP服务。支持谱与符号计算、鼠标绘图、论文图形导出，以及有限预算内的科研搜索。可以独立使用，也可以接入主agent。无需Java、SageMath或WSL；完整桌面和受保护执行目前在Windows验证。
 
-本地开发版 **0.38.0a10** 沿用预算内直接执行和可选初审／反馈，修正失败后的逐步覆盖与交付核验，并将一致超图邻接／α张量谱接入有限实验搜索。普通任务无批准状态，也不创建事件签名存储。资源保护、多代训练、完整候选证据和必要的真实用户确认保留；当前Release仍为a2，尚未发布本地改动。配置见[MCP](docs/MCP.md#默认自主执行)和[通用实验](docs/EXPERIMENTS.md)。
+**0.38.0a10** 沿用预算内直接执行和可选初审／反馈，修正失败后的逐步覆盖与交付核验，并将一致超图邻接／α张量谱接入有限实验搜索。普通任务无批准状态，也不创建事件签名存储。资源保护、多代训练、完整候选证据和必要的真实用户确认保留。配置见[MCP](docs/MCP.md#默认自主执行)和[通用实验](docs/EXPERIMENTS.md)。
 
 ## 下载与安装
 
 | 下载方式 | 版本与用途 |
 | --- | --- |
-| [v0.38.0a2最新修复版（推荐）](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a2) | 包含最新修复的源码ZIP、wheel、中英文安装指南、验收任务书和校验清单；旧Release已下架 |
+| [v0.38.0a10最新版（推荐）](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a10) | 源码ZIP、wheel、中英文安装指南、验收任务书和校验清单；许可证为Apache-2.0 |
 | [main分支源码ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | 后续开发源码，可能继续更新；使用时核对版本及核心指纹 |
 
-仓库当前为私有，需要获授权的GitHub账号。空电脑先按[新电脑安装步骤](使用指南.md#new-pc-setup)下载并安装64位Python 3.13，再解压完整源码ZIP，在包含`pyproject.toml`的目录打开PowerShell：
+仓库为公开仓库。空电脑先按[新电脑安装步骤](使用指南.md#new-pc-setup)下载并安装64位Python 3.13，再解压完整源码ZIP，在包含`pyproject.toml`的目录打开PowerShell：
 
 ```powershell
 py -3.13 -m venv .venv

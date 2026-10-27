@@ -1,0 +1,101 @@
+{
+  "format": "graph-research-corrected-release-validation/1",
+  "version": "0.38.0a10",
+  "checked_date": "2026-10-28",
+  "source_tag": "v0.38.0a10",
+  "environment": {
+    "python": "3.13.9",
+    "platform": "win32",
+    "verification_used_existing_dependencies": true,
+    "clean_computer_installation_performed": false,
+    "optional_cpu_torch_retested": false
+  },
+  "core": {
+    "ok": true,
+    "manifest_sha256": "127a1be58a4df1f729a3d1d5257c51ab8c3919b7a3f34136b17a46768c943d5d",
+    "files_checked": 242,
+    "missing": 0,
+    "extra": 0,
+    "changed": 0
+  },
+  "full_regression": {
+    "tests": 931,
+    "passed": 931,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "run_date": "2026-10-26",
+    "log_location": "local only, not distributed",
+    "note": "Full acceptance on 2026-10-26 completed 931/931 with 58/58 delivery samples and an unchanged test-ID fingerprint. After the license change the same 931 regressions were run again through the commit hook and passed. This summary is not a fresh full run on 2026-10-28."
+  },
+  "license_change": {
+    "from": "MIT",
+    "to": "Apache-2.0",
+    "license_sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "license_bytes": 11358,
+    "license_lines": 202,
+    "verbatim_official_text": true,
+    "publication_gate": "allowed",
+    "gate_reasons": [],
+    "upstream_mit_terms_preserved": true,
+    "upstream_subject": "Supplied Sage research files bearing Haiying Shan copyright notices",
+    "note": "Project-wide license is Apache-2.0. Supplied files keep their recorded MIT redistribution terms; MIT permits inclusion in an Apache-2.0 work. Published v0.38.0a2 assets remain MIT and that grant is irrevocable."
+  },
+  "installed_wheel": {
+    "version": "0.38.0a10",
+    "wheel_sha256": "177ec358bb94163362036d1ef5f93c4931d1251612cfabf5a470beacff295019",
+    "wheel_bytes": 811872,
+    "installed_to_isolated_target": true,
+    "imported_from_isolated_target": true,
+    "wheel_integrity_ok": true,
+    "license_expression": "Apache-2.0",
+    "bundled_license_bytes": 11358,
+    "bundled_license_sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "sample_checks": [
+      {
+        "check": "C6 characteristic polynomial",
+        "expected": "x**6 - 6*x**4 + 9*x**2 - 4",
+        "actual": "x**6 - 6*x**4 + 9*x**2 - 4",
+        "passed": true
+      },
+      {
+        "check": "single 3-edge hypergraph tensor spectrum, alpha=0",
+        "expected_rho": 1.0,
+        "actual_rho": 1.0000000000005955,
+        "relative_residual": 4.796496533301916e-12,
+        "collatz_interval": [0.9999999999957991, 1.0000000000053924],
+        "passed": true
+      }
+    ]
+  },
+  "verification_scope": {
+    "performed": [
+      "core seal verification before and after the release build",
+      "wheel built from a fresh staged tree with stale-source and required-module assertions",
+      "wheel installed to an isolated target and imported from there, not from the working tree",
+      "bundled LICENSE text identified as the verbatim Apache-2.0 text by sha256",
+      "PEP 639 metadata License-Expression read back from the installed wheel",
+      "two independent numeric calculations executed from the installed wheel",
+      "publication gate tools/check_public_release.py returned allowed with no reasons",
+      "931-test regression suite (see full_regression)"
+    ],
+    "not_performed": [
+      "per-tool verification of all 47 built-in tools from the installed wheel",
+      "desktop GUI walkthrough and MCP client round trip for this build",
+      "optional CPU PyTorch CEM path",
+      "clean-computer installation from the published assets",
+      "remote CI",
+      "paid model API calls"
+    ],
+    "note": "The previous 0.38.0a2 summary recorded a broader installed-wheel checklist. Those results describe that build only and are not restated here as verification of 0.38.0a10."
+  },
+  "remaining_limits": [
+    "Not a standalone Windows installer; the .exe is a project Python launcher and is not Authenticode signed, so Windows may warn about an unknown publisher.",
+    "Commits and tags are not GPG or SSH signed; source integrity is established by the core seal and file digests.",
+    "Finite search and numerical observation do not replace a general mathematical proof.",
+    "Cross-version checkpoints are not guaranteed compatible; do not edit hashes to force recovery."
+  ],
+  "release_tag": "v0.38.0a10",
+  "repository_visibility": "PUBLIC",
+  "previous_release": "v0.38.0a2 remains published with its original MIT assets"
+}
