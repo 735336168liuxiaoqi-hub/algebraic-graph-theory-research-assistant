@@ -247,9 +247,16 @@ class ResearchResourceTests(unittest.TestCase):
         request=task(spec);request['constraints']['max_tool_calls']=50
         limits=SubagentLimits(max_model_calls=0,max_tool_calls=50,allow_extensions=False,
             tool_limits=TaskLimits(wall_seconds=900,cpu_seconds=3600,memory_mb=32768,cpu_threads=4))
-        policy=limits.resolve(validate_task(request));self.assertEqual(policy['tool_limits']['cpu_threads'],4)
-        with self.assertRaises(TaskProtocolError):
+        if TORCH:
+            policy=limits.resolve(validate_task(request));self.assertEqual(policy['tool_limits']['cpu_threads'],4)
+        else:
+            # Admission can only be observed with the optional CEM dependency present; without
+            # it the plan is refused before any budget is consumed, which is the contract here.
+            with self.assertRaises(TaskProtocolError) as denied:limits.resolve(validate_task(request))
+            self.assertEqual(denied.exception.code,'study_dependency_missing')
+        with self.assertRaises(TaskProtocolError) as over_limit:
             SubagentLimits(max_model_calls=0,max_tool_calls=50,allow_extensions=False).resolve(validate_task(request))
+        self.assertEqual(over_limit.exception.code,'host_limit_exceeded')
         with self.assertRaises(ValueError):TaskLimits(wall_seconds=MAX_WALL_SECONDS+1)
         with self.assertRaises(ValueError):TaskLimits(memory_mb=MAX_MEMORY_MB+1)
 

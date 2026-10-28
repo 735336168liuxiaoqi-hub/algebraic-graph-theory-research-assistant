@@ -485,7 +485,7 @@
     "tests/test_release_candidate.py": "f717d852786ae8a2778a705e6bfcddaea2f312211e61c995c93948001ff853ed",
     "tests/test_research_additions.py": "b5aba79950401bf82a3ffd9aff8614d76090ee40061569d7d242896007278e7f",
     "tests/test_research_planning.py": "50a7599934de287759933c9f5017424759adbba89bfe9d6667c9e834c773672b",
-    "tests/test_research_runtime.py": "5deac00109e28d07bb9e355c137ee5383d7e71b2147a3c10db1ef045a6fe321b",
+    "tests/test_research_runtime.py": "87a4f0b5e8d91f278246eb98b960bb0401498cce42f0453dbdb0027c98716804",
     "tests/test_research_workflows.py": "3d2d34a298fee10c22ba1775659ee3c9cf8380374ad702315f0786585d8703ff",
     "tests/test_result_catalog.py": "4cdde3b57d745b56e99f810c8c0131fcdefacb2fe5f69416a38e5eb399533abb",
     "tests/test_result_cleanup.py": "a067410ede49a17e0c299ed89baeae6b35336f38031c121d77c84fdbfd88ddea",
