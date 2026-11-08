@@ -89,6 +89,22 @@ study可由规则提出初始参数实例，无需先给出所有数值；规则
 | 取已发布安装材料 | `dist/latest/`，与本地开发版分别核对版本 |
 | 开发维护 | `graph_research/`源码、`tests/`回归、`tools/`维护脚本，见[开发说明](docs/DEVELOPMENT.md) |
 
+## 根目录脚本一览
+
+根目录的脚本各有单一用途，都是发布包的一部分，不要删除或改名：
+
+| 文件 | 作用 | 怎么用 |
+| --- | --- | --- |
+| `start-desktop.cmd` | 桌面主入口 | 双击 |
+| `algebraic graph theory research assistant.exe` | 同上，无控制台窗口 | 双击 |
+| `start-assistant.cmd` | 接入主agent（`graph_research connect`） | 双击后按提示操作 |
+| `start-offline.cmd` | 离线工具模式（`graph_research offline`） | 双击 |
+| `check.cmd` | 运行质量闸门 | 双击，或 `check.cmd --full --strict-lock` |
+| `run-demo.ps1` | 命令行演示入口 | `powershell -File run-demo.ps1` |
+| `assistant.py` | Python 兼容入口 | `python assistant.py` |
+
+这些文件名被 `tools/prepare_public_release.py` 的发布白名单固定；`test_workflow.py` 是根目录测试模块，列在 `tests/gates.json` 的 `root` 组中，改动会改变测试清单与指纹。需要收敛入口时，应同时修改白名单、测试清单、相关文档并重跑全量检查，不要单独删文件。
+
 历史验收、构建和临时探针集中在项目旁的“科研助手历史归档”，不混入当前使用材料；目录对照从outputs说明进入。`.venv`、`tool_packages`和带回执的任务目录由程序管理。
 
 许可及来源见[LICENSE](LICENSE)、[NOTICE](NOTICE.md)和[授权记录](LICENSE-STATUS.md)。[源码迁移记录](docs/provenance/README.md)用于维护追溯；研究数据、密钥、虚拟环境及本地过程记录不随源码分发。

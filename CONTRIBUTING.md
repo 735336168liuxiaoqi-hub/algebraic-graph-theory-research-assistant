@@ -18,4 +18,4 @@ python -X utf8 tools/checks.py --full --strict-lock
 
 Intentional core changes require maintainer review and an updated integrity inventory through tools/seal_release.py, followed by checks. Do not regenerate a manifest to hide corruption. Tests use simulated model clients; do not call paid services without an explicit test scope.
 
-Explain the concrete problem, resulting behavior and validation in pull requests. Keep unrelated refactors, personal outputs, environments and secrets out of commits. Contributions use the project's [MIT License](LICENSE), retaining applicable attribution.
+Explain the concrete problem, resulting behavior and validation in pull requests. Keep unrelated refactors, personal outputs, environments and secrets out of commits. Contributions use the project's [Apache License 2.0](LICENSE), retaining applicable attribution.
