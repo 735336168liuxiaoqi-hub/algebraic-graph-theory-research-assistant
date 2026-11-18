@@ -81,6 +81,13 @@ class ReleaseCandidateTests(unittest.TestCase):
 
     def test_clean_source_export_excludes_private_state_and_keeps_research_history(self):
         root=Path(__file__).resolve().parents[1];selection=selected_files(root)
+        with tempfile.TemporaryDirectory() as directory:
+            fixture=Path(directory)
+            public='docs/topic.md'
+            for name in (public,'docs/topic.md~','tools/.env.local','docs/.idea/settings.json',
+                         'examples/offline-inputs.zip','tests/debug.log','tools/foo.egg-info/PKG-INFO'):
+                path=fixture/name;path.parent.mkdir(parents=True,exist_ok=True);path.touch()
+            self.assertEqual(set(selected_files(fixture)),{public})
         self.assertIn('docs/provenance/migration_catalog.json',selection)
         self.assertIn('docs/provenance/MIGRATION.md',selection);self.assertIn('NOTICE.md',selection)
         for name in ('使用指南.md','docs/README.md','start-desktop.cmd','algebraic graph theory research assistant.exe','graph_research/desktop/graph_actions.py','LICENSE','docs/releases/CURRENT.md','docs/QUICKSTART.md','docs/WORKFLOW.md','docs/diagrams/workflow-overview.svg'):

@@ -13,6 +13,7 @@
 | [MCP接入](MCP.md) | 交给主agent调用、配置预算、查询任务、处理用户交互 |
 | [批量任务](BATCH.md) | 多案例计算、步骤绑定、失败处理与汇总 |
 | [通用科研实验](EXPERIMENTS.md) | 阶段1～7：有限搜索、可选CPU CEM、受控规划／反馈、结构观察与假设反驳 |
+| [反例搜索与独立核验](COUNTEREXAMPLE_SEARCH.md) | 提交专用搜索任务、核验候选并判断结论的适用范围 |
 | [成果与记忆](RESULTS_AND_MEMORY.md) | 打包一轮研究、成果清理与恢复、偏好与经审阅经验 |
 | [独立扩展工具库](EXTENSIONS.md) | 评估缺口、用户审批、增加工具与版本管理 |
 | [工作流程图](WORKFLOW.md) | 三种入口、执行、审批与成果如何连接 |
@@ -31,6 +32,4 @@
 | [源码迁移与来源](provenance/README.md) | 追溯原始定义、摘要、Python映射与授权 |
 | [English user guide](QUICKSTART.md) | Capabilities, installation, three modes, graphics, results, memory, extensions and troubleshooting |
 
-当前功能和操作以首页、使用指南、工具契约为准。迁移台账不代表功能待办；生成的参数手册不手工重复维护。历史计划和过程记录不随当前源码分发。
-
-- [反例搜索与独立核验](COUNTEREXAMPLE_SEARCH.md)：专用子任务、规则/模型策略、严格核验与科研边界。
+生成的参数手册以工具定义为准；迁移台账记录历史来源。交付前可按[本地验收清单](reference/LOCAL_ACCEPTANCE.md)复验。

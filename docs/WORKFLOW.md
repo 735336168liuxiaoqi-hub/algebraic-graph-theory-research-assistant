@@ -1,12 +1,12 @@
 # 工作流程
 
-当前本地开发源码为0.38.0a9。总览展示三种入口，下文分别说明通用study闭环和实际LangGraph计划节点。两者共享任务治理及计算核心；数学前提、输入规模和返回字段以具体契约为准。
+从[三种模式总览](#1-三种模式总览)选择入口；要了解有限搜索、任务审批或模型规划，再查看相应分支。当前版本和交付范围见[版本说明](releases/CURRENT.md)。
 
-MCP新待办自动显示原生“任务审批”，优先复用用户会话中的主桌面。用户查看计划和预算，点击后由窗口签发事件；有编辑的参数自动随主按钮提交。原MCP进程继续，主agent按原task_id查询。study可把多代训练合并到同一个保护进程，完整证据流式保存、按段恢复。该分支不增加LangGraph节点；独立research_development仍用专用可信审批入口。
+任务需要用户审批时，桌面显示计划和预算。用户确认后，原MCP进程验证该次操作，再继续执行；主agent用原task_id查询。无需审批的任务直接按预算执行。独立research_development使用专用审批入口。
 
 ```mermaid
 flowchart LR
-    A[主agent提交MCP任务] --> P[保存计划并等待用户]
+    A[任务需要审批] --> P[保存计划并等待用户]
     P --> U[桌面任务审批：查看范围和预算]
     U -->|真实点击| S[签名事件存入待投递队列]
     S --> H[原MCP进程：验证用户、交互版本及范围]
@@ -20,7 +20,7 @@ flowchart LR
 
 ## 通用实验分支
 
-阶段1～7的experiment复用持久化、保护进程和证据。prepare只准备问题，execute评价明确候选，study在固定有限范围安排搜索、CEM及假设检验。a9由单一实验入口处理身份和可选确认，计算引擎不维护批准状态；主流程如下。
+prepare只准备问题，execute评价明确候选，study在固定范围内安排搜索、CEM及假设检验。实验入口检查身份并处理可选确认，计算引擎不维护批准状态。
 
 ```mermaid
 flowchart TD
@@ -102,7 +102,7 @@ flowchart TD
 
 独立核验是execute调用的受保护工具，例如graph_property_verify；它不是额外的图节点。范围、预算和计划检查分别位于计划准备、执行及治理层；连续分页覆盖、精确计数和复核记录在研究汇总层核对。research模式拒绝计划外直接计算；图中直接调用分支用于普通对话模式。
 
-这张状态图由当前路由代码核对，单独维护为[Mermaid源码](diagrams/langgraph-research.mmd)，不属于下方旧版四张用户流程图片的生成数据。科研模式操作见[科研实验规划与执行](RESEARCH_PLANNING.md)。
+该状态图对应当前路由代码，另附[Mermaid源码](diagrams/langgraph-research.mmd)。科研模式操作见[科研实验规划与执行](RESEARCH_PLANNING.md)。
 
 ## 1. 三种模式总览
 
@@ -120,7 +120,7 @@ flowchart TD
 
 普通图和一般超图均可画结构；张量谱及张量特征多项式按一致超图及对应工具的其他条件执行。论文符号示意图中的省略路不等于已确定顶点/边数量的数值计算图，需明确参数后展开。
 
-[总览PNG](diagrams/workflow-overview.png) · [Mermaid源码](diagrams/workflow-overview.mmd) · [本地工具与图输入](GRAPHICS.md)
+[本地工具与图输入](GRAPHICS.md)
 
 ## 2. API科研对话
 
@@ -134,7 +134,7 @@ flowchart TD
 
 预算用尽、取消或失败时保留已有记录，导出状态另行显示；需要继续时按实际状态和用户操作恢复，不静默重试或重置预算。新增工具另走第4节的评估与审批。
 
-[API流程PNG](diagrams/workflow-api.png) · [Mermaid源码](diagrams/workflow-api.mmd) · [模型设置](API.md) · [API任务与对象绑定](API.md)
+[模型设置与API任务](API.md)
 
 ## 3. MCP委派
 
@@ -161,7 +161,7 @@ flowchart TD
 
 **新工具开发使用独立的research_development流程，开发批准不通过research_resume。** 主agent先提交评估，用户在可信入口批准范围，再由模型提交实现；详见下一节与[通用MCP接入](MCP.md)。
 
-[MCP流程PNG](diagrams/workflow-mcp.png) · [Mermaid源码](diagrams/workflow-mcp.mmd) · [接入与结果字段说明](MCP.md) · [批量工作流](BATCH.md)
+[接入与结果字段说明](MCP.md) · [批量工作流](BATCH.md)
 
 ## 4. 新工具引入
 
@@ -175,7 +175,7 @@ flowchart TD
 
 默认离线工具只调用已登记工具，不会自行生成新代码。MCP开发能力需要宿主显式启用；工具列表可发现不代表用户已批准开发。
 
-[扩展流程PNG](diagrams/workflow-extension.png) · [Mermaid源码](diagrams/workflow-extension.mmd) · [独立扩展与工具库](EXTENSIONS.md)
+[独立扩展与工具库](EXTENSIONS.md)
 
 ## 5. 记忆、证据与成果在流程中的位置
 
@@ -194,6 +194,10 @@ flowchart TD
 
 ## 6. 图示与文档维护
 
-本页的SVG用于GitHub和缩放阅读，PNG用于下载与展示，Mermaid用于原生渲染和编辑。三者由同一份[流程数据](diagrams/workflows.json)生成，英文总览与中文总览使用相同节点与连线。
+中英文总览、API、MCP与扩展流程图共用一份[流程数据](diagrams/workflows.json)。修改节点、连线、标签或位置后，在装有桌面依赖和中文字体的环境中，从项目根目录运行：
 
-维护时按实际实现更新流程数据，再按[图示维护说明](diagrams/README.md)重建并检查。发布状态和许可仍以项目的[许可记录](../LICENSE-STATUS.md)为准。
+```powershell
+python docs/diagrams/render_workflows.py
+```
+
+该命令重建本页引用的SVG和[Mermaid图集](diagrams/MERMAID.md)，并检查节点边界、重叠与文字宽度。修改后打开SVG核对连线和标签。要在幻灯片中使用PNG或单独导出Mermaid源码，可在同一命令末尾添加 `--export-dir tmp/workflow-exports`，导出文件无需提交。

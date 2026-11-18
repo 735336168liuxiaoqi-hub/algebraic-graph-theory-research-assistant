@@ -1,18 +1,10 @@
 # Algebraic Graph Theory Research Assistant — User Guide
 
-Prerelease **0.38.0a10**, [Apache-2.0 licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
+Prerelease **0.38.0a11**, [Apache-2.0 licensed](../LICENSE). [中文使用指南](../使用指南.md) · [Project home](../README.md)
 
 This Python application provides graph and hypergraph computation, symbolic algebra, interactive drawing and research result management. Use the desktop manually, connect a model for research chat, or expose the same computation tools to a host agent through MCP. SageMath and WSL are not required.
 
-The experiment workflow supports finite studies, traditional searches, optional CPU CEM, bounded scheduling, feedback and hypothesis checks. Rules need no model API; model scheduling is optional. Local development version **0.38.0a10** runs within host budgets by default, with initial confirmation and checkpoint feedback requested separately. It checks planned-step coverage, reports skipped steps, validates explicit output paths and supports adjacency/alpha tensor objectives for uniform hypergraphs. Protected execution, independent verification and persistent budgets remain in force. Published download assets remain a2 until a new release. See [Research experiments](EXPERIMENTS.md#english).
-
-The desktop supports **Simplified Chinese and English**. Open **语言 / Language** at the top and select **English** or **简体中文**. This guide retains Chinese labels alongside English meanings so it also works when the interface is in Chinese.
-
-The menu switches open UI labels and built-in tool help immediately and saves the selection for the next launch. Form/JSON drafts, model settings and running calculations are preserved. Switching sends no model request and does not recompute anything.
-
-Preferences are saved in `~/.graph_research/desktop-language.json`. For a one-launch override, run `python -m graph_research desktop --language en` or `--language zh`; this does not automatically overwrite the saved selection.
-
-User input, graph names/vertex labels, raw JSON, code, model replies and historical record contents remain in their original language. UI language does not alter user-memory preferences for model answers, mathematical parameters or budgets. Custom third-party extension text retains recognizable original names. Standard buttons in native OS file dialogs can follow the operating-system language. Restart after upgrading to load the new menu.
+On Windows, use **语言 / Language** to switch between English and Simplified Chinese. The choice is saved in `~/.graph_research/desktop-language.json`. To override it for one launch, run `python -m graph_research desktop --language en` or `--language zh`. Switching leaves drafts, running calculations, model replies and research data untouched.
 
 ## 1. Capabilities and usage modes
 
@@ -26,7 +18,9 @@ User input, graph names/vertex labels, raw JSON, code, model replies and histori
 
 There are **47 built-in computation tools**. The desktop groups some drawing/layout/export operations beside the relevant graph. All three modes share tool definitions and the protected computation core.
 
-Development source adds [counterexample search and independent verification](COUNTEREXAMPLE_SEARCH.md) for connected unweighted undirected simple graphs with fixed vertex/edge counts, up to **128 vertices and 1024 edges**. Rules-based search needs no model API. Verification uses exact characteristic polynomials up to 12 vertices and independently checked rational spectral bounds for larger graphs; unresolved comparisons remain unverified.
+<a id="counterexample-search"></a>
+
+The release includes [counterexample search and independent verification](COUNTEREXAMPLE_SEARCH.md#english-summary) for connected unweighted undirected simple graphs with fixed vertex/edge counts, up to **128 vertices and 1024 edges**. Rules-based search needs no model API. Verification uses exact characteristic polynomials up to 12 vertices and independently checked rational spectral bounds for larger graphs; unresolved comparisons remain unverified.
 
 | Mode | Start here | Assistant model API required? |
 | --- | --- | --- |
@@ -38,23 +32,19 @@ Development source adds [counterexample search and independent verification](COU
 
 Non-uniform hypergraphs can be drawn. Hypergraph tensor-spectrum tools enforce uniformity and their other mathematical conditions. Exact elimination, enumeration and numerical calculations have tool-specific limits; an unresolved or unconverged result is not a proof or a counterexample.
 
-The 0.38.0a2 source and wheel include [model research planning](RESEARCH_PLANNING.md) and [general experiments](EXPERIMENTS.md). The desktop Research experiment switch uses the model planning workflow. The separate prepare/execute/study workflow is available through CLI, Python and MCP; its dedicated desktop form is not yet implemented.
+The 0.38.0a11 source and wheel include [model research planning](RESEARCH_PLANNING.md) and [general experiments](EXPERIMENTS.md). The desktop Research experiment switch uses the model planning workflow. The separate prepare/execute/study workflow is available through CLI, Python and MCP; its dedicated desktop form is not yet implemented.
 
 ## 2. Download and install
 
 ### Choose a package
 
-For a new installation, download the **v0.38.0a2 corrected source ZIP**. It includes the file-publication, startup-diagnostic, input-validation and fresh-computer guidance fixes. This is the only retained GitHub Release; main remains the evolving development branch. Older Release assets have been removed, while source history and provenance are retained.
-
-Both packages include the new counterexample-search tools. Source is also available as a [main branch ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip).
-
-Use the [v0.38.0a2 prerelease page](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a2). While the repository is private, sign in with an authorized GitHub account.
+For a new installation, use the fixed **v0.38.0a11 source ZIP** from the public [release page](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a11). The wheel is an alternative for an existing Python environment. See the [release notes](releases/CURRENT.md) for validation and earlier versions, including a10 and a2 for reproducing old environments.
 
 | Asset | Intended use |
 | --- | --- |
-| [Current main source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | Evolving development source; the fixed Release below already contains the current corrections |
-| [0.38.0a2 source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a2/algebraic-graph-theory-research-assistant-0.38.0a2-source.zip) | Recommended corrected release with source, guides and launchers |
-| [0.38.0a2 Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a2/graph_research_assistant-0.38.0a2-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
+| [Current main source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/archive/refs/heads/main.zip) | Evolving development source |
+| [0.38.0a11 source ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a11/algebraic-graph-theory-research-assistant-0.38.0a11-source.zip) | Recommended fixed release with source, guides and launchers |
+| [0.38.0a11 Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a11/graph_research_assistant-0.38.0a11-py3-none-any.whl) | Install with pip into an existing Python/Conda environment |
 | INSTALL_CN.md / INSTALL_EN.md / LOCAL_TEST_PLAN_zh.md | Standalone installation guides and the local agent test plan |
 | `SHA256SUMS.txt` / `RELEASE_VALIDATION.json` | Checksums and validation evidence; these are not installers |
 
@@ -64,7 +54,7 @@ Expand **Assets** at the bottom of the release page. Download one application pa
 
 The complete desktop and protected workflow are validated on Windows. Use **64-bit Python 3.11+**; Python 3.13 is recommended for this release.
 
-1. Sign in to GitHub with an authorized account. On the project page select `main` → **Code** → **Download ZIP**, then extract the whole ZIP. Git is not required. A 404 may indicate missing repository access.
+1. Download the recommended v0.38.0a11 source ZIP from the table above, then extract the whole ZIP. Use the `main` ZIP if you need the development branch. Neither download requires Git.
 2. Use a short, writable path such as `C:\Research\agt-assistant`. The actual project directory must contain `pyproject.toml`, `graph_research`, `tools` and `start-desktop.cmd`; do not run inside the archive or move only the executable.
 3. On the [official Python Windows page](https://www.python.org/downloads/windows/), select **Python 3.13.x → Windows installer (64-bit)** for a regular Intel/AMD x64 Windows PC. Use the normal installer rather than an embeddable, source, 32-bit, ARM64 or experimental free-threaded distribution. The local verification baseline was 3.13.9; the website's latest-version button may select another series.
 4. Run the installer, enable **Add python.exe to PATH** and install for the current user. Close old terminals, open PowerShell from Start and check `py -3.13 --version`. If only `python --version` works and reports 3.13.x, use `python` instead of `py -3.13` below. If neither works, resolve installation/PATH first; see the [official Windows guide](https://docs.python.org/3/using/windows.html).
@@ -107,11 +97,11 @@ For editable development, use `python -m pip install -e ".[all]"`. Ordinary use 
 Download the wheel through your browser. From its directory, use the Python environment you selected:
 
 ```powershell
-python -m pip install ".\graph_research_assistant-0.38.0a2-py3-none-any.whl[all]"
+python -m pip install ".\graph_research_assistant-0.38.0a11-py3-none-any.whl[all]"
 python -m graph_research desktop
 ```
 
-A wheel is not a double-click application. pip does not inherit browser authentication, so use the local downloaded file for a private repository. For base library use, omit `[all]`; optional extras are `visual`, `tools`, `desktop`, `assistant`, `mcp` and `search`. PyTorch is optional and excluded from `[all]`.
+A wheel is not a double-click application. For base library use, omit `[all]`; optional extras are `visual`, `tools`, `desktop`, `assistant`, `mcp` and `search`. PyTorch is optional and excluded from `[all]`.
 
 ### Optional CPU PyTorch for CEM
 
@@ -130,9 +120,7 @@ The locally verified version is 2.14.0+cpu from the [official CPU source](https:
 
 Run the first five-vertex path calculation in section 3: expect 5 vertices, 4 edges and diameter 4. This checks real protected computation; opening a window alone does not verify worker startup.
 
-- Manual local tools: use section 3 without model credentials.
-- Research chat: configure a model service, model ID and local key using section 4. Installing Python does not provide a model service.
-- Host-agent integration: follow section 5. Generate MCP configuration on the new computer so it contains the new interpreter path: `.\.venv\Scripts\python.exe -m graph_research mcp-config --root C:/Research/agt-state --user researcher`. This prints configuration; it does not install/configure the host. Fixed tools and rules studies default to zero internal model calls; CEM additionally needs the dependency above. Verify a P3 diameter task before a longer study.
+To use chat, configure a model as described in section 4. To delegate from a host agent, generate the MCP configuration on the new computer and verify the three-vertex path example in section 5.
 
 ## 3. Local tools — no model API
 
@@ -224,17 +212,9 @@ For terminal use, run `python -m graph_research connect`. Configuration commands
 
 ## 5. MCP delegation from a host agent
 
-Local a9 defaults CLI, MCP and Python to direct execution after input, permission and budget checks. There is no ordinary-task approved flag or automatic-approval certificate. Limits remain enforced; model planning within an already authorized model budget does not trigger another review. Real mathematical ambiguity, new-tool development, uncertain retries and irreversible actions remain interactive.
+Fixed tools, batch jobs and experiments run after input, permission and budget checks. Request a one-time review with `constraints.require_review` or `--confirm-experiments`; set `pause_at_checkpoints` separately to ask for feedback between segments. A confirmation cannot raise a host limit.
 
-Use --confirm-experiments or task constraints.require_review only for an explicitly requested one-time review. Use experiment pause_at_checkpoints separately for scientific feedback; segment intervals alone do not pause. Old review-policy flags are entry adapters, not a second engine mode. Save connection snippets using mcp-config --output for direct UTF-8 output.
-
-**Local a9 opens Task approvals automatically for a new pending interaction on an interactive Windows host.** It first reuses an already open user-session desktop and selects the correct task; otherwise the persistent MCP service launches a compact window with its fixed root/user. No extra terminal command, manual Connect click or event-ID copy is needed. Review the plan and click to confirm. If guidance fields or a feedback note were edited, the single primary button becomes **Apply feedback and continue** and sends those edits; reset only discards the edits and does not execute. The parent agent keeps querying the original task ID. Restart the updated MCP connection and desktop before testing, using new tasks; old-core checkpoints are read-only.
-
-Pending tasks are shown by default, with title/request/task-ID search and an optional history view. An unknown user produces a clear error without creating an empty user namespace; user is the MCP user string, not the storage hash. Native callbacks are queued to the GUI thread and retain their thread objects until exit. Qt/native diagnostics go to `~/.graph_research/logs/desktop.log`, with a TEMP fallback if needed. MCP launch diagnostics are stored under the user's `mcp/approval-ui-bootstrap.log`.
-
-The window only signs after a human click; refresh is read-only. It keeps host limits and identity, rejects stale confirmations, and never retries failed computations automatically. It supports MCP task-protocol reviews, answers and approvals; independent CLI jobs and `research_development` requests retain their dedicated trusted interfaces. Closing the window does not cancel an already confirmed task. See [MCP details](MCP.md#桌面任务审批).
-
-Manual fallback remains `python -m graph_research approvals --root D:/Research/mcp-state --user researcher`. Native UI requires desktop dependencies; headless/offscreen hosts do not auto-open it. A host may forcibly reclaim GUI children: no breakaway/detached/WMI workaround is used. A normally launched, already open user-session desktop can receive later approval requests without an agent launching a new GUI for every task. Same-interaction polling never repeatedly opens windows after a normal user close; one bounded UI-only reopen is allowed after an unexpected exit, never a calculation retry.
+When a task needs your input on an interactive Windows host, the service reuses the open desktop or opens **Task approvals**. Review the task, make any edits, then choose **Apply feedback and continue**. The host keeps querying the same task ID. To open the window manually, run `python -m graph_research approvals --root D:/Research/mcp-state --user researcher` with your connection’s root and user. Independent CLI jobs use the trusted interface shown below. See [MCP details](MCP.md#桌面任务审批) for headless operation and troubleshooting.
 
 ### Long research and resource profiles
 
@@ -283,25 +263,25 @@ Enable `--allow-development` explicitly for host-requested new tools. Real-user 
 
 See [MCP](MCP.md), [batch workflows](BATCH.md) and [host protocol](reference/SUBAGENT.md), currently in Chinese, for schemas, user events and recovery. MCP discovery, protection and result handling add overhead; lower time/token use than direct Python is not guaranteed.
 
-### Reviewed studies: evaluate or search
+### Experiments: evaluate or search
 
 | Operation | Purpose | Model API |
 | --- | --- | --- |
 | prepare | Propose finite cases and report ambiguities/capability gaps; no calculation | Not needed |
-| execute | Evaluate explicitly supplied graph/hypergraph candidates after user review | Not needed |
+| execute | Evaluate explicit candidates within budget; initial review is optional | Not needed |
 | study | Generate and search candidates, diagnose, optionally train CEM and test formal hypotheses | Rules need none; internal model scheduling is optional |
 
-General and uniform hypergraphs may contain cycles; hypertrees are optional constraints. Current hypergraph study objectives are distance spectral radius and edge count. Existing tensor tools have separate uniformity and verification requirements.
+General hypergraph studies can compare distance spectral radius or edge count. Uniform hypergraphs also support adjacency and alpha tensor spectral radii. Cycles are allowed unless the experiment specifies a hypertree constraint.
 
-For an MCP-hosted study, submit the corresponding `clique-free-study.json` task body and confirm in **Task approvals**, then keep querying the same task ID. No manual event-ID transfer is needed.
+For an MCP example, submit the `clique-free-study.json` task body and query its task ID until a result or a user interaction arrives. Open **Task approvals** only if the task requests input.
 
 <details>
 <summary>Advanced: standalone CLI and compatible event interface</summary>
 
-Start a model-free standalone CLI example from the source directory; this entry retains its original trusted-user interface:
+The standalone CLI also runs within budget by default. This example explicitly requests one initial review:
 
 ```powershell
-.\.venv\Scripts\python.exe -X utf8 -m graph_research subagent --root D:/Research/study-state --user researcher --input examples/research-experiments/clique-free-study-request.json
+.\.venv\Scripts\python.exe -X utf8 -m graph_research subagent --root D:/Research/study-state --user researcher --confirm-experiments --input examples/research-experiments/clique-free-study-request.json
 ```
 
 The first response is waiting_for_user and performs zero search calls. Review the proposed cases, methods, seeds, rounds and cumulative budget. After a real user decides to continue, substitute the returned IDs and revision:
@@ -324,7 +304,7 @@ At segment pauses, the trusted user may continue or provide study-feedback withi
 
 </details>
 
-Other examples cover cyclic hypergraphs, hypertrees and optional CPU CEM. Scheduling/refinement stays inside the reviewed finite grid; expanding the mathematical scope or budget requires a new review. Bundles preserve raw objectives separately from training guidance, verified instances, checkpoints, structural observations, hypothesis witnesses and proof gaps. CEM is not presumed faster or better than traditional searches. See [general experiments](EXPERIMENTS.md) for settings, feedback and limits.
+Other examples cover cyclic hypergraphs, hypertrees and optional CPU CEM. Scheduling and refinement stay inside the task’s finite grid. To expand the scope or budget, submit a new task within the host’s limits. Bundles preserve raw objectives separately from training guidance, verified instances, checkpoints, structural observations, hypothesis witnesses and proof gaps. CEM is not presumed faster or better than traditional searches. See [general experiments](EXPERIMENTS.md) for settings, feedback and limits.
 
 ## 6. Results, memory, extensions and migration
 
@@ -389,7 +369,7 @@ This English guide covers installation and the user workflows. Detailed paramete
 | [Inputs](OFFLINE_INPUTS.md) / [Tool contracts](model/TOOL_REFERENCE.md) | Formats, examples, outputs and effects |
 | [Graphics](GRAPHICS.md) | Graph input, layout, TikZ and paper schematics |
 | [API](API.md) / [MCP](MCP.md) / [Batch](BATCH.md) | Service setup, host integration and multi-case tasks |
-| [General experiments](EXPERIMENTS.md) | Reviewed prepare/execute/study, search backends, CPU CEM, feedback and hypothesis checks |
+| [General experiments](EXPERIMENTS.md) | Candidate evaluation and search, CPU CEM, optional feedback and hypothesis checks |
 | [Results and memory](RESULTS_AND_MEMORY.md) / [Extensions](EXTENSIONS.md) | Saved research, cleanup, preferences and governed development |
 | [Numerical methods](NUMERICS.md) | High-α algorithms, diagnostics and exact tensor elimination |
 | [Python interfaces](reference/PYTHON_API.md) | Library use outside desktop forms |
@@ -398,8 +378,3 @@ This English guide covers installation and the user workflows. Detailed paramete
 | [Provenance](provenance/README.md) / [Attribution](../NOTICE.md) | Migration records and author credits |
 
 A complete Windows installer, full implicit 3D plotting and automatic TeX compilation are not included. Numerical outputs and finite extension test cases do not establish general theorems. Source-migration records are maintenance references, not a list of missing research capabilities.
-
-
-## Counterexample search
-
-See [bounded counterexample search and independent verification](COUNTEREXAMPLE_SEARCH.md#english-summary). It supports fixed-n/m connected simple graphs with 2..128 vertices and at most 1024 edges, rule-based search without API, and optional explicitly configured model strategy selection. The download links above refer to the last published rc6 release, which does not include this development feature.

@@ -1,38 +1,28 @@
-# 当前版本：0.38.0a10
+# 当前版本：0.38.0a11
 
-更新日期：2026-10-28。[下载v0.38.0a10预发布版](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a10)可获取源码ZIP、Python wheel、中英文安装说明、交给主agent的本地验收任务书、验证摘要及SHA256清单。v0.38.0a2保留原样，附件不下架；Git标签、源码历史、署名与迁移记录继续保留。
+[v0.38.0a11 预发布页](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a11) · [中文安装指南](../../使用指南.md) · [English user guide](../QUICKSTART.md)
 
-## 本次更新
+a11 整理源码包和维护说明。已经使用 a10 的研究任务可继续用原环境完成；新建环境或验收这次整理时，选 a11 的源码 ZIP 或 wheel。
 
-- 项目许可证由MIT改为**Apache-2.0**，LICENSE为Apache基金会官方原文逐字未改；版权声明写入[NOTICE.md](../../NOTICE.md)。供应的Haiying Shan原始Sage文件仍按其记录的MIT授权分发并保留署名——MIT允许并入Apache-2.0作品，项目整体换证不撤销也不收窄这些条款。许可证变更自本版本起生效，已发布的v0.38.0a2附件仍为MIT，该授权不可撤回。
-- 增加审批生命周期与用户操作回执：任务审批状态、任务结果与桌面／MCP两侧的批准入口统一到同一状态机。普通任务不产生批准状态，也不创建事件签名存储。
-- 一致超图邻接与α张量谱接入有限实验搜索，可在预算内用CEM与局部搜索比较候选。
-- 新增运行时资源与序列化边界；失败后的逐步覆盖与交付核验继续保留。
-- 桌面端补齐原生启动诊断与本地化文案；文档、示意图与示例同步更新。
+## 与 a10 相比
 
-宿主禁止读取Python标准库的策略仍可能阻止计算，需要在原宿主复验；诊断改进不代表应用能自行解除宿主权限。
+- 保留 Windows 桌面、本地工具、科研对话和 MCP 入口；两个命令行启动脚本共用一份环境检查，原入口仍可使用。
+- 首页按研究任务导航，中英文指南保留安装和首个计算示例。[本地验收任务书](../reference/LOCAL_ACCEPTANCE.md)说明如何从新目录确认版本、运行计算并记录结果。
+- [工作流程](../WORKFLOW.md)集中说明图示维护；默认保存 SVG 与 Mermaid 总览，独立 PNG 和 Mermaid 源文件可按需导出。离线工具的输入例子保留为可直接导入的 JSON，示例压缩包可按需生成。
+- 源码导出现在还会排除编辑器配置、缓存、临时文件和常见密钥文件。授权、署名和历史验证记录继续保留；项目采用 [Apache-2.0](../../LICENSE)，原 Sage 文件的 MIT 署名见 [NOTICE](../../NOTICE.md)。
 
-## 能力与安装
+## 七个发布附件
 
-47项内置计算工具，13个MCP调度／集成入口；保留本地桌面、API科研对话、MCP和prepare／execute／study有限研究流程。一般超图允许含环，超树为可选条件；张量工具仍遵守一致性要求。已有绘图、拖动布局、论文示意图、坐标显示、整图标签、TikZ和中英文界面。
+| 需要做什么 | 附件 |
+| --- | --- |
+| 在新电脑安装，或取得完整源码 | [源码 ZIP](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a11/algebraic-graph-theory-research-assistant-0.38.0a11-source.zip) |
+| 装入已有 Python 环境 | [Python wheel](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a11/graph_research_assistant-0.38.0a11-py3-none-any.whl) |
+| 单独阅读操作步骤 | [中文安装说明](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a11/INSTALL_CN.md) · [English installation guide](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a11/INSTALL_EN.md) |
+| 在自己的环境复验 | [本地验收任务书](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a11/LOCAL_TEST_PLAN_zh.md) |
+| 查本版实际检查范围与附件哈希 | [验证记录](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a11/RELEASE_VALIDATION.json) · [SHA256 清单](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/download/v0.38.0a11/SHA256SUMS.txt) |
 
-安装见[中文总指南](../../使用指南.md)或[English guide](../QUICKSTART.md)。推荐源码ZIP；仍需64位Python及联网安装依赖，.exe为本地启动器。CEM另需可选CPU PyTorch，[all]不包含torch。不附带Python运行时、模型密钥或用户研究数据。
+安装需要 64 位 Python 和依赖，Windows 启动器不会自行安装 Python。运行 CEM 搜索时另装 CPU PyTorch。升级时在新目录安装，重启桌面并让 MCP 宿主指向新环境；不要用旧检查点强行续跑其他核心版本。有限搜索和数值观察不能替代一般性证明。
 
-旧运行副本不会自动更新；请在新目录解压安装，确认后再迁移研究数据。升级后重启桌面／重连MCP并刷新契约。跨核心版本继续计算检查点不保证兼容，不编辑哈希强行恢复。
+## 历史版本
 
-## 验证依据
-
-0.38.0a10的全量验收于2026-10-26完成：931项测试全部通过，58个交付样例全部通过，测试ID指纹与基线逐字节一致，前后核心封条与源码指纹均未漂移。许可证变更后再次运行931项回归，全部通过。本版本wheel在构建时校验核心封条、拒绝陈旧源文件并核对必需模块清单。
-
-新版本的包、版本、文档、安装后计算及附件核验范围记录在[0.38.0a10验证摘要](0.38.0a10-validation.json)，附件RELEASE_VALIDATION.json另记录实际下载文件的校验值。
-
-更早的验收记录保留于[0.38.0a2验证摘要](0.38.0a2-validation.json)与[0.38.0a1历史验证](0.38.0a1-validation.json)，只对应当时基线，不代表本次重新执行。反馈修复过程见[历史修复验证摘要](0.38.0a1-feedback-validation.json)。完整原样日志只保留本机，不随源码分发。复验任务书见[本地验收](../reference/LOCAL_ACCEPTANCE.md)。未调用付费模型API，远端CI按用户要求跳过。
-
-## 保留的边界
-
-- 不是独立Windows安装器；完整桌面及受保护计算目前在Windows验证。
-- 未提供专用study桌面表单、无限自主扩域、非一致超树专用构造或study张量指标。
-- 有限搜索、数值观察与未找到反例不能代替一般数学证明。
-- 启动器exe是项目Python引导程序，未做Authenticode数字签名；Windows可能提示未知发布者。
-- 提交与标签未做GPG／SSH签名，来源完整性以源码指纹和封条为准。
-- 旧Release保留不等于其验证记录适用于当前版本；当前下载入口统一指向v0.38.0a10。
+[v0.38.0a10](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a10) 与 [v0.38.0a2](https://github.com/735336168liuxiaoqi-hub/algebraic-graph-theory-research-assistant/releases/tag/v0.38.0a2) 保留原发布附件。[a10 验证摘要](0.38.0a10-validation.json)、[a2 验证摘要](0.38.0a2-validation.json)、[a1 验证摘要](0.38.0a1-validation.json)及[早期修复记录](0.38.0a1-feedback-validation.json)仅对应各自版本。a2 当时按 MIT 发布，其授权不随新版变更。

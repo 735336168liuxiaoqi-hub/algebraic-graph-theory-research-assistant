@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 import sys
 import tempfile
-import zipfile
 
 root=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(root))
@@ -23,12 +22,12 @@ def main():
     expected={'format':'graph-research-offline-inputs','version':1,'tools':guides}
     if json.loads((root/'docs/offline-inputs.json').read_text(encoding='utf-8'))!=expected:mismatches.append('docs/offline-inputs.json')
     if (root/'docs/OFFLINE_INPUTS.md').read_text(encoding='utf-8')!=render_manual(definitions):mismatches.append('docs/OFFLINE_INPUTS.md')
-    with zipfile.ZipFile(root/'examples/offline-inputs.zip') as archive:
-        for guide in guides:
-            if not guide['examples']:continue
-            name=guide['name']+'.json';value=guide['examples'][0]['arguments']
-            if json.loads((root/'examples/offline-inputs'/name).read_text(encoding='utf-8'))!=value:mismatches.append('examples/offline-inputs/'+name)
-            if json.loads(archive.read(name))!=value:mismatches.append('examples/offline-inputs.zip:'+name)
+    examples=root/'examples/offline-inputs'
+    expected_files={guide['name']+'.json':guide['examples'][0]['arguments'] for guide in guides if guide['examples']}
+    for name in sorted(set(expected_files) | {path.name for path in examples.glob('*.json')}):
+        path=examples/name
+        if name not in expected_files or not path.is_file() or json.loads(path.read_text(encoding='utf-8'))!=expected_files[name]:
+            mismatches.append('examples/offline-inputs/'+name)
     from tools.build_sage_review import build
     review,report=build()
     if json.loads((root/'docs/sage-replacement-review.json').read_text(encoding='utf-8'))!=review:mismatches.append('docs/sage-replacement-review.json')

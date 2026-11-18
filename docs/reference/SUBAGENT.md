@@ -4,7 +4,7 @@
 
 本版增加统一的任务输入、结构化返回、暂停等待用户与审批传递接口。主agent可把图论计算委派给此助手；宿主负责展示问题、确认用户身份和接收真实用户操作。没有绑定特定模型或主agent框架，没有部署网络服务。
 
-本地0.38.0a4的MCP用户可通过桌面“任务审批”完成确认、回复与study反馈：窗口签发绑定当前交互的事件，原MCP服务的固定投递循环自动继续，主agent查询原task_id即可。Python门户与CLI兼容接口不变；GUI没有增加模型可调用的签发工具。操作步骤及独立开发申请边界见[MCP任务审批](../MCP.md#桌面任务审批)。
+MCP 用户可通过桌面“任务审批”完成确认、回复与study反馈：窗口签发绑定当前交互的事件，原MCP服务的固定投递循环自动继续，主agent查询原task_id即可。Python门户与CLI兼容接口不变；GUI没有增加模型可调用的签发工具。操作步骤及独立开发申请边界见[MCP任务审批](../MCP.md#桌面任务审批)。
 
 ## 接入边界
 
@@ -199,7 +199,7 @@ python examples/subagent_demo.py --simulate-user-approval --output outputs/subag
 
 ## 通用有限实验
 
-开发源码0.38.0a1增加execution.mode=experiment，操作为prepare／execute／study。完整问题、搜索、控制器动作及反馈Schema在experiment_contracts；见[通用实验说明](../EXPERIMENTS.md)。prepare不执行；execute及study先暂停审阅，只有绑定当前交互的可信continue事件才能开始。规则study无需内部模型；模型调度需要model_factory／现有模型配置和正的模型预算。
+`execution.mode=experiment` 支持三个操作：`prepare` 只生成草案，`execute` 评价指定候选，`study` 进行有限搜索。后两者在输入、权限、预算校验通过后默认运行；`constraints.require_review` 或宿主选项 `--confirm-experiments` 可要求一次初审，`pause_at_checkpoints` 单独控制检查点反馈。规则搜索无需内部模型；模型调度需配置模型并分配模型预算。完整输入和示例见[通用实验说明](../EXPERIMENTS.md)。
 
 study分段暂停时，可信宿主可调用`portal.study_feedback(task_id, interaction_id, revision, value)`；value可含knobs、focus_runs、hypotheses及note。该方法只签发事件，随后由parent.resume传递；不能注册成模型工具。它不能提高预算或添加网格外实例。使用allowed_tools白名单时，明确候选评价需允许experiment_evaluate，搜索需允许experiment_search；它们是固定保护操作，不是第48/49项公开工具。
 

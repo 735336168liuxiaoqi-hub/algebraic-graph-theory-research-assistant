@@ -1,6 +1,6 @@
 # 反例搜索与独立核验
 
-适用开发版 `0.37.0a2`。这是一个专用研究子任务：反驳“参考图在相同顶点数、边数的连通简单图中邻接谱半径最大”。目前支持 **2..128 个顶点、至多1024条边、无向、无权、连通简单图**。
+本任务用于反驳“参考图在相同顶点数、边数的连通简单图中邻接谱半径最大”。目前支持 **2..128 个顶点、至多1024条边、无向、无权、连通简单图**。
 
 只验证这些明确条件，不支持任意自然语言猜想、额外禁子图、度序列、带权/有向图或超图。专用任务拒绝非空 `definitions` 和不支持的字段，避免把较宽图类的反例用于较窄图类。定义不清时，由主 agent 或现有 API 对话先向用户澄清。
 
@@ -82,11 +82,11 @@
 
 ## English summary
 
-`execution.mode="counterexample"` searches for a connected unweighted simple graph with the reference graph's vertex/edge counts and a strictly larger adjacency spectral radius. The first version supports 2..128 vertices and at most 1024 edges only. Nonempty `definitions` and unsupported constraints are rejected.
+`execution.mode="counterexample"` searches for a connected unweighted simple graph with the reference graph's vertex/edge counts and a strictly larger adjacency spectral radius. The supported range is 2..128 vertices and at most 1024 edges only. Nonempty `definitions` and unsupported constraints are rejected.
 
 `planner="rules"` needs no model. `planner="model"` requires explicit host configuration and a positive model budget. The model can choose a bounded search strategy or stop; it cannot change graphs, budgets, approvals or verification outcomes. Screening is numerical. Up to 12 vertices, verification uses exact characteristic-polynomial root intervals; larger graphs use independently checked rational Rayleigh/Collatz bounds. A positive strict difference is required in both cases. The recent SHA256 cache holds up to 512 labelled graphs and can evict older entries.
 
-Outcomes distinguish a verified counterexample, no witness within the search budget, and an unverified candidate. No-witness results never prove optimality. Existing task IDs, replay handling, cancellation, trusted resume and result bundles are reused. Install the 0.37.0a2 prerelease or current source; reconnecting an old installed runtime alone will not update its code.
+Outcomes distinguish a verified counterexample, no witness within the search budget, and an unverified candidate. No-witness results never prove optimality. Existing task IDs, replay handling, cancellation, trusted resume and result bundles are reused. Use the [current release](releases/CURRENT.md) or its matching source. Update the runtime launched by the host before reconnecting.
 
 
 ## 扩容后的严格核验

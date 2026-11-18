@@ -4,5 +4,8 @@
 *.zip binary
 *.png binary
 *.pdf binary
-# Windows cmd.exe must receive the desktop launcher with native line endings.
+# Windows command launchers need native line endings.
 start-desktop.cmd text eol=crlf
+start-assistant.cmd text eol=crlf
+start-offline.cmd text eol=crlf
+tools/start-cli.cmd text eol=crlf

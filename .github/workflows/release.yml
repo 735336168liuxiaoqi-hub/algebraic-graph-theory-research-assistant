@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Tag matching graph_research/_version.py, for example v0.36.0rc4
+        description: Tag matching graph_research/_version.py
         required: true
       publish:
         description: Publish the reviewed release after the rights/license check passes
@@ -17,6 +17,8 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    outputs:
+      prerelease: ${{ steps.version.outputs.prerelease }}
     timeout-minutes: 40
     env:
       PYTHONUTF8: '1'
@@ -44,9 +46,12 @@ jobs:
           .venv/Scripts/python.exe -m pip install --no-deps --no-build-isolation -e .
           if ($LASTEXITCODE -ne 0) { throw "Project installation failed" }
       - name: Match requested tag to this source
+        id: version
         env:
           REQUESTED_TAG: ${{ inputs.tag }}
-        run: .venv/Scripts/python.exe -c "import os,graph_research; assert os.environ['REQUESTED_TAG']=='v'+graph_research.__version__, 'Tag does not match package version'"
+        shell: pwsh
+        run: |
+          .venv/Scripts/python.exe -c "import os,graph_research; from packaging.version import Version; v=graph_research.__version__; assert os.environ['REQUESTED_TAG']=='v'+v, 'Tag does not match package version'; print('prerelease='+str(Version(v).is_prerelease).lower())" >> $env:GITHUB_OUTPUT
       - name: Reject public publication without confirmed rights
         if: ${{ inputs.publish }}
         run: .venv/Scripts/python.exe tools/check_public_release.py
@@ -61,14 +66,32 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Independent wheel verification failed" }
       - name: Export clean source candidate
         run: .venv/Scripts/python.exe -X utf8 tools/prepare_public_release.py --output dist/source-candidate
+      - name: Assemble release attachments
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        shell: pwsh
+        run: |
+          $version = $env:RELEASE_TAG.Substring(1)
+          $candidate = Get-Content dist/source-candidate/candidate.json -Raw | ConvertFrom-Json
+          $summary = Get-Content outputs/release-acceptance/checks-summary.json -Raw | ConvertFrom-Json
+          if ($summary.status -ne 'passed' -or $candidate.version -ne $version) { throw 'Release checks incomplete' }
+          @{
+            version = $version
+            source_commit = $env:GITHUB_SHA
+            workflow_run_id = $env:GITHUB_RUN_ID
+            checks = @('Windows CI: tools/checks.py --full --strict-lock passed', 'Built and independently verified wheel', 'Exported and verified clean source candidate')
+            limitations = @('CI results apply to this runner and commit; they do not certify clean end-user installations or external model services.')
+          } | ConvertTo-Json | Set-Content -Encoding utf8 dist/ci-evidence.json
+          .venv/Scripts/python.exe -X utf8 tools/assemble_release_assets.py --source $candidate.source_archive --wheel "dist/graph_research_assistant-$version-py3-none-any.whl" --evidence dist/ci-evidence.json --output dist/release-assets
       - uses: actions/upload-artifact@v4
         with:
-          name: release-candidate
-          path: |
-            dist/*.whl
-            dist/source-candidate/*-source-candidate.zip
-            dist/source-candidate/candidate.json
-            outputs/release-acceptance
+          name: release-assets
+          path: dist/release-assets/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-checks
+          path: outputs/release-acceptance/
 
   publish:
     if: ${{ inputs.publish }}
@@ -80,19 +103,20 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/download-artifact@v4
         with:
-          name: release-candidate
+          name: release-assets
           path: release-artifacts
       - name: Create the requested release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag }}
           TARGET_COMMIT: ${{ github.sha }}
+          IS_PRERELEASE: ${{ needs.build.outputs.prerelease }}
         shell: pwsh
         run: |
-          $assets = @(Get-ChildItem -LiteralPath release-artifacts -Recurse -File | Where-Object { $_.Name -like '*.whl' -or $_.Name -like '*-source-candidate.zip' })
-          if ($assets.Count -ne 2) { throw "Expected exactly a wheel and a source archive" }
+          $assets = @(Get-ChildItem -LiteralPath release-artifacts -File)
+          if ($assets.Count -ne 7) { throw "Expected exactly seven assembled attachments" }
           $assetPaths = @($assets | ForEach-Object FullName)
           $releaseArgs = @('release', 'create', $env:RELEASE_TAG, '--target', $env:TARGET_COMMIT, '--title', "Algebraic Graph Theory Research Assistant $env:RELEASE_TAG", '--generate-notes')
-          if ($env:RELEASE_TAG -match 'rc|alpha|beta') { $releaseArgs += '--prerelease' }
+          if ($env:IS_PRERELEASE -eq 'true') { $releaseArgs += '--prerelease' }
           & gh @releaseArgs @assetPaths
           if ($LASTEXITCODE -ne 0) { throw "GitHub release creation failed" }

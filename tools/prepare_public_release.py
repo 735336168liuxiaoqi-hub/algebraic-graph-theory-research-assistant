@@ -13,7 +13,9 @@ ROOT_FILES={'.gitattributes','.gitignore','pyproject.toml','requirements.txt','r
             'start-offline.cmd','algebraic graph theory research assistant.exe'}
 ROOT_DOCS={'README.md','使用指南.md','CONTRIBUTING.md','NOTICE.md','LICENSE','LICENSE-STATUS.md'}
 FOLDERS=('graph_research','tests','tools','docs','examples','.github','.githooks')
-PRIVATE_COMPONENTS={'.git','.venv','__pycache__','outputs','tmp','dist','tool_packages','user_memory','legacy_sage'}
+PRIVATE_COMPONENTS={'.git','.venv','__pycache__','outputs','tmp','dist','build','tool_packages','user_memory','legacy_sage',
+                    '.vscode','.idea','.ruff_cache','.pytest_cache','.mypy_cache','.ipynb_checkpoints'}
+LOCAL_SUFFIXES={'.pyc','.pyo','.bak','.tmp','.log','.orig','.rej','.swp','.key','.pem'}
 EXTERNAL_TEMPLATES={'tasks.json','report-template.json','assistant-prompt.md','baseline-prompt.md'}
 
 
@@ -25,7 +27,10 @@ def selected_files(root):
     for folder in FOLDERS:
         for path in (root/folder).rglob('*'):
             relative=path.relative_to(root)
-            if any(p in PRIVATE_COMPONENTS for p in relative.parts) or path.suffix in ('.pyc','.pyo'):continue
+            if any(part.lower() in PRIVATE_COMPONENTS or part.lower().startswith(('.venv-','.env.'))
+                   or part.lower() == '.env' or part.lower().endswith('.egg-info') for part in relative.parts):continue
+            if path.suffix.lower() in LOCAL_SUFFIXES or path.name.endswith('~') or path.name.lower() in {'.ds_store','thumbs.db'}:continue
+            if relative.as_posix()=='examples/offline-inputs.zip':continue
             # Personal study scripts are not application distribution tools.
             if folder=='tools' and (path.name.startswith('refactor_') or path.name in {'prepare_native_workflow.py','power_check_paired.py'}):continue
             if folder=='examples' and len(relative.parts)>1 and relative.parts[1]=='external_v0351':

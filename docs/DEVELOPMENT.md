@@ -26,6 +26,8 @@ python -X utf8 tools/checks.py --full --strict-lock
 
 纯文档维护校验相对链接、源码导出内容和生成记录；不需要重新封存数学核心。确实修改核心时，维护者审阅后才使用 `tools/seal_release.py` 更新清单，不可用重封存掩盖来源不明的损坏。
 
+首页只负责引导首次使用；安装和第一次计算维护在中英文指南，接口细节维护在对应专题。[交付验收清单](reference/LOCAL_ACCEPTANCE.md)随源码分发，不依赖本机历史报告。离线输入示例只维护 `examples/offline-inputs/` 中由工具定义生成的 JSON；若需单独分享整套示例，可运行 `tools/export_input_guides.py --overwrite --archive`（用项目 Python 执行），压缩包写入 `dist/offline-inputs.zip`，不嵌套进源码包。
+
 ## 代码结构
 
 `graphs`、`hypergraphs`、`tensors`和`algebra`存放计算；`rendering`与`schematics`负责图形；`tools`负责工具契约；`desktop`、`assistant`和`mcp`提供入口；`runtime`负责受保护执行与诊断。外部扩展和用户状态不放入基础包。

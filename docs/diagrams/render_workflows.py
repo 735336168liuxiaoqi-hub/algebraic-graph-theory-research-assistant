@@ -1,9 +1,10 @@
-"""Render the documentation's shared graph data to SVG, PNG and Mermaid.
+"""Render the documentation's shared graph data to SVG and a Mermaid page.
 
 Run with the desktop extra installed: python docs/diagrams/render_workflows.py
-Only files beside this script are generated. No service or model is called.
+Use --export-dir DIR for standalone PNG and Mermaid files. No service is called.
 """
 from pathlib import Path
+import argparse
 import hashlib
 import html
 import json
@@ -59,7 +60,7 @@ def mermaid(chart):
     return '\n'.join(lines)+'\n'
 
 
-def render(chart):
+def render(chart,export_dir):
     width,height=chart['width'],chart['height'];nodes={node['id']:node for node in chart['nodes']}
     if len(nodes)!=len(chart['nodes']):raise ValueError('Duplicate node ID')
     bounds=[]
@@ -110,27 +111,32 @@ def render(chart):
     parts.append(f'<line x1="60" x2="{width-60}" y1="{footer_top}" y2="{footer_top}" stroke="#e3e9ec"/>')
     for i,text in enumerate(chart['footer']):parts.append(label(60,footer_top+26+i*24,text,16,'#647481',400,'start'))
     parts.append('</svg>');svg='\n'.join(parts)+'\n'
-    target=HERE/(chart['id']+'.svg');target.write_text(svg,encoding='utf-8')
+    target=HERE/(chart['id']+'.svg');target.write_text(svg,encoding='utf-8',newline='\r\n')
     renderer=QSvgRenderer(svg.encode('utf-8'))
     if not renderer.isValid():raise ValueError('Invalid SVG')
-    image=QImage(width,height,QImage.Format.Format_ARGB32);image.fill(Qt.GlobalColor.white)
-    painter=QPainter(image);renderer.render(painter);painter.end()
-    if not image.save(str(HERE/(chart['id']+'.png'))):raise OSError('PNG could not be saved')
-    (HERE/(chart['id']+'.mmd')).write_text(mermaid(chart),encoding='utf-8')
+    if export_dir is not None:
+        image=QImage(width,height,QImage.Format.Format_ARGB32);image.fill(Qt.GlobalColor.white)
+        painter=QPainter(image);renderer.render(painter);painter.end()
+        if not image.save(str(export_dir/(chart['id']+'.png'))):raise OSError('PNG could not be saved')
+        (export_dir/(chart['id']+'.mmd')).write_text(mermaid(chart),encoding='utf-8',newline='\r\n')
     return {'id':chart['id'],'nodes':len(nodes),'edges':len(chart['edges']),
             'svg_sha256':hashlib.sha256(target.read_bytes()).hexdigest()}
 
 
 def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--export-dir',type=Path,help='also export standalone PNG and Mermaid files to DIR')
+    export_dir=parser.parse_args().export_dir
+    if export_dir is not None:export_dir.mkdir(parents=True,exist_ok=True)
     app=QGuiApplication.instance() or QGuiApplication([])
     windows_font=Path('C:/Windows/Fonts/msyh.ttc')
     if windows_font.is_file():QFontDatabase.addApplicationFont(str(windows_font))
     data=json.loads((HERE/'workflows.json').read_text(encoding='utf-8'))
-    rows=[render(chart) for chart in data['charts']]
+    rows=[render(chart,export_dir) for chart in data['charts']]
     page=['# 工作流程 · Mermaid 版本','','由workflows.json生成；图像版本与使用说明见[工作流程](../WORKFLOW.md)。','']
     for chart in data['charts']:
         page.extend(['## '+chart['title'],'','```mermaid',mermaid(chart).rstrip(),'```',''])
-    (HERE/'MERMAID.md').write_text('\n'.join(page),encoding='utf-8')
+    (HERE/'MERMAID.md').write_text('\n'.join(page),encoding='utf-8',newline='\r\n')
     print(json.dumps({'rendered':rows,'source':'workflows.json'},ensure_ascii=False,indent=2))
     app.quit()
 
